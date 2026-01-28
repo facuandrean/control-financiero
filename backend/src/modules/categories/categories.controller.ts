@@ -6,7 +6,8 @@ import { sendSuccess } from "@core/utils/responses";
 export const categoryController = {
   getAllCategories: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const allCategories: Category[] = await categoryService.getAllCategories();
+      const userID = req.user.id;
+      const allCategories: Category[] = await categoryService.getAllCategories(userID);
       return sendSuccess(res, allCategories);
     } catch (error) {
       next(error);
@@ -16,8 +17,9 @@ export const categoryController = {
   getCategoryById: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
+      const userID = req.user.id;
 
-      const exists = await categoryService.getCategoryById(id);
+      const exists = await categoryService.getCategoryById(id, userID);
 
       return sendSuccess(res, exists);
     } catch (error) {
@@ -45,7 +47,8 @@ export const categoryController = {
     try {
       const id = req.params.id as string;
 
-      await categoryService.getCategoryById(id);
+      const userID = req.user.id;
+      await categoryService.getCategoryById(id, userID);
 
       const data: UpdateCategoryInput = req.body;
       
@@ -60,7 +63,8 @@ export const categoryController = {
     try {
       const id = req.params.id as string;
 
-      await categoryService.getCategoryById(id);
+      const userID = req.user.id;
+      await categoryService.getCategoryById(id, userID);
 
       const deactivatedCategory: Category = await categoryService.deactivateCategory(id);
       return sendSuccess(res, deactivatedCategory);

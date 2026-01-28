@@ -6,7 +6,8 @@ import { entityService } from "./entities.service";
 export const entityController = {
   getAllEntities: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const allEntities: Entity[] = await entityService.getAllEntities();
+      const userID = req.user.id;
+      const allEntities: Entity[] = await entityService.getAllEntities(userID);
       return sendSuccess(res, allEntities);
     } catch (error) {
       next(error);
@@ -16,8 +17,8 @@ export const entityController = {
   getEntityById: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
-      const exists = await entityService.getEntityById(id);
+      const userID = req.user.id;
+      const exists = await entityService.getEntityById(id, userID);
 
       return sendSuccess(res, exists);
     } catch (error) {
@@ -45,7 +46,8 @@ export const entityController = {
     try {
       const id = req.params.id as string;
 
-      await entityService.getEntityById(id);
+      const userID = req.user.id;
+      await entityService.getEntityById(id, userID);
 
       const data: UpdateEntityInput = req.body;
       
@@ -60,7 +62,8 @@ export const entityController = {
     try {
       const id = req.params.id as string;
 
-      await entityService.getEntityById(id);
+      const userID = req.user.id;
+      await entityService.getEntityById(id, userID);
 
       const deactivatedEntity: Entity = await entityService.deactivateEntity(id);
       return sendSuccess(res, deactivatedEntity);

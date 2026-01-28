@@ -2,20 +2,20 @@ import { db } from "@core/db/db";
 import { entities } from "./entities.schema";
 import { AppError } from "@core/utils/AppError";
 import { Entity, CreateEntityInput, NewEntity, UpdateEntityInput } from "./entities.types";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 
 export const entityService = {
-  getAllEntities: async (): Promise<Entity[]> => {
-    const allEntities = await db.select().from(entities).all();
+  getAllEntities: async (userID: string): Promise<Entity[]> => {
+    const allEntities = await db.select().from(entities).where(eq(entities.userID, userID)).all();
     if (!allEntities) {
       throw new AppError("No se encontraron entidades", 404, "ENTITIES_NOT_FOUND");
     }
     return allEntities;
   },
 
-  getEntityById: async (id: string): Promise<Entity> => {
-    const entity = await db.select().from(entities).where(eq(entities.id, id)).get();
+  getEntityById: async (id: string, userID: string): Promise<Entity> => {
+    const entity = await db.select().from(entities).where(and(eq(entities.id, id), eq(entities.userID, userID))).get();
     if (!entity) {
       throw new AppError("Entidad no encontrada", 404, "ENTITY_NOT_FOUND");
     }

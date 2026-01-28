@@ -2,20 +2,20 @@ import { db } from "@core/db/db";
 import { accounts } from "./accounts.schema";
 import { AppError } from "@core/utils/AppError";
 import { Account, CreateAccountInput, NewAccount, UpdateAccountInput } from "./accounts.types";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 
 export const accountService = {
-  getAllAccounts: async (): Promise<Account[]> => {
-    const allAccounts = await db.select().from(accounts).all();
+  getAllAccounts: async (userID: string): Promise<Account[]> => {
+    const allAccounts = await db.select().from(accounts).where(eq(accounts.userID, userID)).all();
     if (!allAccounts) {
       throw new AppError("No se encontraron cuentas", 404, "ACCOUNTS_NOT_FOUND");
     }
     return allAccounts;
   },
 
-  getAccountById: async (id: string): Promise<Account> => {
-    const account = await db.select().from(accounts).where(eq(accounts.id, id)).get();
+  getAccountById: async (id: string, userID: string): Promise<Account> => {
+    const account = await db.select().from(accounts).where(and(eq(accounts.id, id), eq(accounts.userID, userID))).get();
     if (!account) {
       throw new AppError("Cuenta no encontrada", 404, "ACCOUNT_NOT_FOUND");
     }

@@ -3,7 +3,7 @@ import { config } from 'config';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { sessions } from './auth.schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { AppError } from '@core/utils/AppError';
 
 export const authService = {
@@ -18,9 +18,9 @@ export const authService = {
   },
 
   // Creamos la sesión y devolvemos los tokens al controlador
-  createSession: async (userId: string, userAgent: string, ipAddress: string) => {
+  createSession: async (userID: string, userAgent: string, ipAddress: string) => {
     const accessToken = jwt.sign(
-      { id: userId }, 
+      { id: userID }, 
       config.accessTokenSecret!, 
       { expiresIn: "15m" }
     );
@@ -32,11 +32,12 @@ export const authService = {
 
     await db.insert(sessions).values({
       id: crypto.randomUUID(),
-      userId,
+      userID: userID,
       tokenHashed,
       userAgent,
       ipAddress,
-      expiresAt
+      expiresAt,
+      createdAt: sql`CURRENT_TIMESTAMP`,
     });
 
     return { accessToken, refreshToken };
@@ -57,7 +58,7 @@ export const authService = {
       throw new AppError("Sesión no válida o expirada", 401, "INVALID_REFRESH_TOKEN");
     }
 
-    const accessToken = jwt.sign({ id: sessionData.userId }, config.accessTokenSecret!, { expiresIn: "15m" });
+    const accessToken = jwt.sign({ id: sessionData.userID }, config.accessTokenSecret!, { expiresIn: "15m" });
 
     return { accessToken };
   }

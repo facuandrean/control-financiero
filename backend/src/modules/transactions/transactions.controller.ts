@@ -17,8 +17,9 @@ export const transactionController = {
   getTransactionById: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
-      const exists = await transactionService.getTransactionById(id);
+      
+      const userID = req.user.id;
+      const exists = await transactionService.getTransactionById(id, userID);
 
       return sendSuccess(res, exists);
     } catch (error) {
@@ -46,7 +47,8 @@ export const transactionController = {
     try {
       const id = req.params.id as string;
 
-      await transactionService.getTransactionById(id);
+      const userID = req.user.id;
+      await transactionService.getTransactionById(id, userID);
 
       const data: UpdateTransactionInput = req.body;
       
@@ -61,7 +63,8 @@ export const transactionController = {
     try {
       const id = req.params.id as string;
 
-      await transactionService.getTransactionById(id);
+      const userID = req.user.id;
+      await transactionService.getTransactionById(id, userID);
 
       const revertedTransaction: Transaction = await transactionService.revertTransaction(id);
       return sendSuccess(res, revertedTransaction);

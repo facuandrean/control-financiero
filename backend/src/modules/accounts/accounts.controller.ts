@@ -6,7 +6,8 @@ import { accountService } from "./accounts.service";
 export const accountController = {
   getAllAccounts: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const allAccounts: Account[] = await accountService.getAllAccounts();
+      const userID = req.user.id;
+      const allAccounts: Account[] = await accountService.getAllAccounts(userID);
       return sendSuccess(res, allAccounts);
     } catch (error) {
       next(error);
@@ -16,8 +17,8 @@ export const accountController = {
   getAccountById: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
-      const exists = await accountService.getAccountById(id);
+      const userID = req.user.id;
+      const exists = await accountService.getAccountById(id, userID);
 
       return sendSuccess(res, exists);
     } catch (error) {
@@ -45,7 +46,8 @@ export const accountController = {
     try {
       const id = req.params.id as string;
 
-      await accountService.getAccountById(id);
+      const userID = req.user.id;
+      await accountService.getAccountById(id, userID);
 
       const data: UpdateAccountInput = req.body;
       
@@ -60,7 +62,8 @@ export const accountController = {
     try {
       const id = req.params.id as string;
 
-      await accountService.getAccountById(id);
+      const userID = req.user.id;
+      await accountService.getAccountById(id, userID);
 
       const deactivatedAccount: Account = await accountService.deactivateAccount(id);
       return sendSuccess(res, deactivatedAccount);

@@ -2,20 +2,20 @@ import { db } from "@core/db/db"
 import { categories } from "./categories.schema"
 import { Category, CreateCategoryInput, NewCategory, UpdateCategoryInput } from "./categories.types"
 import { AppError } from "@core/utils/AppError";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 
 export const categoryService = {
-  getAllCategories: async (): Promise<Category[]> => {
-    const allCategories = await db.select().from(categories).all();
+  getAllCategories: async (userID: string): Promise<Category[]> => {
+    const allCategories = await db.select().from(categories).where(eq(categories.userID, userID)).all();
     if (!allCategories) {
       throw new AppError("No se encontraron categorías", 404, "CATEGORIES_NOT_FOUND");
     }
     return allCategories;
   },
 
-  getCategoryById: async (id: string): Promise<Category> => {
-    const category = await db.select().from(categories).where(eq(categories.id, id)).get();
+  getCategoryById: async (id: string, userID: string): Promise<Category> => {
+    const category = await db.select().from(categories).where(and(eq(categories.id, id), eq(categories.userID, userID))).get();
     if (!category) {
       throw new AppError("Categoría no encontrada", 404, "CATEGORY_NOT_FOUND");
     }
