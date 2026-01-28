@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { sendSuccess } from "@core/utils/responses";
+import { sendSuccess } from "../../core/utils/responses";
 import { Account, CreateAccountInput, NewAccount, UpdateAccountInput } from "./accounts.types";
 import { accountService } from "./accounts.service";
 

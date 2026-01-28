@@ -1,5 +1,5 @@
 import { createClient } from "@libsql/client";
-import { config } from "config";
+import { config } from "../../config";
 import { drizzle } from "drizzle-orm/libsql";
 
 if (!config.dbUrl || !config.dbToken) {

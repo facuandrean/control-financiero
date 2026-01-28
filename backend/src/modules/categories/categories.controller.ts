@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Category, CreateCategoryInput, NewCategory, UpdateCategoryInput } from "./categories.types";
 import { categoryService } from "./categories.service";
-import { sendSuccess } from "@core/utils/responses";
+import { sendSuccess } from "../../core/utils/responses";
 
 export const categoryController = {
   getAllCategories: async (req: Request, res: Response, next: NextFunction) => {

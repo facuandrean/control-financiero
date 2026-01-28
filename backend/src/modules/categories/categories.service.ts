@@ -1,7 +1,7 @@
-import { db } from "@core/db/db"
+import { db } from "../../core/db/db"
 import { categories } from "./categories.schema"
 import { Category, CreateCategoryInput, NewCategory, UpdateCategoryInput } from "./categories.types"
-import { AppError } from "@core/utils/AppError";
+import { AppError } from "../../core/utils/AppError";
 import { and, eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 

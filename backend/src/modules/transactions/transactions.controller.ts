@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { sendSuccess } from "@core/utils/responses";
+import { sendSuccess } from "../../core/utils/responses";
 import { Transaction, CreateTransactionInput, NewTransaction, UpdateTransactionInput } from "./transactions.types";
 import { transactionService } from "./transactions.service";
 
@@ -54,20 +54,6 @@ export const transactionController = {
       
       const updatedTransaction: Transaction = await transactionService.updateTransaction(id, data);
       return sendSuccess(res, updatedTransaction);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  revertTransaction: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = req.params.id as string;
-
-      const userID = req.user.id;
-      await transactionService.getTransactionById(id, userID);
-
-      const revertedTransaction: Transaction = await transactionService.revertTransaction(id);
-      return sendSuccess(res, revertedTransaction);
     } catch (error) {
       next(error);
     }

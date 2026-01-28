@@ -1,6 +1,6 @@
-import { db } from "@core/db/db";
+import { db } from "../../core/db/db";
 import { accounts } from "./accounts.schema";
-import { AppError } from "@core/utils/AppError";
+import { AppError } from "../../core/utils/AppError";
 import { Account, CreateAccountInput, NewAccount, UpdateAccountInput } from "./accounts.types";
 import { and, eq, sql } from "drizzle-orm";
 import crypto from "crypto";

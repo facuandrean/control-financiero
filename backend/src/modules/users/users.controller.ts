@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { userService } from './users.service';
-import { sendSuccess } from '@core/utils/responses';
-import { AppError } from '@core/utils/AppError';
+import { sendSuccess } from '../../core/utils/responses';
+import { AppError } from '../../core/utils/AppError';
 import { UpdateUserInput, ChangePasswordInput } from './users.types';
 
 export const userController = {

@@ -1,12 +1,12 @@
-import { db } from "@core/db/db";
+import { db } from "../../core/db/db";
 import { transactions } from "./transactions.schema";
-import { AppError } from "@core/utils/AppError";
+import { AppError } from "../../core/utils/AppError";
 import { Transaction, CreateTransactionInput, NewTransaction, UpdateTransactionInput } from "./transactions.types";
 import { and, eq, sql } from "drizzle-orm";
 import crypto from "crypto";
-import { entityService } from "@modules/entities/entities.service";
-import { categoryService } from "@modules/categories/categories.service";
-import { accountService } from "@modules/accounts/accounts.service";
+import { entityService } from "../entities/entities.service";
+import { categoryService } from "../categories/categories.service";
+import { accountService } from "../accounts/accounts.service";
 
 export const transactionService = {
   getAllTransactions: async (userID: string): Promise<Transaction[]> => {
@@ -58,26 +58,6 @@ export const transactionService = {
     }
 
     return updatedTransaction;
-  },
-
-  revertTransaction: async (id: string): Promise<Transaction> => {
-    const revertedTransaction = await db.update(transactions).set({
-      status: "Reverted",
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).where(eq(transactions.id, id)).returning().get();
-
-    if (!revertedTransaction) {
-      throw new AppError("No se pudo revertir la transacción", 500, "TRANSACTION_REVERT_FAILED");
-    }
-
-    return revertedTransaction;
-  },
-
-  deleteTransaction: async (id: string): Promise<void> => {
-    const deletedTransaction = await db.delete(transactions).where(eq(transactions.id, id)).returning().get();
-    if (!deletedTransaction) {
-      throw new AppError("No se pudo eliminar la transacción", 500, "TRANSACTION_DELETION_FAILED");
-    }
-  },
+  }
 };
 

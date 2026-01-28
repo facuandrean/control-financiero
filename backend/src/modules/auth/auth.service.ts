@@ -1,10 +1,10 @@
-import { db } from '@core/db/db';
-import { config } from 'config';
+import { db } from '../../core/db/db';
+import { config } from '../../config';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { sessions } from './auth.schema';
 import { eq, sql } from 'drizzle-orm';
-import { AppError } from '@core/utils/AppError';
+import { AppError } from '../../core/utils/AppError';
 
 export const authService = {
   // Genera un string aleatorio que será el Refresh Token

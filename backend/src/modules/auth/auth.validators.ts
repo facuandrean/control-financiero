@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 export const registerSchema = z.object({
+  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+  lastName: z.string().min(3, "El apellido debe tener al menos 3 caracteres"),
   email: z.string().email("Email inválido").min(1, "El email es requerido"),
   password: z.string()
     .min(8, "Mínimo 8 caracteres")

@@ -1,6 +1,6 @@
-import { db } from "@core/db/db";
+import { db } from "../../core/db/db";
 import { entities } from "./entities.schema";
-import { AppError } from "@core/utils/AppError";
+import { AppError } from "../../core/utils/AppError";
 import { Entity, CreateEntityInput, NewEntity, UpdateEntityInput } from "./entities.types";
 import { and, eq, sql } from "drizzle-orm";
 import crypto from "crypto";

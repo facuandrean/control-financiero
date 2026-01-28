@@ -2,17 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { authService } from './auth.service';
 import { userService } from '../users/users.service';
-import { sendSuccess } from '@core/utils/responses';
-import { AppError } from '@core/utils/AppError';
+import { sendSuccess } from '../../core/utils/responses';
+import { AppError } from '../../core/utils/AppError';
 import { sessions } from './auth.schema';
-import { db } from '@core/db/db';
+import { db } from '../../core/db/db';
 import { eq } from 'drizzle-orm';
 
 export const authController = {
   // POST /register
   register: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, password } = req.body;
+      const { email, password, name, lastName } = req.body;
 
       const existingUser = await userService.findByEmail(email);
       if (existingUser) {
@@ -21,6 +21,8 @@ export const authController = {
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = await userService.createUser({ 
+        name, 
+        lastName,
         email, 
         password: hashedPassword 
       });

@@ -1,9 +1,9 @@
-import { entities } from "@modules/entities/entities.schema";
+import { entities } from "../entities/entities.schema";
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, real } from "drizzle-orm/sqlite-core";
-import { users } from "@modules/users/users.schema";
-import { accounts } from "@modules/accounts/accounts.schema";
-import { categories } from "@modules/categories/categories.schema";
+import { users } from "../users/users.schema";
+import { accounts } from "../accounts/accounts.schema";
+import { categories } from "../categories/categories.schema";
 
 export const transactions = sqliteTable("transactions", {
   id: text("id").primaryKey(),

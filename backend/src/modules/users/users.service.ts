@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
-import { db } from '@core/db/db';
+import { db } from '../../core/db/db';
 import { User, UpdateUserInput, NewUser } from './users.types';
-import { AppError } from '@core/utils/AppError';
+import { AppError } from '../../core/utils/AppError';
 import { users } from './users.schema';
 import crypto from 'crypto';
 

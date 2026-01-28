@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "@core/middlewares/auth.middleware";
+import { authMiddleware } from "../../core/middlewares/auth.middleware";
 import { entityController } from "./entities.controller";
 
 const router = Router();
