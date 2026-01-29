@@ -1,0 +1,7 @@
+#root {
+  display: flex;
+
+  border: 1px solid blue;
+
+  min-height: 100vh;
+}
