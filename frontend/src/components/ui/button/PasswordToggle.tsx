@@ -3,13 +3,14 @@ import './password-toggle.css';
 interface PasswordToggleProps {
   showPassword: boolean;
   onToggle: () => void;
+  hasError?: boolean;
 }
 
-export const PasswordToggle = ({ showPassword, onToggle }: PasswordToggleProps) => {
+export const PasswordToggle = ({ showPassword, onToggle, hasError = false }: PasswordToggleProps) => {
   return (
     <button
       type="button"
-      className="password-toggle"
+      className={`password-toggle ${hasError ? 'password-toggle--with-error' : ''}`}
       onClick={onToggle}
       tabIndex={-1}
     >

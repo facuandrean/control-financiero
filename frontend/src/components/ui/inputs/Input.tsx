@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Controller, type Control, type FieldErrors, type RegisterOptions } from "react-hook-form";
 import { PasswordToggle } from "../button/PasswordToggle";
+
 import './input.css';
 
 interface InputProps {
@@ -60,6 +61,7 @@ export const Input = ({
           <PasswordToggle 
             showPassword={showPassword}
             onToggle={() => setShowPassword(!showPassword)}
+            hasError={!!errors[name]}
           />
         )}
 

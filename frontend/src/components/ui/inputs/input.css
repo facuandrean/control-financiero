@@ -7,3 +7,7 @@
 .input-wrapper .form-control {
   padding-right: 2.5rem;
 }
+
+.input-wrapper .form-control.is-invalid {
+  padding-right: 3.5rem;
+}

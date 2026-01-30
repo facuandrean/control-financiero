@@ -1,3 +1,28 @@
 .form label {
   margin-left: 0.25rem;
+  font-size: .85rem;
+}
+
+.form .constraints {
+  border: 1px solid #e0e0e0;
+  font-size: .85rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+  width: 100%;
+}
+
+.form .redirection-link {
+  font-size: .85rem;
+  color: #6c757d;
+  text-decoration: none;
+  margin-top: 1rem;
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+  width: 100%;
 }

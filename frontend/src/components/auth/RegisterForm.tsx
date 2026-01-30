@@ -89,7 +89,7 @@ export const RegisterForm = ({ onSubmit, loading, errorMessage, clearError }: Re
               placeholder="********"
             />
 
-            <div className="form-text text-muted mb-3">
+            <div className="constraints text-muted mb-3">
               <p>La contraseña debe tener al menos...</p>
               <ul>
                 <li>8 caracteres</li>
@@ -105,7 +105,7 @@ export const RegisterForm = ({ onSubmit, loading, errorMessage, clearError }: Re
               {loading ? "Creando cuenta..." : "Crear cuenta"}
             </Button>
 
-            <div className="text-center mt-3">
+            <div className="redirection-link text-center mt-3">
               <Link to="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
             </div>
           </>
