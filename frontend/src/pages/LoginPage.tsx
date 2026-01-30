@@ -8,7 +8,12 @@ export const LoginPage = () => {
   const { login, loading, error, setError } = useLogin();
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      cardProps={{
+        cardTitle: 'Iniciar sesión',
+        cardDescription: 'Ingresa tus credenciales para acceder a tu cuenta'
+      }}
+    >
       <LoginForm 
         onSubmit={login} 
         loading={loading} 

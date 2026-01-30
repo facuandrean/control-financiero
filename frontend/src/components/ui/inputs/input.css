@@ -1,0 +1,9 @@
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper .form-control {
+  padding-right: 2.5rem;
+}

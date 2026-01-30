@@ -1,6 +1,11 @@
-.container {
-  border: 1px solid red;
+.container-wrapper {
+  width: 100vw;
 
+  background: linear-gradient(180deg, #d1dbe6 0%, #fff 100%);
+}
+
+.container {
+  height: 100vh;
   min-width: 375px;
 }
 

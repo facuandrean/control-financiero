@@ -22,7 +22,6 @@ export const useLogin = () => {
     try {
       // Llamamos al endpoint de login del backend
       const response = await api.post('/auth/login', credentials);
-      console.log('response', response);
 
       // Guardamos el usuario y el token en el store de Zustand
       const { user, accessToken } = response.data.data;
@@ -32,7 +31,6 @@ export const useLogin = () => {
       navigate('/'); // Redirigimos al Dashboard
     } catch (err: any) {
       // Mostramos el mensaje de error
-      console.log(err);
       const errorMsg = err.response?.data?.message || 'Email o contraseña incorrectos';
       setError(errorMsg);
     } finally {

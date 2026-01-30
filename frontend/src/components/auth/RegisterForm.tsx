@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Form } from "../ui/form/Form";
-import { Input } from "../ui/inputs/Input";
+import { Form, Input, Button } from "../ui";
 
 interface RegisterFormProps {
   onSubmit: (data: any) => void;
@@ -65,15 +64,46 @@ export const RegisterForm = ({ onSubmit, loading, errorMessage, clearError }: Re
               label="Contraseña" 
               control={control} 
               rules={{ 
-                required: "La contraseña es obligatoria",
+                required: "La contraseña es obligatoria.",
+                minLength: {
+                  value: 8,
+                  message: "La contraseña debe tener al menos 8 caracteres."
+                },
+                validate: {
+                  hasLowerCase: (value) =>
+                    /[a-z]/.test(value) ||
+                    "La contraseña debe contener al menos una letra minúscula.",
+                  hasUpperCase: (value) =>
+                    /[A-Z]/.test(value) ||
+                    "La contraseña debe contener al menos una letra mayúscula.",
+                  hasNumber: (value) =>
+                    /[0-9]/.test(value) ||
+                    "La contraseña debe contener al menos un número.",
+                  hasSpecialChar: (value) =>
+                    /[!@#$%^&*()_+\-={};':"\\|,.<>/?]/.test(value) ||
+                    "La contraseña debe contener al menos un carácter especial."
+                }
               }} 
               errors={errors} 
               type="password" 
               placeholder="********"
             />
-            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-              {loading ? "Registrando usuario..." : "Registrarse"}
-            </button>
+
+            <div className="form-text text-muted mb-3">
+              <p>La contraseña debe tener al menos...</p>
+              <ul>
+                <li>8 caracteres</li>
+                <li>Una letra mayúscula</li>
+                <li>Una letra minúscula</li>
+                <li>Un número</li>
+                <li>Un carácter especial</li>
+              </ul>
+              
+            </div>
+
+            <Button type="submit" className="btn-submit" disabled={loading}>
+              {loading ? "Creando cuenta..." : "Crear cuenta"}
+            </Button>
 
             <div className="text-center mt-3">
               <Link to="/login">¿Ya tienes una cuenta? Inicia sesión</Link>

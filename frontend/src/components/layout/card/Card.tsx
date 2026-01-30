@@ -1,14 +1,22 @@
 import './Card.css';
 
 interface CardProps {
-  children: React.ReactNode;
   className?: string;
+  cardTitle: string;
+  cardDescription: string;
+  children: React.ReactNode;
 }
 
-export const Card = ({ children, className }: CardProps) => {
+export const Card = ({ className, cardTitle, cardDescription, children }: CardProps) => {
   return (
     <div className={`card ${className}`}>
-      {children}
+      <div className="card-header">
+        <h1 className="card-title">{cardTitle}</h1>
+        <p className="card-description">{cardDescription}</p>
+      </div>
+      <div className="card-body">
+        {children}
+      </div>
     </div>
   )
 }

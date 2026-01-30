@@ -7,8 +7,10 @@ interface ContainerProps {
 
 export const Container = ({ children, className }: ContainerProps) => {
   return (
-    <div className={`container ${className}`}>
-      {children}
+    <div className="container-wrapper">
+      <div className={`container ${className}`}>
+        {children}
+      </div>
     </div>
   )
 }

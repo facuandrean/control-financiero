@@ -1,5 +1,10 @@
 body {
   min-height: 100vh;
+
+  font-family: "Rubik", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }
 
 p {
@@ -14,4 +19,15 @@ li {
   text-align: left;
   margin: 0;
   padding: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  text-decoration: none;
+  color: #7a96b4;
 }

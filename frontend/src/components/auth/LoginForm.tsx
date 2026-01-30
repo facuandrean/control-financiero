@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Form } from "../ui/form/Form";
-import { Input } from "../ui/inputs/Input";
+import { Form, Input, Button } from "../ui";
 
 interface LoginFormProps {
   onSubmit: (data: any) => void;
@@ -45,9 +44,9 @@ export const LoginForm = ({ onSubmit, loading, errorMessage, clearError }: Login
               type="password" 
               placeholder="********"
             />
-            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            <Button type="submit" className="btn-submit" disabled={loading}>
               {loading ? "Iniciando sesión..." : "Iniciar sesión"}
-            </button>
+            </Button>
 
             <div className="text-center mt-3">
               <Link to="/register">¿No tienes una cuenta? Regístrate</Link>

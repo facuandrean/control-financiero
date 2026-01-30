@@ -7,7 +7,12 @@ export const RegisterPage = () => {
   const { register, loading, error, setError } = useRegister();
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      cardProps={{
+        cardTitle: 'Crear cuenta',
+        cardDescription: 'Crea una cuenta para acceder a tu panel de control'
+      }}
+    >
       <RegisterForm 
         onSubmit={register} 
         loading={loading} 

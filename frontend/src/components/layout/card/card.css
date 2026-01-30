@@ -1,9 +1,33 @@
 .card {
   min-width: 375px;
-  max-width: 400px;
+  width: 425px;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   border: 1px solid #e0e0e0;
+}
+
+.card-header {
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-bottom: 1px solid transparent !important;
+  margin-bottom: 1rem !important;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+
+  text-align: center;
+}
+
+.card-description {
+  font-size: 1rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+.card-body {
+  padding: 0 !important;
 }
 
 .auth-card {
