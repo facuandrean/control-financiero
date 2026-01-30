@@ -1,2 +1,3 @@
-export * from './AuthLayout';
-export * from './LoginForm';
+export { AuthLayout } from './AuthLayout';
+export { LoginForm } from './LoginForm';
+export { RegisterForm } from './RegisterForm';

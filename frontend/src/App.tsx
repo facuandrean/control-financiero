@@ -1,14 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import { useAuthStore } from './store/authStore';
+import { useAuthStore } from './store';
+import { LoginPage, RegisterPage } from './pages';
 
-import { LoginPage } from './pages/LoginPage';
-
-import { Home } from './components/layout';
+import { Home } from './components';
 
 import './App.css';
 
-// Componente para proteger rutas privadas
+// Componente para proteger las rutas privadas
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated ? children : <Navigate to="/login" />;
@@ -18,10 +17,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta Pública: Login */}
+        {/* Rutas públicas */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         
-        {/* Ruta Privada: Dashboard */}
+        {/* Rutas privadas */}
         <Route 
           path="/" 
           element={
@@ -31,7 +31,7 @@ function App() {
           } 
         />
 
-        {/* Catch-all: Si no encuentra ruta, manda al login */}
+        {/* Catch-all: Si no encuentra ruta, manda a la página de login */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

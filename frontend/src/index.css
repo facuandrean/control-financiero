@@ -1,3 +1,17 @@
 body {
   min-height: 100vh;
 }
+
+p {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+}
+
+li {
+  text-align: left;
+  margin: 0;
+  padding: 0;
+}

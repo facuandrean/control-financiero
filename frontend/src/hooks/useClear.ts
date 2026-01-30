@@ -10,7 +10,7 @@ export const useClear = ({ errorMessage, clearError }: UseClearProps) => {
     if (errorMessage && clearError) {
       const timer = setTimeout(() => {
         clearError();
-      }, 2250);
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [errorMessage, clearError]);
