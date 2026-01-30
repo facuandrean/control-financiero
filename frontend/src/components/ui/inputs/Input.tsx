@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Controller, type Control, type FieldErrors, type RegisterOptions } from "react-hook-form";
 import { PasswordToggle } from "../button/PasswordToggle";
+import { ButtonInfo } from "../button/ButtonInfo";
 
 import './input.css';
 
@@ -14,6 +15,10 @@ interface InputProps {
   type: string;
   placeholder?: string;
   disabled?: boolean;
+  infoProps?: {
+    content: React.ReactNode;
+    position: 'top' | 'bottom' | 'left' | 'right' | 'bottom-left' | 'top-left';
+  };
 }
 
 export const Input = ({ 
@@ -25,7 +30,8 @@ export const Input = ({
   errors, 
   type, 
   placeholder, 
-  disabled 
+  disabled,
+  infoProps,
 }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -47,7 +53,11 @@ export const Input = ({
                 type={isPassword && showPassword ? 'text' : type}
                 {...field}
                 value={field.value || ''}
-                className={`form-control ${errors[name] ? "is-invalid" : ""}`}
+                className={`form-control 
+                  ${!infoProps?.content && isPassword ? "input-without-info" : ""}
+                  ${isPassword ? "input-password" : ""} 
+                  ${errors[name] ? "is-invalid" : ""}`
+                }
                 placeholder={placeholder}
                 disabled={disabled}
               />
@@ -61,6 +71,13 @@ export const Input = ({
           <PasswordToggle 
             showPassword={showPassword}
             onToggle={() => setShowPassword(!showPassword)}
+          />
+        )}
+
+        {isPassword && infoProps?.content && (
+          <ButtonInfo 
+            content={infoProps?.content}
+            position={infoProps?.position}
             hasError={!!errors[name]}
           />
         )}

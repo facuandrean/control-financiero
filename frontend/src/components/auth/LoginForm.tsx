@@ -48,7 +48,7 @@ export const LoginForm = ({ onSubmit, loading, errorMessage, clearError }: Login
               {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
 
-            <div className="text-center mt-3">
+            <div className="redirection-link text-center mt-3">
               <Link to="/register">¿No tienes una cuenta? Regístrate</Link>
             </div>
           </>

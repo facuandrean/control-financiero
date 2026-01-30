@@ -1,0 +1,170 @@
+.tooltip {
+  position: absolute;
+  z-index: 1000;
+  padding: 0.5rem 0.75rem;
+  background-color: #2d3748;
+  color: #fff;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  white-space: normal;
+  width: 250px;
+  max-width: 250px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform-origin: center;
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+/* Posicionamiento TOP */
+.tooltip.top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  margin-bottom: 1rem;
+}
+
+.tooltip.top::before {
+  top: 100%;
+  left: 40%;
+  transform: translateX(-60%);
+  border-width: 6px 6px 0 6px;
+  border-color: #2d3748 transparent transparent transparent;
+}
+
+/* Posicionamiento BOTTOM */
+.tooltip.bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  margin-top: 1rem;
+}
+
+.tooltip.bottom::before {
+  bottom: 100%;
+  left: 40%;
+  transform: translateX(-50%);
+  border-width: 0 6px 6px 6px;
+  border-color: transparent transparent #2d3748 transparent;
+}
+
+/* Posicionamiento LEFT */
+.tooltip.left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(-8px);
+  margin-right: 3rem;
+}
+
+.tooltip.left::before {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 6px;
+  border-color: transparent transparent transparent #2d3748;
+}
+
+/* Posicionamiento RIGHT */
+.tooltip.right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+  margin-left: -.5rem;
+}
+
+.tooltip.right::before {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-40%);
+  border-width: 6px 6px 6px 0;
+  border-color: transparent #2d3748 transparent transparent;
+}
+
+/* Posicionamiento DIAGONAL INFERIOR IZQUIERDA */
+.tooltip.bottom-left {
+  top: 100%;
+  right: 0;
+  transform: translateY(8px) translateX(0);
+  margin-top: 1rem;
+}
+
+.tooltip.bottom-left::before {
+  bottom: 100%;
+  right: 1.25rem;
+  border-width: 0 6px 6px 6px;
+  border-color: transparent transparent #2d3748 transparent;
+}
+
+/* Posicionamiento DIAGONAL SUPERIOR IZQUIERDA */
+.tooltip.top-left {
+  bottom: 100%;
+  right: 0;
+  transform: translateY(-8px) translateX(0);
+  margin-bottom: 1rem;
+}
+
+.tooltip.top-left::before {
+  top: 100%;
+  right: 1.25rem;
+  border-width: 6px 6px 0 6px;
+  border-color: #2d3748 transparent transparent transparent;
+}
+
+/* Estado visible (se aplica con clase adicional o estado) */
+.tooltip.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tooltip.show.top {
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip.show.bottom {
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip.show.left {
+  transform: translateY(-50%) translateX(0);
+}
+
+.tooltip.show.right {
+  transform: translateY(-50%) translateX(0);
+}
+
+.tooltip.show.bottom-left {
+  transform: translateY(0) translateX(0);
+}
+
+.tooltip.show.top-left {
+  transform: translateY(0) translateX(0);
+}
+
+/* Estilos para el contenido del tooltip */
+.tooltip p {
+  margin: 0 0 0.5rem 0;
+}
+
+.tooltip p:last-child {
+  margin-bottom: 0;
+}
+
+.tooltip ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+}
+
+.tooltip li {
+  margin: 0.25rem 0;
+  text-align: left;
+}

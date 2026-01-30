@@ -87,19 +87,22 @@ export const RegisterForm = ({ onSubmit, loading, errorMessage, clearError }: Re
               errors={errors} 
               type="password" 
               placeholder="********"
+              infoProps={{
+                content: (
+                  <>
+                    <p style={{ fontWeight: '600' }}>La contraseña debe tener al menos:</p>
+                    <ul>
+                      <li>8 caracteres</li>
+                      <li>Una letra mayúscula</li>
+                      <li>Una letra minúscula</li>
+                      <li>Un número</li>
+                      <li>Un carácter especial</li>
+                    </ul>
+                  </>
+                ),
+                position: 'top-left'
+              }}
             />
-
-            <div className="constraints text-muted mb-3">
-              <p>La contraseña debe tener al menos...</p>
-              <ul>
-                <li>8 caracteres</li>
-                <li>Una letra mayúscula</li>
-                <li>Una letra minúscula</li>
-                <li>Un número</li>
-                <li>Un carácter especial</li>
-              </ul>
-              
-            </div>
 
             <Button type="submit" className="btn-submit" disabled={loading}>
               {loading ? "Creando cuenta..." : "Crear cuenta"}

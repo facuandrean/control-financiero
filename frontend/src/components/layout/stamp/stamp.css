@@ -1,0 +1,25 @@
+.stamp {
+  background-color: transparent;
+  position: absolute;
+  top: -100px;
+  left: 0;
+  width: 100%;
+}
+
+.stamp-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stamp-logo {
+  width: 250px;
+  height: 80px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  cursor: default;
+}
+
+.stamp-logo:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}

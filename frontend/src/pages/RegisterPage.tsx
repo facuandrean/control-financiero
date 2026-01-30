@@ -1,6 +1,7 @@
 import { useRegister } from '../hooks';
 
 import { AuthLayout, RegisterForm } from '../components';
+import { Stamp } from '../components/layout/stamp/Stamp';
 
 export const RegisterPage = () => {
   // Usamos el hook para obtener la lógica
@@ -13,6 +14,7 @@ export const RegisterPage = () => {
         cardDescription: 'Crea una cuenta para acceder a tu panel de control'
       }}
     >
+      <Stamp />
       <RegisterForm 
         onSubmit={register} 
         loading={loading} 

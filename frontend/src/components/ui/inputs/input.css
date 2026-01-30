@@ -4,10 +4,10 @@
   align-items: center;
 }
 
-.input-wrapper .form-control {
-  padding-right: 2.5rem;
+.input-wrapper .input-without-info {
+  width: 85% !important;
 }
 
-.input-wrapper .form-control.is-invalid {
-  padding-right: 3.5rem;
+.input-wrapper .input-password {
+  width: 85% !important;
 }

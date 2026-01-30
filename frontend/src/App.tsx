@@ -1,9 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { useAuthStore } from './store';
-import { LoginPage, RegisterPage } from './pages';
-
-import { Home } from './components';
+import { HomePage, LoginPage, RegisterPage } from './pages';
 
 import './App.css';
 
@@ -26,7 +24,9 @@ function App() {
           path="/" 
           element={
             <PrivateRoute>
-              <Home />
+              <HomePage 
+                section="Dashboard"
+              />
             </PrivateRoute>
           } 
         />

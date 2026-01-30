@@ -1,0 +1,48 @@
+.header {
+  width: 85vw;
+  min-width: 375px;
+  height: 60px;
+  border: 1px solid red;
+}
+
+.header__container {
+  width: 100%;
+  height: 100%;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  border: 1px solid blue;
+}
+
+.header-container__button-open-sidebar {
+  display: block;
+
+  background-color: transparent;
+  outline: none;
+  border: none;
+  cursor: pointer;
+
+  transition: color 0.3s ease;
+}
+
+.header-container__button-open-sidebar:hover {
+  color: #7a96b4;
+}
+
+.header-container__button-close-sidebar {
+  display: none;
+}
+
+.header-container__section {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000;
+  margin-left: 1rem;
+}
+
+/* Estilos para desktop */
+@media (width > 1024px) {
+  .header {
+    display: none;
+  }
+}
