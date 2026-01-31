@@ -20,16 +20,11 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         
         {/* Rutas privadas */}
-        <Route 
-          path="/" 
-          element={
-            <PrivateRoute>
-              <HomePage 
-                section="Dashboard"
-              />
-            </PrivateRoute>
-          } 
-        />
+        <Route path="/" element={
+          <PrivateRoute>
+            <HomePage section="Dashboard" />
+          </PrivateRoute>
+        } />
 
         {/* Catch-all: Si no encuentra ruta, manda a la página de login */}
         <Route path="*" element={<Navigate to="/login" />} />

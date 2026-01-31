@@ -1,10 +1,87 @@
 .sidebar {
-  width: 15vw;
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 100vh;
-  border: 1px solid blue;
+  width: 270px;
+  min-width: 0;
+  max-width: 270px;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  background-color: #FEFFFE;
+  border-right: 1px solid #e0e0e0;
+  transform: translateX(-100%);
 }
 
-/* Estilos para desktop */
-@media (width > 1024px) {
-  
+.sidebar--open {
+  transform: translateX(0);
+}
+
+.sidebar--closed {
+  transform: translateX(-100%);
+}
+
+.sidebar-logo,
+.sidebar-nav {
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar--closed .sidebar-logo,
+.sidebar--closed .sidebar-nav {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Mobile First - Overlay visible cuando sidebar está abierto */
+.sidebar-overlay {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Desktop - Overlay oculto y main-content se mueve con el sidebar */
+@media (width >= 1024px) {
+  .sidebar-overlay {
+    display: none;
+  }
+
+  .main-content {
+    transition: margin-left 0.3s ease;
+  }
+
+  .sidebar {
+    position: relative;
+    transform: none;
+    transition: width 0.3s ease, min-width 0.3s ease;
+  }
+
+  .sidebar--open {
+    width: 270px;
+    min-width: 270px;
+    transform: none;
+  }
+
+  .sidebar--closed {
+    width: 0;
+    min-width: 0;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
