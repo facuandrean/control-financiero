@@ -1,6 +1,7 @@
 import { Button } from '../../ui';
-import './header.css';
 import { TbLayoutSidebarRightCollapse, TbLayoutSidebarRightExpand } from 'react-icons/tb';
+
+import './header.css';
 
 interface HeaderProps {
   section: string;

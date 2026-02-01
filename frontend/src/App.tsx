@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { useAuthStore } from './store';
-import { HomePage, LoginPage, RegisterPage } from './pages';
+import { HomePage, LoginPage, RegisterPage, TransactionsPage, EntitiesPage, CategoriesPage, AccountsPage } from './pages';
 
 import './App.css';
 
@@ -25,6 +25,31 @@ function App() {
             <HomePage section="Dashboard" />
           </PrivateRoute>
         } />
+
+        <Route path="/transactions" element={
+          <PrivateRoute>
+            <TransactionsPage section="Transacciones" />
+          </PrivateRoute>
+        } />
+
+        <Route path="/entities" element={
+          <PrivateRoute>
+            <EntitiesPage section="Entidades" />
+          </PrivateRoute>
+        } />
+
+        <Route path="/categories" element={
+          <PrivateRoute>
+            <CategoriesPage section="Categorías" />
+          </PrivateRoute>
+        } />
+
+        <Route path="/accounts" element={
+          <PrivateRoute>
+            <AccountsPage section="Cuentas" />
+          </PrivateRoute>
+        } />
+        
 
         {/* Catch-all: Si no encuentra ruta, manda a la página de login */}
         <Route path="*" element={<Navigate to="/login" />} />
