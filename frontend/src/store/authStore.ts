@@ -7,7 +7,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  lastname: string;
+  lastName: string;
 }
 
 interface AuthState {
@@ -30,7 +30,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ token, isAuthenticated: true }); // Actualizamos el estado del store
   },
   
-  setUser: (user: User) => set({ user }), // Actualizamos el estado del store con el usuario
+  setUser: (user: User) => {
+    localStorage.setItem('user', JSON.stringify(user));
+    set({ user })
+  }, // Actualizamos el estado del store con el usuario
   
   logout: async () => {
     try {
@@ -40,6 +43,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error("Error al cerrar sesión en servidor");
     } finally {
       // Pase lo que pase (incluso si el backend está caído), limpiamos el front
+      localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       set({ token: null, user: null, isAuthenticated: false });
     }

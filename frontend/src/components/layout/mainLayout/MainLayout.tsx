@@ -9,9 +9,11 @@ import '../sidebar/sidebar.css';
 interface MainLayoutProps {
   children: ReactNode;
   section: string;
+  username: string;
+  email: string;
 }
 
-export const MainLayout = ({ children, section }: MainLayoutProps) => {
+export const MainLayout = ({ children, section, username, email }: MainLayoutProps) => {
   const { isSidebarOpen, handleToggleSidebar } = useSidebar();
 
   return (
@@ -25,7 +27,11 @@ export const MainLayout = ({ children, section }: MainLayoutProps) => {
         />
       )}
       
-      <Sidebar isOpen={isSidebarOpen} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        username={username} 
+        email={email}
+      />
 
       <div className="main-content">
         <Header 
