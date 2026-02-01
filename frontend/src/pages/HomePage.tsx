@@ -16,7 +16,7 @@ export const HomePage = ({ section }: HomePageProps) => {
     >
       <div>
         <h1>Hola, {username}!</h1>
-        <p>Este es el estado de tus finanzas hoy.</p>
+        <p>Este es el estado de tus finanzas hoy</p>
       </div>
     </MainLayout>
   );
