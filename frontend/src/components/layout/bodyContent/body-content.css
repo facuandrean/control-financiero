@@ -1,0 +1,8 @@
+.body-content-wrapper {
+  margin-top: 1.5rem;
+  width: 100%;
+  border-radius: 1rem;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  padding: 1rem;
+}

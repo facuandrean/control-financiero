@@ -13,12 +13,13 @@
   flex-direction: column;
   background-color: #FBFAFB;
   width: 100%;
+  min-width: 375px;
   position: relative;
 }
 
 .page-container {
   flex: 1;
-  padding: 2rem;
+  padding: 1rem;
   overflow-y: auto;
   width: 100%;
 }
