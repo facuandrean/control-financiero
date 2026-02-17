@@ -1,4 +1,4 @@
-import './modalDelete.css';
+import './modal-delete.css';
 
 interface ModalDeleteProps {
   id: string;

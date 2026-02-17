@@ -1,5 +1,4 @@
-
-import './modalGet.css'
+import './modal-view.css';
 
 interface ModalViewProps {
   id: string;

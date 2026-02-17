@@ -17,6 +17,7 @@ interface FormProps {
   successMessage?: string;
   errorMessage?: string;
   clearError: () => void;
+  clearSuccess: () => void;
 }
 
 export const Form = ({
@@ -25,7 +26,8 @@ export const Form = ({
   loading,
   successMessage,
   errorMessage,
-  clearError
+  clearError,
+  clearSuccess
 }: FormProps) => {
 
   const {
@@ -34,7 +36,8 @@ export const Form = ({
     formState: { errors },
   } = useForm({ mode: "onSubmit" });
 
-  useClear({ errorMessage, clearError });
+  useClear({ message: errorMessage, clearMessage: clearError });
+  useClear({ message: successMessage, clearMessage: clearSuccess });
 
   return (
     <>

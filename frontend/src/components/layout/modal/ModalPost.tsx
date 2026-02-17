@@ -1,4 +1,4 @@
-import './modalPost.css'
+import './modal-post.css';
 
 interface ModalPostProps {
   id: string;

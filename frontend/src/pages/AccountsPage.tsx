@@ -1,7 +1,8 @@
-import { FaPlus } from 'react-icons/fa6';
-import { Button } from '../components';
+import { useState } from 'react';
 import { BodyContent, BodyHeader } from '../components/layout';
 import { MainLayout } from '../components/layout/mainLayout/MainLayout';
+import { ModalPost } from '../components/layout/modal/ModalPost';
+import { AccountForm } from '../modules/accounts/components/AccountForm';
 import { getUser } from '../utils/getInfoUserActive';
 
 interface AccountsPageProps {
@@ -20,21 +21,37 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
       <BodyHeader 
         title="Cuentas" 
         description="Gestiona las formas de pago que vas a utilizar para tus transacciones"
-      >
-        <Button
-          className="btn-add-account"
-          onClick={() => {console.log('Agregar cuenta')}}
-        >
-          <FaPlus size={14} className="btn-add-account__icon" />
-          <span className="btn-add-account__text">Agregar cuenta</span>
-        </Button>
-      </BodyHeader>
+        button={{
+          label: 'Agregar cuenta',
+          labelLoading: 'Agregando cuenta...',
+          className: 'btn-add-account',
+          onClick: () => { console.log('Agregar cuenta') },
+          visible: true,
+        }}
+      />
 
       <BodyContent>
         <span>No hay cuentas registradas</span>
       </BodyContent>
-
       
+      <ModalPost
+        title="Nueva Cuenta"
+        formId="account-form"
+        // loading={loading}
+        buttonLabel="Guardar"
+        buttonLabelLoading="Guardando..."
+        id="account-modal"
+      >
+        <AccountForm
+          onSubmit={() => {}}
+          loading={false}
+          errorMessage={''}
+          successMessage={''}
+          clearError={() => {}}
+          clearSuccess={() => {}}
+        />
+      </ModalPost>
+
     </MainLayout>
   );
 };

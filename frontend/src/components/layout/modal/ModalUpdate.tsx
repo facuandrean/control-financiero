@@ -1,4 +1,4 @@
-import './modalUpdate.css';
+import './modal-update.css';
 
 interface ModalUpdateProps {
   id: string;

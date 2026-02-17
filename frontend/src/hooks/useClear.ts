@@ -1,17 +1,17 @@
 import { useEffect } from "react";
 
 interface UseClearProps {
-  errorMessage?: string;
-  clearError: () => void;
+  message?: string;
+  clearMessage: () => void;
 }
 
-export const useClear = ({ errorMessage, clearError }: UseClearProps) => {
+export const useClear = ({ message, clearMessage }: UseClearProps) => {
   useEffect(() => {
-    if (errorMessage && clearError) {
+    if (message && clearMessage) {
       const timer = setTimeout(() => {
-        clearError();
+        clearMessage();
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [errorMessage, clearError]);
+  }, [message, clearMessage]);
 }
