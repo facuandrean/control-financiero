@@ -12,7 +12,6 @@ export const useAccounts = () => {
     setError(null);
     try {
       const response = await api.get('/accounts');
-      console.log("response accounts", response);
       setAccounts(response.data.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al obtener las cuentas');

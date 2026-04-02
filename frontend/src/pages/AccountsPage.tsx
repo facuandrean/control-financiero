@@ -1,22 +1,21 @@
-import { useState } from 'react';
 import { BodyContent, BodyHeader } from '../components/layout';
 import { MainLayout } from '../components/layout/mainLayout/MainLayout';
 import { ModalPost } from '../components/layout/modal/ModalPost';
-import { AccountForm } from '../modules/accounts/components/AccountForm';
-import { getUser } from '../utils/getInfoUserActive';
+import { AccountCard, AccountForm } from '../modules/accounts';
+import { useAuthStore } from '../store';
 
 interface AccountsPageProps {
   section: string;
 }
 
 export const AccountsPage = ({ section }: AccountsPageProps) => {
-  const { username, email } = getUser();
+  const user = useAuthStore((state) => state.user);
 
   return (
     <MainLayout 
       section={section}
-      username={username}
-      email={email}
+      username={user?.name || 'hola'}
+      email={user?.email || ''}
     >
       <BodyHeader 
         title="Cuentas" 
@@ -31,7 +30,8 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
       />
 
       <BodyContent>
-        <span>No hay cuentas registradas</span>
+        <h2>Todas las cuentas</h2>
+        <AccountCard />
       </BodyContent>
       
       <ModalPost

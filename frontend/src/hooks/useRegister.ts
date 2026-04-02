@@ -8,28 +8,26 @@ export const useRegister = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Usamos el hook de React Router para navegar a la página deseada
   const navigate = useNavigate();
 
-  // Usamos el store de Zustand para guardar el token y el usuario en el estado global
-  const { setToken, setUser } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   const register = async (credentials: RegisterInput) => {
-    // Mostramos el spinner de carga
     setLoading(true);
     setError(null);
 
     try {
-      // Llamamos al endpoint de login del backend
       const response = await api.post('/auth/register', credentials);
 
       if (response.status === 201) {
-        // Llamamos al endpoint de login del backend
-        const loginResponse = await api.post('/auth/login', credentials);
+        // Al hacer login, el backend automáticamente enviará el Set-Cookie con el token
+        const loginResponse = await api.post('/auth/login', {
+          email: credentials.email,
+          password: credentials.password
+        });
 
-        // Guardamos el usuario y el token en el store de Zustand
-        const { user, accessToken } = loginResponse.data.data;
-        setToken(accessToken);
+        // Solo sacamos el usuario. El token ya está seguro en el navegador.
+        const { user } = loginResponse.data.data;
         setUser(user);
 
         navigate('/'); // Redirigimos al Dashboard
@@ -39,10 +37,9 @@ export const useRegister = () => {
       const errorMsg = err.response?.data?.message || 'Error al registrar usuario';
       setError(errorMsg);
     } finally {
-      // Ocultamos el spinner de carga
       setLoading(false);
     }
   };
 
-  return { register, loading, error, setError }; // Devolvemos setError por si se desea limpiar el error manualmente
+  return { register, loading, error, setError };
 };

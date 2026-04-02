@@ -8,19 +8,18 @@ interface JwtPayload {
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Obtener el token del header (Bearer <token>)
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) {
+    // 1. Obtener el token directamente de las cookies
+    const token = req.cookies?.accessToken;
+
+    if (!token) {
       throw new AppError("No autorizado: Token faltante", 401, "AUTH_NO_TOKEN");
     }
 
-    const token = authHeader.split(" ")[1];
-
-    // Verificar el token
+    // 2. Verificar el token
     try {
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as JwtPayload;
       
-      // Inyectar el ID del usuario en el request para que los controladores lo usen
+      // 3. Inyectar el ID del usuario en el request para que los controladores lo usen
       req.user = { id: decoded.id };
       
       next();
@@ -30,4 +29,4 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   } catch (error) {
     next(error);
   }
-}; 
+};

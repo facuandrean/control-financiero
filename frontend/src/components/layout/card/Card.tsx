@@ -11,7 +11,7 @@ export const Card = ({ className, cardTitle, cardDescription, children }: CardPr
   return (
     <div className={`card ${className}`}>
       <div className="card-header">
-        <h1 className="card-title">{cardTitle}</h1>
+        <h3 className="card-title">{cardTitle}</h3>
         <p className="card-description">{cardDescription}</p>
       </div>
       <div className="card-body">

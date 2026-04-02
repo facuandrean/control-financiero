@@ -1,18 +1,18 @@
 import { MainLayout } from '../components/layout/mainLayout/MainLayout';
-import { getUser } from '../utils/getInfoUserActive';
+import { useAuthStore } from '../store/authStore';
 
 interface TransactionsPageProps {
   section: string;
 }
 
 export const TransactionsPage = ({ section }: TransactionsPageProps) => {
-  const { username, email } = getUser();
+  const user = useAuthStore((state) => state.user);
 
   return (
     <MainLayout 
       section={section}
-      username={username}
-      email={email}
+      username={user?.name || 'Usuario'}
+      email={user?.email || 'Email del usuario'}
     >
       <div>
         <p>Transacciones</p>
