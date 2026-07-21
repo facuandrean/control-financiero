@@ -45,3 +45,19 @@
   background-color: #55718e;
   color: #fff;
 }
+
+.btn-submit-post {
+  background-color: #7a96b4;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit-post:hover {
+  background-color: #55718e;
+  color: #fff;
+}

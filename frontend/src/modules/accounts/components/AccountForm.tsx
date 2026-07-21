@@ -1,17 +1,21 @@
-import { useWatch } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import { Form } from "../../../components/ui/form/Form";
 import { Input } from "../../../components/ui/inputs/Input";
 import { Select } from "../../../components/ui/inputs/Select";
+import { Textarea } from "../../../components/ui/inputs/Textarea";
+import { ACCOUNT_TYPES } from "../../../types/account.types";
 
-const ACCOUNT_TYPES = [
-  { value: "Efectivo", label: "Efectivo" },
-  { value: "Billetera Virtual", label: "Billetera Virtual (MP, Lemon, etc)" },
-  { value: "Caja de Ahorro", label: "Caja de Ahorro / Banco" },
-  { value: "Tarjeta de Crédito", label: "Tarjeta de Crédito" },
-  { value: "Tarjeta de Débito", label: "Tarjeta de Débito" },
-];
-
-export const AccountForm = ({ onSubmit, loading, errorMessage, successMessage, clearError, clearSuccess }: any) => {
+export const AccountForm = ({ 
+  onSubmit, 
+  loading, 
+  errorMessage, 
+  successMessage, 
+  clearError, 
+  clearSuccess, 
+  defaultValues, 
+  modalId,
+  formId
+}: any) => {
   return (
     <Form 
       onSubmit={onSubmit} 
@@ -20,20 +24,63 @@ export const AccountForm = ({ onSubmit, loading, errorMessage, successMessage, c
       successMessage={successMessage}
       clearError={clearError}
       clearSuccess={clearSuccess}
+      defaultValues={defaultValues}
+      modalId={modalId}
+      formId={formId}
     >
       {({ control, errors }) => {
         const type = useWatch({ control, name: "type" });
+        
         const isCreditCard = type === "Tarjeta de Crédito";
-        const isDebitCard = type === "Tarjeta de Débito";
-        const isCard = isCreditCard || isDebitCard;
+        const isCash = type === "Efectivo";
+        // Cualquier cuenta que no sea efectivo puede tener últimos 4 dígitos
+        const canHaveLastDigits = !isCash && !!type; 
+
+        const getTag = (accountType: string) => {
+          switch (accountType) {
+            case "Efectivo": return "efectivo";
+            case "Billetera virtual": return "billetera";
+            case "Caja de ahorro": return "ahorro";
+            case "Cuenta corriente": return "corriente";
+            case "Tarjeta de Crédito": return "crédito";
+            default: return "";
+          }
+        };
+
+        const currentTag = getTag(type ?? "");
 
         return (
           <>
+            <Controller
+              name="tag"
+              control={control}
+              defaultValue={currentTag}
+              render={({ field }) => (
+                <input
+                  type="hidden"
+                  {...field}
+                  value={currentTag}
+                  onChange={(event) => field.onChange(event.target.value)}
+                />
+              )}
+            />
+
+            <Input 
+              formID="account-form"
+              name="bank"
+              label="Banco / Entidad"
+              placeholder="Ej: Santander, Mercado Pago, Efectivo"
+              control={control}
+              rules={{ required: "El banco es obligatorio" }}
+              errors={errors}
+              type="text"
+            />
+
             <Input 
               formID="account-form"
               name="name"
-              label="Nombre de la cuenta"
-              placeholder="Ej: Santander o Mercado Pago"
+              label="Nombre identificatorio"
+              placeholder="Ej: Sueldo Santander, Tarjeta Visa, MP Principal"
               control={control}
               rules={{ required: "El nombre es obligatorio" }}
               errors={errors}
@@ -53,22 +100,79 @@ export const AccountForm = ({ onSubmit, loading, errorMessage, successMessage, c
 
             <Input 
               formID="account-form"
-              name="lastDigits"
-              label="Últimos 4 números"
-              placeholder="1234"
+              name="amount"
+              label={isCreditCard ? "Monto gastado actual / Deuda inicial" : "Saldo / Monto Inicial"}
+              placeholder="0"
               control={control}
               errors={errors}
-              type="text"
-              disabled={!isCard}
-              rules={{ 
-                maxLength: { value: 4, message: "Máximo 4 dígitos" },
-                required: isCard ? "Los últimos 4 dígitos son obligatorios para tarjetas" : false
-              }}
+              type="number"
             />
 
-            <button type="submit" className="btn btn-success w-100 mt-2" disabled={loading}>
-              {loading ? "Cargando..." : "Crear Cuenta"}
-            </button>
+            {canHaveLastDigits && (
+              <Input 
+                formID="account-form"
+                name="lastDigits"
+                label="Últimos 4 dígitos de la tarjeta (Opcional)"
+                placeholder="1234"
+                control={control}
+                errors={errors}
+                type="text"
+                rules={{ 
+                  maxLength: { value: 4, message: "Máximo 4 dígitos" },
+                }}
+              />
+            )}
+
+            {isCreditCard && (
+              <>
+                <Input 
+                  formID="account-form"
+                  name="creditLimit"
+                  label="Límite de crédito asignado por el banco"
+                  placeholder="Ej: 850000"
+                  control={control}
+                  errors={errors}
+                  type="number"
+                />
+                
+                <Input 
+                  formID="account-form"
+                  name="closingDay"
+                  label="Día del mes que cierra la tarjeta"
+                  placeholder="Ej: 25"
+                  control={control}
+                  errors={errors}
+                  type="number"
+                  rules={{ 
+                    min: { value: 1, message: "Día entre 1 y 31" },
+                    max: { value: 31, message: "Día entre 1 y 31" },
+                  }}
+                />
+
+                <Input 
+                  formID="account-form"
+                  name="dueDate"
+                  label="Día del mes que vence el resumen"
+                  placeholder="Ej: 5"
+                  control={control}
+                  errors={errors}
+                  type="number"
+                  rules={{ 
+                    min: { value: 1, message: "Día entre 1 y 31" },
+                    max: { value: 31, message: "Día entre 1 y 31" },
+                  }}
+                />
+              </>
+            )}
+
+            <Textarea
+              formID="account-form"
+              name="description"
+              label="Descripción / Notas (Opcional)"
+              placeholder="Ej: Tarjeta de crédito del Santander para compras en cuotas"
+              control={control}
+              errors={errors}
+            />
           </>
         );
       }}

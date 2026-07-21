@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { AiOutlineHome } from 'react-icons/ai';
 import { FaUser } from 'react-icons/fa';
 import { LuArrowRightLeft, LuBuilding2, LuCreditCard, LuLogOut } from 'react-icons/lu';
+import { TbReportMoney } from "react-icons/tb";
 import { FiTag } from 'react-icons/fi';
 
 import './sidebar.css';
@@ -31,12 +32,17 @@ export const Sidebar = ({ isOpen, username, email }: SidebarProps) => {
       <nav className="sidebar-nav">
         <NavLink to="/" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
           <AiOutlineHome size={20} className="sidebar-nav__icon" />
-          <span className="sidebar-nav__text">Dashboard</span>
+          <span className="sidebar-nav__text">Inicio</span>
         </NavLink>
 
         <NavLink to="/transactions" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
           <LuArrowRightLeft size={20} className="sidebar-nav__icon" />
           <span className="sidebar-nav__text">Transacciones</span>
+        </NavLink>
+
+        <NavLink to="/debts" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
+          <TbReportMoney  size={20} className="sidebar-nav__icon" />
+          <span className="sidebar-nav__text">Deudas</span>
         </NavLink>
 
         <NavLink to="/entities" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm, type Control, type FieldErrors } from "react-hook-form";
 
 import { Loading } from "../loading/Loading";
@@ -5,19 +6,25 @@ import { MessageSuccess } from "../messages/MessageSuccess";
 import { MessageError } from "../messages/MessageError";
 
 import { useClear } from "../../../hooks";
+import { onModalHidden } from "../../../utils/modal.utils";
 
 import './form.css';
 
 interface FormProps {
-  children: (props: { control: Control<any>, errors: FieldErrors<any> }) => React.ReactNode; // Es una funcion que recibe el control y los errores y devuelve un componente con los inputs del formulario
+  children: (props: { control: Control<any>, errors: FieldErrors<any> }) => React.ReactNode;
   onSubmit: (data: any) => void;
   
   loading?: boolean; // Es una propiedad que viene del padre porque el padre es quien maneja el estado de carga debido a que es el que hace la peticion al backend
 
   successMessage?: string;
   errorMessage?: string;
-  clearError: () => void;
-  clearSuccess: () => void;
+  clearError?: () => void;
+  clearSuccess?: () => void;
+
+  defaultValues?: Record<string, any>;
+  modalId?: string;
+
+  formId?: string;
 }
 
 export const Form = ({
@@ -27,21 +34,30 @@ export const Form = ({
   successMessage,
   errorMessage,
   clearError,
-  clearSuccess
+  clearSuccess,
+  defaultValues = {},
+  modalId,
+  formId
 }: FormProps) => {
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({ mode: "onSubmit" });
+    reset,
+  } = useForm({ mode: "onSubmit", defaultValues });
 
-  useClear({ message: errorMessage, clearMessage: clearError });
-  useClear({ message: successMessage, clearMessage: clearSuccess });
+  useEffect(() => {
+    if (!modalId) return;
+    return onModalHidden(modalId, () => reset(defaultValues));
+  }, [modalId]);
+
+  useClear({ message: errorMessage, clearMessage: clearError ?? (() => {}) });
+  useClear({ message: successMessage, clearMessage: clearSuccess ?? (() => {}) });
 
   return (
     <>
-      <form className="form" onSubmit={handleSubmit(onSubmit)}>
+      <form id={formId} className="form" onSubmit={handleSubmit(onSubmit)}>
         {children({ control, errors })}
       </form>
 

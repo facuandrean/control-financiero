@@ -1,33 +1,26 @@
-.card {
-  min-width: 375px;
-  width: 425px;
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid #e0e0e0;
-}
 
-.card-header {
-  background-color: transparent !important;
+
+
+
+
+
+
+
+.account-card .card-body {
   padding: 0 !important;
-  border-bottom: 1px solid transparent !important;
-  margin-bottom: 1rem !important;
 }
 
-.card-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-
+.account-card__amount {
+	font-size: 1.6rem;
+	font-weight: 700;
+	color: black;
   text-align: center;
 }
 
-.card-description {
+.account-card .card-description {
   font-size: 1rem;
-  text-align: center;
+  text-align: left;
   color: #6c757d;
-}
-
-.card-body {
-  padding: 0 !important;
 }
 
 .auth-card {

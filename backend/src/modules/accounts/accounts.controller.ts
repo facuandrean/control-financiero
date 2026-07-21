@@ -30,12 +30,18 @@ export const accountController = {
     try {
       const data: CreateAccountInput = req.body;
 
+      console.log('createAccount data:', data);
+
       const userID = req.user.id;
+
+      console.log('createAccount userID:', userID);
 
       const newAccount: NewAccount = await accountService.createAccount({
         ...data,
         userID,
       });
+
+      console.log('createAccount newAccount:', newAccount);
       return sendSuccess(res, newAccount);
     } catch (error) {
       next(error);

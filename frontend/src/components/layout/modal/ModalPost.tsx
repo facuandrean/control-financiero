@@ -7,8 +7,13 @@ interface ModalPostProps {
   loading?: boolean;
   children: React.ReactNode;
   className?: string;
-  buttonLabel?: string;
-  buttonLabelLoading?: string;
+  buttonSubmit?: {
+    label: string;
+    labelLoading: string;
+    className: string;
+    disabled: boolean;
+    onClick: () => void;
+  };
 }
 
 export const ModalPost = ({ 
@@ -16,9 +21,15 @@ export const ModalPost = ({
   title, 
   formId, 
   loading = false, 
-  children, className = "", 
-  buttonLabel = "Registrar", 
-  buttonLabelLoading = "Registrando..." 
+  children, 
+  className = "",
+  buttonSubmit = {
+    label: "Registrar",
+    labelLoading: "Registrando...",
+    className: "btn-submit-post",
+    disabled: false,
+    onClick: () => {},
+  }
 }: ModalPostProps) => {
   return (
     <>
@@ -33,11 +44,17 @@ export const ModalPost = ({
               {children}
             </div>
             <div className="modal-footer" style={{ flexWrap: 'wrap' }}>
-              <button type="button" className="btn btn-secondary" disabled={loading} data-bs-dismiss="modal">
+              <button type="button" className="btn btn-outline-secondary" disabled={loading} data-bs-dismiss="modal">
                 Cancelar
               </button>
-              <button type="submit" form={formId} className="btn btn-success" disabled={loading}>
-                {loading ? buttonLabelLoading : buttonLabel}
+              <button 
+                type="submit" 
+                form={formId} 
+                className={`${buttonSubmit.className}`} 
+                disabled={loading || buttonSubmit.disabled} 
+                onClick={buttonSubmit.onClick}
+              >
+                {loading ? buttonSubmit.labelLoading : buttonSubmit.label}
               </button>
             </div>
           </div>

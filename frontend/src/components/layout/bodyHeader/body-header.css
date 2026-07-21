@@ -1,3 +1,7 @@
+.body-header {
+  margin-bottom: 2rem;
+}
+
 .body-header__title {
   font-weight: 600;
   color: #000;
@@ -10,5 +14,28 @@
 
 /* Desktop */
 @media (width > 1024px) {
+  .body-header {
+    display: flex;
+  }
 
+  .body-header__presentation {
+    display: flex;
+    flex-direction: column;
+    
+    width: 85%;
+    padding-left: 2.5rem;
+  }
+
+  .body-header__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    padding-right: 2.5rem;
+    width: 15%;
+  }
+
+  .body-header__actions button {
+    margin: 0;
+  }
 }

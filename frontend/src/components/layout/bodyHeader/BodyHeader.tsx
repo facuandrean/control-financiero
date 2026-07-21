@@ -6,6 +6,7 @@ import './body-header.css';
 interface BodyHeaderProps {
   title: string;
   description: string;
+  isMobile?: boolean;
   button: {
     label: string;
     labelLoading: string;
@@ -17,7 +18,8 @@ interface BodyHeaderProps {
 
 export const BodyHeader = ({ 
   title, 
-  description, 
+  description,
+  isMobile, 
   button = {
     label: 'Registrar',
     labelLoading: 'Registrando...',
@@ -26,7 +28,7 @@ export const BodyHeader = ({
     visible: false,
   },
 }: BodyHeaderProps) => {
-  return (
+  return isMobile ? (
     <div className="body-header">
       <h1 className="body-header__title">{title}</h1>
       <p className="body-header__description">{description}</p>
@@ -39,6 +41,24 @@ export const BodyHeader = ({
           <span className={`${button.className}__text`}>{button.label}</span>
         </Button>
       )}
+    </div>
+  ) : (
+    <div className="body-header">
+      <div className="body-header__presentation">
+        <h1 className="body-header__title">{title}</h1>
+        <p className="body-header__description">{description}</p>
+      </div>
+      <div className="body-header__actions">
+        {button.visible && (
+          <Button
+            className={button.className}
+            onClick={button.onClick}
+          >
+            <FaPlus size={14} className={`${button.className}__icon`} />
+            <span className={`${button.className}__text`}>{button.label}</span>
+          </Button>
+        )}        
+      </div>
     </div>
   )
 }

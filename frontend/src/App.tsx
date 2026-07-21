@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { useAuthStore } from './store';
-import { HomePage, LoginPage, RegisterPage, TransactionsPage, EntitiesPage, CategoriesPage, AccountsPage } from './pages';
+import { HomePage, LoginPage, RegisterPage, TransactionsPage, EntitiesPage, CategoriesPage, AccountsPage, DebtsPage } from './pages';
 
 import './App.css';
 
@@ -22,7 +22,7 @@ function App() {
         {/* Rutas privadas */}
         <Route path="/" element={
           <PrivateRoute>
-            <HomePage section="Dashboard" />
+            <HomePage section="Inicio" />
           </PrivateRoute>
         } />
 
@@ -49,7 +49,12 @@ function App() {
             <AccountsPage section="Cuentas" />
           </PrivateRoute>
         } />
-        
+
+        <Route path="/debts" element={
+          <PrivateRoute>
+            <DebtsPage section="Deudas" />
+          </PrivateRoute>
+        } />
 
         {/* Catch-all: Si no encuentra ruta, manda a la página de login */}
         <Route path="*" element={<Navigate to="/login" />} />

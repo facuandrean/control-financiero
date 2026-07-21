@@ -5,3 +5,4 @@ export { TransactionsPage } from './TransactionsPage';
 export { EntitiesPage } from './EntitiesPage';
 export { CategoriesPage } from './CategoriesPage';
 export { AccountsPage } from './AccountsPage';
+export { DebtsPage } from './DebtsPage';

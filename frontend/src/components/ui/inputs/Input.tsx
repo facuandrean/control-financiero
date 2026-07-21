@@ -10,7 +10,7 @@ interface InputProps {
   name: string;
   label: string;
   control: Control<any>;
-  rules: RegisterOptions<any>;
+  rules?: RegisterOptions<any>;
   errors: FieldErrors<any>;
   type: string;
   placeholder?: string;
@@ -40,7 +40,9 @@ export const Input = ({
 
   return (
     <div className="form-group mb-3">
-      <label htmlFor={inputID} className="form-label">{label}</label>
+      <label htmlFor={inputID} className={rules?.required ? "form-label required" : "form-label"}>
+        {label}
+      </label>
       <div className="input-wrapper">
         <Controller
           name={name}
@@ -60,6 +62,7 @@ export const Input = ({
                 }
                 placeholder={placeholder}
                 disabled={disabled}
+                required={rules?.required ? true : false}
               />
             )
 

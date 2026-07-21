@@ -28,13 +28,15 @@ export const Select = ({
   errors, 
   options, 
   placeholder, 
-  disabled 
+  disabled,
 }: SelectProps) => {
   const inputID = formID ? `${formID}-${name}` : name;
 
   return (
     <div className="form-group mb-3">
-      <label htmlFor={inputID} className="form-label">{label}</label>
+      <label htmlFor={inputID} className={rules?.required ? "form-label required" : "form-label"}>
+        {label}
+      </label>
       <Controller
         name={name}
         control={control}
@@ -43,8 +45,9 @@ export const Select = ({
           <select
             id={inputID}
             {...field}
-            className={`form-control ${errors[name] ? "is-invalid" : ""}`}
+            className={`form-control form-select ${errors[name] ? "is-invalid" : ""}`}
             disabled={disabled}
+            required={rules?.required ? true : false}
           >
             {placeholder && <option value="">{placeholder}</option>}
             {options.map((opt) => (
