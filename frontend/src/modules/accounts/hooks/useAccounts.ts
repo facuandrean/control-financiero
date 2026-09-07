@@ -16,8 +16,6 @@ export const useAccounts = () => {
     setError(null);
     try {
       const response = await api.get('/accounts');
-      // Axios parsea el cuerpo en response.data. Tu backend responde con sendSuccess(res, data)
-      console.log('fetchAccounts response:', response.data);
       setAccounts(response.data.data || []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al obtener las cuentas');
@@ -30,9 +28,9 @@ export const useAccounts = () => {
     setLoading(true);
     setError(null);
     setSuccess(null);
-    try {
-      console.log('data:', data);
 
+    try {
+      console.log("payload", data)
       const payload: Record<string, any> = {
         bank: data.bank,
         name: data.name,
@@ -66,9 +64,7 @@ export const useAccounts = () => {
         }
       }
 
-      console.log('createAccount payload:', payload); 
-
-      await api.post('/api/accounts', payload);
+      await api.post('/accounts', payload);
       setSuccess('¡Cuenta creada correctamente!');
       await fetchAccounts();
       return true;
@@ -80,10 +76,101 @@ export const useAccounts = () => {
     }
   };
 
+  const updateAccount = async (id: string, data: Partial<CreateAccountInput>): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const payload: Record<string, any> = {};
+
+      if (data.bank !== undefined) payload.bank = data.bank;
+      if (data.name !== undefined) payload.name = data.name;
+      if (data.type !== undefined) payload.type = data.type;
+      if (data.tag !== undefined) payload.tag = data.tag;
+      
+      if (data.amount !== undefined && data.amount !== null && data.amount !== '') {
+        payload.amount = Number(data.amount);
+      }
+
+      if (data.description !== undefined) {
+        payload.description = data.description;
+      }
+
+      if (data.type && data.type !== 'Efectivo') {
+        if (data.lastDigits !== undefined) payload.lastDigits = data.lastDigits;
+      } else if (data.type === 'Efectivo') {
+        payload.lastDigits = null;
+      }
+
+      if (data.type === 'Tarjeta de Crédito') {
+        if (data.creditLimit !== undefined && data.creditLimit !== null && data.creditLimit !== '') {
+          payload.creditLimit = Number(data.creditLimit);
+        }
+        if (data.closingDay !== undefined && data.closingDay !== null && data.closingDay !== '') {
+          payload.closingDay = Number(data.closingDay);
+        }
+        if (data.dueDate !== undefined && data.dueDate !== null && data.dueDate !== '') {
+          payload.dueDate = Number(data.dueDate);
+        }
+      } else if (data.type && data.type !== 'Tarjeta de Crédito') {
+        payload.creditLimit = null;
+        payload.closingDay = null;
+        payload.dueDate = null;
+      }
+
+      await api.patch(`/accounts/${id}`, payload);
+      setSuccess('¡Cuenta actualizada correctamente!');
+      await fetchAccounts();
+      return true;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al actualizar la cuenta');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deactivateAccount = async (id: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.delete(`/accounts/${id}`);
+      setSuccess('¡Cuenta dada de baja correctamente!');
+      await fetchAccounts();
+      return true;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al dar de baja la cuenta');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reactivateAccount = async (id: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.patch(`/accounts/${id}`, { status: 'Active' });
+      setSuccess('¡Cuenta reactivada correctamente!');
+      await fetchAccounts();
+      return true;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al reactivar la cuenta');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     accounts,
     fetchAccounts,
     createAccount,
+    updateAccount,
+    deactivateAccount,
+    reactivateAccount,
     loading,
     error,
     clearError,

@@ -5,6 +5,31 @@ import { Select } from "../../../components/ui/inputs/Select";
 import { Textarea } from "../../../components/ui/inputs/Textarea";
 import { ACCOUNT_TYPES } from "../../../types/account.types";
 
+/**
+ * Props for the AccountForm component.
+ */
+interface AccountFormProps {
+  onSubmit: (data: any) => Promise<void>;
+  loading: boolean;
+  errorMessage: string | null;
+  successMessage: string | null;
+  clearError: () => void;
+  clearSuccess: () => void;
+  defaultValues?: any;
+  modalId: string;
+  formId: string;
+}
+
+/**
+ * AccountForm Component
+ * 
+ * A versatile form component for creating or editing accounts.
+ * It dynamically renders fields based on the selected account type.
+ * For example, credit limit and due dates are only shown for Credit Cards.
+ * 
+ * @param {AccountFormProps} props - The component props.
+ * @returns {JSX.Element} The rendered form component.
+ */
 export const AccountForm = ({ 
   onSubmit, 
   loading, 
@@ -15,7 +40,7 @@ export const AccountForm = ({
   defaultValues, 
   modalId,
   formId
-}: any) => {
+}: AccountFormProps) => {
   return (
     <Form 
       onSubmit={onSubmit} 
@@ -29,44 +54,20 @@ export const AccountForm = ({
       formId={formId}
     >
       {({ control, errors }) => {
+        // Watch the type field to dynamically show/hide inputs
         const type = useWatch({ control, name: "type" });
         
         const isCreditCard = type === "Tarjeta de Crédito";
         const isCash = type === "Efectivo";
-        // Cualquier cuenta que no sea efectivo puede tener últimos 4 dígitos
+        
+        // Any account that isn't cash can optionally have last digits
         const canHaveLastDigits = !isCash && !!type; 
-
-        const getTag = (accountType: string) => {
-          switch (accountType) {
-            case "Efectivo": return "efectivo";
-            case "Billetera virtual": return "billetera";
-            case "Caja de ahorro": return "ahorro";
-            case "Cuenta corriente": return "corriente";
-            case "Tarjeta de Crédito": return "crédito";
-            default: return "";
-          }
-        };
-
-        const currentTag = getTag(type ?? "");
 
         return (
           <>
-            <Controller
-              name="tag"
-              control={control}
-              defaultValue={currentTag}
-              render={({ field }) => (
-                <input
-                  type="hidden"
-                  {...field}
-                  value={currentTag}
-                  onChange={(event) => field.onChange(event.target.value)}
-                />
-              )}
-            />
 
             <Input 
-              formID="account-form"
+              formID={formId}
               name="bank"
               label="Banco / Entidad"
               placeholder="Ej: Santander, Mercado Pago, Efectivo"
@@ -77,7 +78,7 @@ export const AccountForm = ({
             />
 
             <Input 
-              formID="account-form"
+              formID={formId}
               name="name"
               label="Nombre identificatorio"
               placeholder="Ej: Sueldo Santander, Tarjeta Visa, MP Principal"
@@ -88,7 +89,7 @@ export const AccountForm = ({
             />
             
             <Select 
-              formID="account-form"
+              formID={formId}
               name="type"
               label="Tipo de cuenta"
               placeholder="Seleccioná un tipo..."
@@ -99,7 +100,7 @@ export const AccountForm = ({
             />
 
             <Input 
-              formID="account-form"
+              formID={formId}
               name="amount"
               label={isCreditCard ? "Monto gastado actual / Deuda inicial" : "Saldo / Monto Inicial"}
               placeholder="0"
@@ -110,7 +111,7 @@ export const AccountForm = ({
 
             {canHaveLastDigits && (
               <Input 
-                formID="account-form"
+                formID={formId}
                 name="lastDigits"
                 label="Últimos 4 dígitos de la tarjeta (Opcional)"
                 placeholder="1234"
@@ -126,7 +127,7 @@ export const AccountForm = ({
             {isCreditCard && (
               <>
                 <Input 
-                  formID="account-form"
+                  formID={formId}
                   name="creditLimit"
                   label="Límite de crédito asignado por el banco"
                   placeholder="Ej: 850000"
@@ -136,7 +137,7 @@ export const AccountForm = ({
                 />
                 
                 <Input 
-                  formID="account-form"
+                  formID={formId}
                   name="closingDay"
                   label="Día del mes que cierra la tarjeta"
                   placeholder="Ej: 25"
@@ -150,7 +151,7 @@ export const AccountForm = ({
                 />
 
                 <Input 
-                  formID="account-form"
+                  formID={formId}
                   name="dueDate"
                   label="Día del mes que vence el resumen"
                   placeholder="Ej: 5"
@@ -166,7 +167,7 @@ export const AccountForm = ({
             )}
 
             <Textarea
-              formID="account-form"
+              formID={formId}
               name="description"
               label="Descripción / Notas (Opcional)"
               placeholder="Ej: Tarjeta de crédito del Santander para compras en cuotas"

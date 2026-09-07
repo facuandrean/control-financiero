@@ -26,7 +26,6 @@ export const accountService = {
     const newAccount = await db.insert(accounts).values({
       ...data,
       userID: data.userID,
-      type: "Cash",
       id: crypto.randomUUID(),
       status: "Active",
       createdAt: sql`CURRENT_TIMESTAMP`,

@@ -28,7 +28,6 @@ export const useAuthStore = create<AuthState>()(
       
       logout: async () => {
         try {
-          // El backend se encarga de res.clearCookie()
           await api.post('/auth/logout');
         } catch (error) {
           console.error("Error al cerrar sesión en servidor", error);

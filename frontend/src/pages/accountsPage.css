@@ -1,0 +1,110 @@
+.master-detail-container {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+  align-items: stretch; /* Permite que el panel izquierdo ocupe toda la altura */
+}
+
+.master-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  max-width: 400px;
+  min-width: 0; /* Allows shrinking below content size */
+}
+
+.master-list-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: transparent;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1; /* Gris claro */
+}
+
+.account-search-input,
+.account-filter-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1; /* Lighter border */
+  background-color: transparent;
+  color: #111827; /* Dark text */
+  font-size: 0.95rem;
+}
+
+.account-filter-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 40px; /* Space for the arrow */
+}
+
+.account-search-input:focus,
+.account-filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.master-list {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+.account-filter-select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.empty-accounts-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: transparent;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+  text-align: center;
+  gap: 12px;
+  flex: 1; /* Para que ocupe el resto del espacio y centre verticalmente */
+}
+
+.empty-accounts-message p {
+  color: #4b5563; /* Gris oscuro */
+  margin: 0;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+/* Columna derecha (Detalles) */
+.detail-panel {
+  flex: 2; /* Ocupa más espacio en desktop */
+  min-width: 320px;
+}
+
+/* Diseño responsive para celulares y tablets */
+@media (max-width: 992px) {
+  .master-detail-container {
+    flex-direction: column;
+  }
+  .master-list-container, .detail-panel {
+    max-width: 100%;
+    width: 100%;
+  }
+}

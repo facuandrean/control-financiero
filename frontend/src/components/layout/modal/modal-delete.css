@@ -1,0 +1,36 @@
+/* Override para botones pasteles en las modales de confirmación */
+.modal-footer .btn-secondary {
+  background-color: transparent;
+  color: #4b5563;
+  border: 1px solid #cbd5e1;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.modal-footer .btn-secondary:hover {
+  background-color: #f1f5f9;
+  color: #111827;
+}
+
+.modal-footer .btn-danger {
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.modal-footer .btn-danger:hover {
+  background-color: rgba(220, 38, 38, 0.25);
+  color: #b91c1c;
+}
+
+.modal-footer .btn-success {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.modal-footer .btn-success:hover {
+  background-color: rgba(16, 185, 129, 0.25);
+  color: #047857;
+}

@@ -1,29 +1,13 @@
-
-
-
-
-
-
-
-
-.account-card .card-body {
-  padding: 0 !important;
-}
-
-.account-card__amount {
-	font-size: 1.6rem;
-	font-weight: 700;
-	color: black;
-  text-align: center;
-}
-
-.account-card .card-description {
-  font-size: 1rem;
-  text-align: left;
-  color: #6c757d;
-}
-
 .auth-card {
   width: 400px;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.auth-card .card-header {
+  text-align: center;
+}
+
+.auth-card .card-header .card-title {
+  font-weight: 600;
+  color: #5f7892
 }
