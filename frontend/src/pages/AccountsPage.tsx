@@ -1,4 +1,5 @@
 import { BodyContent, BodyHeader, SelectionMenu } from '../components/layout';
+import { BsInfoCircle } from 'react-icons/bs';
 import { MainLayout } from '../components/layout/mainLayout/MainLayout';
 import { ModalPost } from '../components/layout/modal/ModalPost';
 import { ModalConfirm } from '../components/layout/modal/ModalConfirm';
@@ -198,8 +199,16 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
             {selectedAccount ? (
               <AccountDetails 
                 account={selectedAccount} 
-                onDeactivate={() => openModal({ idModal: 'confirm-deactivate-modal' })}
-                onReactivate={() => openModal({ idModal: 'confirm-reactivate-modal' })}
+                onDeactivate={() => {
+                  clearError();
+                  clearSuccess();
+                  openModal({ idModal: 'confirm-deactivate-modal' });
+                }}
+                onReactivate={() => {
+                  clearError();
+                  clearSuccess();
+                  openModal({ idModal: 'confirm-reactivate-modal' });
+                }}
                 onEdit={() => {
                   clearError();
                   clearSuccess();
@@ -292,34 +301,55 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
           <ModalConfirm
             id="confirm-deactivate-modal"
             title="Dar de baja cuenta"
-            loading={loading}
+            loading={loading || isSuccessClosing}
+            isProcessing={loading}
+            errorMessage={error}
+            successMessage={success}
+            clearError={clearError}
+            clearSuccess={clearSuccess}
             buttonLabel="Dar de baja"
             buttonLabelLoading="Procesando..."
             confirmButtonClass="btn btn-danger"
             onConfirm={async () => {
               const ok = await deactivateAccount(selectedAccount.id!);
               if (ok) {
-                setSelectedAccountID(null);
-                closeModal({ idModal: 'confirm-deactivate-modal' });
+                setIsSuccessClosing(true);
+                setTimeout(() => {
+                  setSelectedAccountID(null);
+                  closeModal({ idModal: 'confirm-deactivate-modal' });
+                  setIsSuccessClosing(false);
+                }, 3000);
               }
             }}
           >
             <p>¿Estás seguro de que querés dar de baja la cuenta <strong>{selectedAccount.name}</strong>?</p>
-            <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>No podrás usarla en nuevas transacciones, pero mantendrá su historial.</p>
+            <p className="text-muted mb-0 mt-1 d-flex align-items-center gap-3" style={{ fontSize: '0.9rem' }}>
+              <BsInfoCircle size={16} />
+              No podrás usarla en nuevas transacciones, pero mantendrá su historial.
+            </p>
           </ModalConfirm>
 
           <ModalConfirm
             id="confirm-reactivate-modal"
             title="Reactivar cuenta"
-            loading={loading}
+            loading={loading || isSuccessClosing}
+            isProcessing={loading}
+            errorMessage={error}
+            successMessage={success}
+            clearError={clearError}
+            clearSuccess={clearSuccess}
             buttonLabel="Reactivar"
             buttonLabelLoading="Procesando..."
             confirmButtonClass="btn btn-success"
             onConfirm={async () => {
               const ok = await reactivateAccount(selectedAccount.id!);
               if (ok) {
-                setSelectedAccountID(null);
-                closeModal({ idModal: 'confirm-reactivate-modal' });
+                setIsSuccessClosing(true);
+                setTimeout(() => {
+                  setSelectedAccountID(null);
+                  closeModal({ idModal: 'confirm-reactivate-modal' });
+                  setIsSuccessClosing(false);
+                }, 3000);
               }
             }}
           >

@@ -16,7 +16,8 @@
   color: #fff;
 }
 
-.btn-add-account {
+.btn-add-account,
+.btn-add-category {
   background-color: #7a96b4;
   color: #fff;
   border: none;
@@ -30,18 +31,21 @@
   margin-top: 1rem;
 }
 
-.btn-add-account__icon {
+.btn-add-account__icon,
+.btn-add-category__icon {
   margin-right: 0.5rem;
   margin-bottom: 0.20rem;
 }
 
-.btn-add-account__text {
+.btn-add-account__text,
+.btn-add-category__text {
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
 }
 
-.btn-add-account:hover {
+.btn-add-account:hover,
+.btn-add-category:hover {
   background-color: #55718e;
   color: #fff;
 }
