@@ -11,7 +11,6 @@ import { useAccounts } from '../modules/accounts/hooks/useAccounts';
 import { useEffect, useState } from 'react';
 
 import "./accountsPage.css"
-import type { Account } from '../types/account.types';
 
 interface AccountsPageProps {
   section: string;

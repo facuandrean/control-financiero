@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../../../core/middlewares/auth.middleware");
+const debts_accounts_controller_1 = require("./debts-accounts.controller");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authMiddleware);
+router.get("/", debts_accounts_controller_1.debtAccountController.getAllDebtAccounts);
+router.get("/:id", debts_accounts_controller_1.debtAccountController.getDebtAccountById);
+router.post("/", debts_accounts_controller_1.debtAccountController.createDebtAccount);
+router.patch("/update/:id", debts_accounts_controller_1.debtAccountController.updateDebtAccount);
+router.patch("/deactivate/:id", debts_accounts_controller_1.debtAccountController.deactivateDebtAccount);
+router.delete("/:id", debts_accounts_controller_1.debtAccountController.deleteDebtAccount);
+exports.default = router;

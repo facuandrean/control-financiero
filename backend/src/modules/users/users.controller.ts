@@ -4,6 +4,10 @@ import { userService } from './users.service';
 import { sendSuccess } from '../../core/utils/responses';
 import { AppError } from '../../core/utils/AppError';
 import { UpdateUserInput, ChangePasswordInput } from './users.types';
+import { clearAuthCookies } from '../auth/auth.controller';
+import { db } from '../../core/db/db';
+import { sessions } from '../auth/auth.schema';
+import { eq } from 'drizzle-orm';
 
 export const userController = {
   // GET /me
@@ -75,13 +79,10 @@ export const userController = {
     try {
       const userID = req.user.id;
       
+      await db.delete(sessions).where(eq(sessions.userID, userID));
       await userService.deleteUser(userID);
       
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-      });
+      clearAuthCookies(res);
 
       return sendSuccess(res, null, "Cuenta eliminada correctamente");
     } catch (error) {

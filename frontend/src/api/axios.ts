@@ -1,59 +1,109 @@
-import axios from 'axios';
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { config } from '../../config';
 
 /**
- * Instancia preconfigurada de Axios.
- * * Al usar Cookies HttpOnly, ya no necesitamos interceptores de REQUEST 
- * para leer el localStorage. El navegador adjunta las cookies automáticamente.
+ * Instancia preconfigurada de Axios para llamadas de la aplicación.
+ * Permite que las cookies HttpOnly viajen automáticamente en cada petición.
  */
 export const api = axios.create({
   baseURL: config.apiUrl,
-  withCredentials: true, // INDISPENSABLE: Permite que las cookies viajen en cada petición.
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 /**
- * Interceptor de RESPONSE: Manejo automático del Refresh Token.
- * * Si una petición falla con 401 (Unauthorized), intentamos renovar el Access Token
- * llamando al endpoint /refresh. El backend leerá la cookie refreshToken y,
- * si es válida, seteará una NUEVA cookie accessToken.
+ * Cliente aislado exclusivamente para renovar el token.
+ * No comparte interceptores con 'api' para evitar cualquier bucle de llamadas.
+ */
+const refreshClient = axios.create({
+  baseURL: config.apiUrl,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Callback desacoplado para notificar al store cuando la autenticación expira irremediablemente
+let onAuthFailureCallback: (() => void) | null = null;
+
+export const setOnAuthFailure = (callback: () => void) => {
+  onAuthFailureCallback = callback;
+};
+
+// Variables para control de concurrencia (Mutex/Queue)
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
+
+const processQueue = (error: AxiosError | null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
+    }
+  });
+  failedQueue = [];
+};
+
+/**
+ * Interceptor de RESPONSE: Manejo automático del Refresh Token ante 401.
  */
 api.interceptors.response.use(
-  (response) => response, 
-  async (error) => {
-    const originalRequest = error.config;
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
 
-    // Si el error es 401 y no es un reintento de refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; 
-
-      try {
-        /**
-         * Llamamos al endpoint de refresh. 
-         * No enviamos nada en el cuerpo ni en headers.
-         * El backend recibe la cookie 'refreshToken' automáticamente.
-         */
-        await api.post('/auth/refresh');
-        
-        /**
-         * Si el refresh fue exitoso, el backend ya nos envió una nueva cookie 'accessToken'.
-         * Simplemente reintentamos la petición original. 
-         * Ya NO editamos headers.Authorization porque ahora es una cookie.
-         */
-        return api(originalRequest);
-      } catch (refreshError) {
-        /**
-         * Si el refresh falla (ej: la sesión expiró en el servidor), 
-         * redirigimos al login. El backend en el catch del refresh 
-         * debería limpiar las cookies también.
-         */
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
+    // Si no hay respuesta o no es 401, rechazar normalmente
+    if (!error.response || error.response.status !== 401 || !originalRequest) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    const url = originalRequest.url || '';
+
+    // NUNCA interceptar errores 401 en login, register o refresh
+    // Esto permite que useLogin o useRegister muestren sus propios mensajes de error al usuario
+    if (url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
+
+    // Si ya se intentó reintentar esta petición y volvió a fallar, rechazar
+    if (originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    // Si ya se está ejecutando un refresh de token por otra petición simultánea, encolar
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then(() => api(originalRequest))
+        .catch((err) => Promise.reject(err));
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      // Disparar la renovación con el cliente aislado
+      await refreshClient.post('/auth/refresh');
+      processQueue(null);
+      return api(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError as AxiosError);
+      
+      // Notificar al store de autenticación para limpiar el estado y forzar redirección limpia
+      if (onAuthFailureCallback) {
+        onAuthFailureCallback();
+      }
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );

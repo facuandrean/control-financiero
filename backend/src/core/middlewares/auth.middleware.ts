@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AppError } from "../../core/utils/AppError";
+import { config } from "../../config";
 
 interface JwtPayload {
   id: string;
@@ -17,7 +18,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     // 2. Verificar el token
     try {
-      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as JwtPayload;
+      const decoded = jwt.verify(token, config.accessTokenSecret!) as JwtPayload;
       
       // 3. Inyectar el ID del usuario en el request para que los controladores lo usen
       req.user = { id: decoded.id };

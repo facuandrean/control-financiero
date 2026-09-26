@@ -8,6 +8,18 @@ import { sessions } from './auth.schema';
 import { db } from '../../core/db/db';
 import { eq } from 'drizzle-orm';
 
+export const cookieBaseOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: (process.env.NODE_ENV === 'production' ? 'strict' : 'lax') as 'strict' | 'lax',
+  path: '/',
+};
+
+export const clearAuthCookies = (res: Response) => {
+  res.clearCookie('accessToken', cookieBaseOptions);
+  res.clearCookie('refreshToken', cookieBaseOptions);
+};
+
 export const authController = {
   // POST /register
   register: async (req: Request, res: Response, next: NextFunction) => {
@@ -53,19 +65,13 @@ export const authController = {
 
       const { accessToken, refreshToken } = await authService.createSession(user.id, userAgent, ipAddress);
 
-      const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as const,
-      };
-
       res.cookie('accessToken', accessToken, {
-        ...cookieOptions,
+        ...cookieBaseOptions,
         maxAge: 15 * 60 * 1000 // 15 minutos
       });
 
       res.cookie('refreshToken', refreshToken, {
-        ...cookieOptions,
+        ...cookieBaseOptions,
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
       });
 
@@ -83,6 +89,7 @@ export const authController = {
       const refreshToken = req.cookies?.refreshToken;
 
       if (!refreshToken) {
+        clearAuthCookies(res);
         throw new AppError("No se proporcionó Refresh Token", 401, "AUTH_NO_TOKEN");
       }
 
@@ -90,14 +97,13 @@ export const authController = {
 
       // Actualizamos la cookie del Access Token
       res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        ...cookieBaseOptions,
         maxAge: 15 * 60 * 1000
       });
 
       return sendSuccess(res, null, "Token actualizado con éxito");
     } catch (error) {
+      clearAuthCookies(res);
       next(error);
     }
   },
@@ -112,12 +118,12 @@ export const authController = {
         await db.delete(sessions).where(eq(sessions.tokenHashed, hashed));
       }
 
-      // Limpiamos AMBAS cookies
-      res.clearCookie('accessToken');
-      res.clearCookie('refreshToken');
+      // Limpiamos AMBAS cookies con sus opciones completas
+      clearAuthCookies(res);
       
       return sendSuccess(res, null, "Sesión cerrada correctamente");
     } catch (error) {
+      clearAuthCookies(res);
       next(error);
     }
   }

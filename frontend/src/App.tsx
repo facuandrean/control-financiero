@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { useAuthStore } from './store';
@@ -7,17 +8,58 @@ import './App.css';
 
 // Componente para proteger las rutas privadas
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  const { isAuthenticated, isCheckingAuth } = useAuthStore();
+
+  if (isCheckingAuth) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <p>Cargando sesión...</p>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
+// Componente para evitar que usuarios logueados accedan a login o register
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isCheckingAuth } = useAuthStore();
+
+  if (isCheckingAuth) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Navigate to="/" replace /> : children;
 };
 
 function App() {
+  const { isAuthenticated, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    // Si la sesión está marcada como activa, verificamos silenciosamente que la cookie siga viva en el servidor
+    if (isAuthenticated) {
+      checkAuth();
+    }
+  }, [checkAuth, isAuthenticated]);
+
   return (
     <BrowserRouter>
       <Routes>
         {/* Rutas públicas */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        } />
+        <Route path="/register" element={
+          <PublicRoute>
+            <RegisterPage />
+          </PublicRoute>
+        } />
         
         {/* Rutas privadas */}
         <Route path="/" element={
@@ -56,8 +98,8 @@ function App() {
           </PrivateRoute>
         } />
 
-        {/* Catch-all: Si no encuentra ruta, manda a la página de login */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* Catch-all: Si no encuentra ruta, redirigir adecuadamente */}
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
       </Routes>
     </BrowserRouter>
   );

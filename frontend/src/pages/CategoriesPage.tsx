@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BsInfoCircle } from 'react-icons/bs';
 import { BodyContent, BodyHeader } from '../components/layout';
 import { MainLayout } from '../components/layout/mainLayout/MainLayout';

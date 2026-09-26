@@ -1,0 +1,113 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.authController = exports.clearAuthCookies = exports.cookieBaseOptions = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const auth_service_1 = require("./auth.service");
+const users_service_1 = require("../users/users.service");
+const responses_1 = require("../../core/utils/responses");
+const AppError_1 = require("../../core/utils/AppError");
+const auth_schema_1 = require("./auth.schema");
+const db_1 = require("../../core/db/db");
+const drizzle_orm_1 = require("drizzle-orm");
+exports.cookieBaseOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: (process.env.NODE_ENV === 'production' ? 'strict' : 'lax'),
+    path: '/',
+};
+const clearAuthCookies = (res) => {
+    res.clearCookie('accessToken', exports.cookieBaseOptions);
+    res.clearCookie('refreshToken', exports.cookieBaseOptions);
+};
+exports.clearAuthCookies = clearAuthCookies;
+exports.authController = {
+    // POST /register
+    register: async (req, res, next) => {
+        try {
+            const { email, password, name, lastName } = req.body;
+            const existingUser = await users_service_1.userService.findByEmail(email);
+            if (existingUser) {
+                throw new AppError_1.AppError("El email ya está registrado", 409, "AUTH_EMAIL_EXISTS");
+            }
+            const hashedPassword = await bcrypt_1.default.hash(password, 10);
+            const newUser = await users_service_1.userService.createUser({
+                name,
+                lastName,
+                email,
+                password: hashedPassword
+            });
+            const { password: _, ...publicUser } = newUser;
+            return (0, responses_1.sendSuccess)(res, publicUser, "Usuario registrado con éxito", 201);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    // POST /login
+    login: async (req, res, next) => {
+        try {
+            const { email, password } = req.body;
+            const user = await users_service_1.userService.findByEmail(email);
+            if (!user || !(await bcrypt_1.default.compare(password, user.password))) {
+                throw new AppError_1.AppError("Email o contraseña incorrectos", 401, "AUTH_INVALID_CREDENTIALS");
+            }
+            const userAgent = req.headers['user-agent'] || 'unknown';
+            const ipAddress = req.ip || req.socket.remoteAddress || 'unknown';
+            const { accessToken, refreshToken } = await auth_service_1.authService.createSession(user.id, userAgent, ipAddress);
+            res.cookie('accessToken', accessToken, {
+                ...exports.cookieBaseOptions,
+                maxAge: 15 * 60 * 1000 // 15 minutos
+            });
+            res.cookie('refreshToken', refreshToken, {
+                ...exports.cookieBaseOptions,
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+            });
+            const { password: _, ...publicUser } = user;
+            return (0, responses_1.sendSuccess)(res, { user: publicUser }, "Login exitoso");
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    // POST /refresh
+    refresh: async (req, res, next) => {
+        try {
+            const refreshToken = req.cookies?.refreshToken;
+            if (!refreshToken) {
+                (0, exports.clearAuthCookies)(res);
+                throw new AppError_1.AppError("No se proporcionó Refresh Token", 401, "AUTH_NO_TOKEN");
+            }
+            const { accessToken } = await auth_service_1.authService.validateRefreshToken(refreshToken);
+            // Actualizamos la cookie del Access Token
+            res.cookie('accessToken', accessToken, {
+                ...exports.cookieBaseOptions,
+                maxAge: 15 * 60 * 1000
+            });
+            return (0, responses_1.sendSuccess)(res, null, "Token actualizado con éxito");
+        }
+        catch (error) {
+            (0, exports.clearAuthCookies)(res);
+            next(error);
+        }
+    },
+    // POST /logout
+    logout: async (req, res, next) => {
+        try {
+            const refreshToken = req.cookies?.refreshToken;
+            if (refreshToken) {
+                const hashed = auth_service_1.authService.hashToken(refreshToken);
+                await db_1.db.delete(auth_schema_1.sessions).where((0, drizzle_orm_1.eq)(auth_schema_1.sessions.tokenHashed, hashed));
+            }
+            // Limpiamos AMBAS cookies con sus opciones completas
+            (0, exports.clearAuthCookies)(res);
+            return (0, responses_1.sendSuccess)(res, null, "Sesión cerrada correctamente");
+        }
+        catch (error) {
+            (0, exports.clearAuthCookies)(res);
+            next(error);
+        }
+    }
+};
