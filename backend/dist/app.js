@@ -14,8 +14,7 @@ const categories_routes_1 = __importDefault(require("./modules/categories/catego
 const accounts_routes_1 = __importDefault(require("./modules/accounts/accounts.routes"));
 const transactions_routes_1 = __importDefault(require("./modules/transactions/transactions.routes"));
 const entities_routes_1 = __importDefault(require("./modules/entities/entities.routes"));
-const debts_accounts_routes_1 = __importDefault(require("./modules/debts/accounts/debts-accounts.routes"));
-const debts_items_routes_1 = __importDefault(require("./modules/debts/items/debts-items.routes"));
+const debts_routes_1 = __importDefault(require("./modules/debts/debts.routes"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
     origin: config_1.config.frontendUrl || 'http://localhost:5173',
@@ -32,8 +31,7 @@ app.use('/api/categories', categories_routes_1.default);
 app.use('/api/accounts', accounts_routes_1.default);
 app.use('/api/transactions', transactions_routes_1.default);
 app.use('/api/entities', entities_routes_1.default);
-app.use('/api/debt-accounts', debts_accounts_routes_1.default);
-app.use('/api/debt-items', debts_items_routes_1.default);
+app.use('/api/debts', debts_routes_1.default);
 // app.all('*', (req, res, next) => {
 //   next(new AppError(`No se encontró la ruta ${req.originalUrl} en este servidor`, 404));
 // });

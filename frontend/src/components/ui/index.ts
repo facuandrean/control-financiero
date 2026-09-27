@@ -1,5 +1,7 @@
 export { Form } from './form/Form';
 export { Input } from './inputs/Input';
+export { Select } from './inputs/Select';
+export { Textarea } from './inputs/Textarea';
 export { MessageSuccess } from './messages/MessageSuccess';
 export { MessageError } from './messages/MessageError';
 export { MessageInfo } from './messages/MessageInfo';

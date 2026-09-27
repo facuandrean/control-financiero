@@ -11,8 +11,7 @@ import categoryRoutes from './modules/categories/categories.routes';
 import accountRoutes from './modules/accounts/accounts.routes';
 import transactionRoutes from './modules/transactions/transactions.routes';
 import entityRoutes from './modules/entities/entities.routes';
-import debtAccountRoutes from './modules/debts/accounts/debts-accounts.routes';
-import debtItemRoutes from './modules/debts/items/debts-items.routes';
+import debtRoutes from './modules/debts/debts.routes';
 
 
 const app: Application = express();
@@ -35,8 +34,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/entities', entityRoutes);
-app.use('/api/debt-accounts', debtAccountRoutes);
-app.use('/api/debt-items', debtItemRoutes);
+app.use('/api/debts', debtRoutes);
 
 // app.all('*', (req, res, next) => {
 //   next(new AppError(`No se encontró la ruta ${req.originalUrl} en este servidor`, 404));

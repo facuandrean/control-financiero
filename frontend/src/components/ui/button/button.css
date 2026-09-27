@@ -18,7 +18,8 @@
 
 .btn-add-account,
 .btn-add-category,
-.btn-add-entity {
+.btn-add-entity,
+.btn-add-debt {
   background-color: #7a96b4;
   color: #fff;
   border: none;
@@ -34,14 +35,16 @@
 
 .btn-add-account__icon,
 .btn-add-category__icon,
-.btn-add-entity__icon {
+.btn-add-entity__icon,
+.btn-add-debt__icon {
   margin-right: 0.5rem;
   margin-bottom: 0.20rem;
 }
 
 .btn-add-account__text,
 .btn-add-category__text,
-.btn-add-entity__text {
+.btn-add-entity__text,
+.btn-add-debt__text {
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
@@ -49,7 +52,8 @@
 
 .btn-add-account:hover,
 .btn-add-category:hover,
-.btn-add-entity:hover {
+.btn-add-entity:hover,
+.btn-add-debt:hover {
   background-color: #55718e;
   color: #fff;
 }
