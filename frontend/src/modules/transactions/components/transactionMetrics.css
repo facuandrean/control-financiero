@@ -1,4 +1,4 @@
-.debt-metrics-container {
+.transaction-metrics-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
@@ -7,7 +7,7 @@
   margin: 0 auto;
 }
 
-.debt-metric-card {
+.transaction-metric-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 1rem;
@@ -18,19 +18,19 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.debt-metric-card:hover {
+.transaction-metric-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.debt-metric-header {
+.transaction-metric-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
 
-.debt-metric-title {
+.transaction-metric-title {
   font-size: 0.875rem;
   font-weight: 600;
   color: #64748b;
@@ -39,67 +39,67 @@
   margin: 0;
 }
 
-.debt-metric-icon {
-  width: 34px;
-  height: 34px;
+.transaction-metric-icon {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
 
-.debt-metric-amount {
+.transaction-metric-amount {
   font-size: 1.65rem;
   font-weight: 700;
   margin: 0.25rem 0 0;
   line-height: 1.2;
 }
 
-.debt-metric-subtitle {
+.transaction-metric-subtitle {
   font-size: 0.8rem;
   color: #94a3b8;
   margin-top: 0.35rem;
 }
 
-/* Variantes de color pastel claro */
-.metric-payable .debt-metric-icon {
-  background-color: #fee2e2;
-  color: #c46262;
-}
-
-.metric-payable .debt-metric-amount {
-  color: #c46262;
-}
-
-.metric-receivable .debt-metric-icon {
+/* Variantes de color */
+.metric-income .transaction-metric-icon {
   background-color: #dcfce7;
   color: #4c9767;
 }
 
-.metric-receivable .debt-metric-amount {
+.metric-income .transaction-metric-amount {
   color: #4c9767;
 }
 
-.metric-net .debt-metric-icon {
+.metric-expense .transaction-metric-icon {
+  background-color: #fee2e2;
+  color: #c46262;
+}
+
+.metric-expense .transaction-metric-amount {
+  color: #c46262;
+}
+
+.metric-balance .transaction-metric-icon {
   background-color: #e0f2fe;
   color: #0284c7;
 }
 
-.metric-net .debt-metric-amount.is-positive {
-  color: #16a34a;
+.metric-balance .transaction-metric-amount.is-positive {
+  color: #4c9767;
 }
 
-.metric-net .debt-metric-amount.is-negative {
-  color: #475569;
+.metric-balance .transaction-metric-amount.is-negative {
+  color: #c46262;
 }
 
-.metric-net .debt-metric-amount.is-zero {
+.metric-balance .transaction-metric-amount.is-zero {
   color: #475569;
 }
 
 @media (max-width: 768px) {
-  .debt-metrics-container {
+  .transaction-metrics-container {
     grid-template-columns: 1fr;
     gap: 1rem;
   }

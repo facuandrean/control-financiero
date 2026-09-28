@@ -31,6 +31,7 @@ exports.createDebtPaymentSchema = zod_1.default.object({
         .number()
         .int("El monto debe ser un número entero")
         .positive("El monto a pagar debe ser mayor a 0"),
+    accountID: zod_1.default.string().min(1, "La cuenta es obligatoria"),
     date: zod_1.default.string().optional(),
     notes: zod_1.default.string().nullable().optional(),
 });

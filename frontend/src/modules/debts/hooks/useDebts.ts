@@ -101,6 +101,7 @@ export const useDebts = () => {
   const addPayment = async (
     debtId: string,
     amount: number,
+    accountID: string,
     date?: string,
     notes?: string
   ): Promise<boolean> => {
@@ -110,6 +111,7 @@ export const useDebts = () => {
     try {
       const payload: CreateDebtPaymentDTO = {
         amount,
+        accountID,
         date: date || new Date().toISOString(),
         notes: notes || null,
       };

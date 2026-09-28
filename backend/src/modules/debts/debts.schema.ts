@@ -2,6 +2,7 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { users } from "../users/users.schema";
 import { entities } from "../entities/entities.schema";
+import { transactions } from "../transactions/transactions.schema";
 
 export const debts = sqliteTable("Debts", {
   id: text("id").primaryKey(),
@@ -22,5 +23,6 @@ export const debtPayments = sqliteTable("DebtPayments", {
   amount: integer("amount").notNull(),
   date: text("date").notNull().default(sql`CURRENT_TIMESTAMP`),
   notes: text("notes"),
+  transactionID: text("id_transaction").references(() => transactions.id, { onDelete: "set null" }),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });

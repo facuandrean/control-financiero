@@ -22,7 +22,7 @@ export const Sidebar = ({ isOpen, username, email }: SidebarProps) => {
     <aside className={`sidebar ${isOpen ? 'sidebar--open' : 'sidebar--closed'}`}>
       <div className="sidebar-user">
         <div className="sidebar-user__icon">
-          <FaUser size={20}  />
+          <FaUser size={20} />
         </div>
         <div className="sidebar-user__info">
           <p className="sidebar-user__name">{username}</p>
@@ -30,34 +30,34 @@ export const Sidebar = ({ isOpen, username, email }: SidebarProps) => {
         </div>
       </div>
       <nav className="sidebar-nav">
-        <NavLink to="/" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
+        <NavLink to="/" className={({ isActive }) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
           <AiOutlineHome size={20} className="sidebar-nav__icon" />
           <span className="sidebar-nav__text">Inicio</span>
         </NavLink>
 
-        <NavLink to="/transactions" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
+        <NavLink to="/transactions" className={({ isActive }) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
           <LuArrowRightLeft size={20} className="sidebar-nav__icon" />
           <span className="sidebar-nav__text">Transacciones</span>
         </NavLink>
 
-        <NavLink to="/debts" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
-          <TbReportMoney  size={20} className="sidebar-nav__icon" />
-          <span className="sidebar-nav__text">Deudas</span>
+        <NavLink to="/debts" className={({ isActive }) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
+          <TbReportMoney size={20} className="sidebar-nav__icon" />
+          <span className="sidebar-nav__text">Deudas y Cobros</span>
         </NavLink>
 
-        <NavLink to="/entities" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
+        <NavLink to="/entities" className={({ isActive }) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
           <LuBuilding2 size={20} className="sidebar-nav__icon" />
-          
+
           <span className="sidebar-nav__text">Entidades</span>
         </NavLink>
 
-        <NavLink to="/categories" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
+        <NavLink to="/categories" className={({ isActive }) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
           <FiTag size={20} className="sidebar-nav__icon" />
           <span className="sidebar-nav__text">Categorías</span>
         </NavLink>
 
-        <NavLink to="/accounts" className={({isActive}) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
-          <LuCreditCard  size={20} className="sidebar-nav__icon" />
+        <NavLink to="/accounts" className={({ isActive }) => isActive ? 'sidebar-nav__item active' : 'sidebar-nav__item'}>
+          <LuCreditCard size={20} className="sidebar-nav__icon" />
           <span className="sidebar-nav__text">Cuentas</span>
         </NavLink>
       </nav>

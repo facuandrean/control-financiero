@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { useAuthStore } from './store';
 import { HomePage, LoginPage, RegisterPage, TransactionsPage, EntitiesPage, CategoriesPage, AccountsPage, DebtsPage } from './pages';
+import { Loading } from './components/ui';
 
 import './App.css';
 
@@ -12,8 +13,8 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isCheckingAuth) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <p>Cargando sesión...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
+        <Loading />
       </div>
     );
   }
@@ -27,8 +28,8 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isCheckingAuth) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <p>Cargando...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
+        <Loading />
       </div>
     );
   }
@@ -60,7 +61,7 @@ function App() {
             <RegisterPage />
           </PublicRoute>
         } />
-        
+
         {/* Rutas privadas */}
         <Route path="/" element={
           <PrivateRoute>
@@ -94,7 +95,7 @@ function App() {
 
         <Route path="/debts" element={
           <PrivateRoute>
-            <DebtsPage section="Deudas" />
+            <DebtsPage section="Deudas y Cobros" />
           </PrivateRoute>
         } />
 

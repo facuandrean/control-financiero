@@ -11,6 +11,9 @@ const AppError_1 = require("../../core/utils/AppError");
 const drizzle_orm_1 = require("drizzle-orm");
 const crypto_1 = __importDefault(require("crypto"));
 const entities_service_1 = require("../entities/entities.service");
+const accounts_schema_1 = require("../accounts/accounts.schema");
+const accounts_service_1 = require("../accounts/accounts.service");
+const transactions_schema_1 = require("../transactions/transactions.schema");
 exports.debtService = {
     createDebt: async (data) => {
         // Verificar que la entidad pertenezca al usuario
@@ -155,53 +158,101 @@ exports.debtService = {
         if (!debt) {
             throw new AppError_1.AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
         }
+        // 1. Obtener la cuenta y validar fondos si la deuda es a pagar (Payable)
+        const account = await accounts_service_1.accountService.getAccountById(data.accountID, userID);
+        const isCreditCard = (type) => {
+            const lower = type.toLowerCase();
+            return lower.includes("crédito") || lower.includes("credito");
+        };
+        if (debt.type === "Payable") {
+            const currentBalance = account.amount ?? 0;
+            if (!isCreditCard(account.type) && data.amount > currentBalance) {
+                throw new AppError_1.AppError("Saldo insuficiente", 400, "INSUFFICIENT_FUNDS");
+            }
+        }
         const paymentID = crypto_1.default.randomUUID();
-        const newPayment = await db_1.db
-            .insert(debts_schema_1.debtPayments)
-            .values({
-            id: paymentID,
-            debtID: debt.id,
-            amount: data.amount,
-            date: data.date || (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-            notes: data.notes || null,
-            createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        })
-            .returning()
-            .get();
-        if (!newPayment) {
-            throw new AppError_1.AppError("No se pudo registrar el pago", 500, "PAYMENT_CREATION_FAILED");
-        }
-        // Recalcular pagos acumulados para la deuda
-        const paymentsSum = await db_1.db
-            .select({
-            total: (0, drizzle_orm_1.sql) `COALESCE(SUM(${debts_schema_1.debtPayments.amount}), 0)`,
-        })
-            .from(debts_schema_1.debtPayments)
-            .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, debt.id))
-            .get();
-        const totalPaid = Number(paymentsSum?.total) || 0;
+        const transactionID = crypto_1.default.randomUUID();
+        const transactionType = debt.type === "Payable" ? "Expense" : "Income";
+        const paymentDate = data.date || new Date().toISOString().split("T")[0];
+        let resultPayment;
         let newStatus = "Pending";
-        if (totalPaid >= debt.totalAmount) {
-            newStatus = "Settled";
-        }
-        else if (totalPaid > 0) {
-            newStatus = "Partial";
-        }
-        else {
-            newStatus = "Pending";
-        }
-        await db_1.db
-            .update(debts_schema_1.debts)
-            .set({
-            status: newStatus,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        })
-            .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
+        let finalTotalPaid = 0;
+        await db_1.db.transaction(async (tx) => {
+            // 1. Crear el registro en la tabla Transactions primero para satisfacer la FK
+            await tx.insert(transactions_schema_1.transactions).values({
+                id: transactionID,
+                userID: userID,
+                type: transactionType,
+                amount: data.amount,
+                accountID: data.accountID,
+                toAccountID: null,
+                categoryID: null,
+                entityID: debt.entityID,
+                date: paymentDate,
+                description: `Pago de deuda: ${debt.description}`,
+                createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            });
+            // 2. Insertar el pago en DebtPayments vinculando transactionID existente
+            const [insertedPayment] = await tx
+                .insert(debts_schema_1.debtPayments)
+                .values({
+                id: paymentID,
+                debtID: debt.id,
+                amount: data.amount,
+                date: paymentDate,
+                notes: data.notes || null,
+                transactionID: transactionID,
+                createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            })
+                .returning();
+            resultPayment = insertedPayment;
+            // 4. Actualizar el saldo en la tabla Accounts
+            const currentAccount = await tx
+                .select()
+                .from(accounts_schema_1.accounts)
+                .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, data.accountID))
+                .get();
+            if (currentAccount) {
+                const newBalance = transactionType === "Expense"
+                    ? (currentAccount.amount ?? 0) - data.amount
+                    : (currentAccount.amount ?? 0) + data.amount;
+                await tx
+                    .update(accounts_schema_1.accounts)
+                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, currentAccount.id));
+            }
+            // 5. Recalcular pagos acumulados para la deuda y actualizar status
+            const paymentsSum = await tx
+                .select({
+                total: (0, drizzle_orm_1.sql) `COALESCE(SUM(${debts_schema_1.debtPayments.amount}), 0)`,
+            })
+                .from(debts_schema_1.debtPayments)
+                .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, debt.id))
+                .get();
+            finalTotalPaid = Number(paymentsSum?.total) || 0;
+            if (finalTotalPaid >= debt.totalAmount) {
+                newStatus = "Settled";
+            }
+            else if (finalTotalPaid > 0) {
+                newStatus = "Partial";
+            }
+            else {
+                newStatus = "Pending";
+            }
+            await tx
+                .update(debts_schema_1.debts)
+                .set({
+                status: newStatus,
+                updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            })
+                .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
+        });
         return {
-            payment: newPayment,
+            payment: resultPayment,
             debtStatus: newStatus,
-            totalPaid,
-            remainingAmount: Math.max(0, debt.totalAmount - totalPaid),
+            totalPaid: finalTotalPaid,
+            remainingAmount: Math.max(0, debt.totalAmount - finalTotalPaid),
         };
     },
     deletePayment: async (paymentID, userID) => {
@@ -217,40 +268,71 @@ exports.debtService = {
         if (!paymentRow) {
             throw new AppError_1.AppError("Pago no encontrado", 404, "PAYMENT_NOT_FOUND");
         }
-        const debt = paymentRow.debt;
-        await db_1.db.delete(debts_schema_1.debtPayments).where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.id, paymentID));
-        // Recalcular el estado tras eliminar el pago
-        const paymentsSum = await db_1.db
-            .select({
-            total: (0, drizzle_orm_1.sql) `COALESCE(SUM(${debts_schema_1.debtPayments.amount}), 0)`,
-        })
-            .from(debts_schema_1.debtPayments)
-            .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, debt.id))
-            .get();
-        const totalPaid = Number(paymentsSum?.total) || 0;
+        const { payment, debt } = paymentRow;
         let newStatus = "Pending";
-        if (totalPaid >= debt.totalAmount) {
-            newStatus = "Settled";
-        }
-        else if (totalPaid > 0) {
-            newStatus = "Partial";
-        }
-        else {
-            newStatus = "Pending";
-        }
-        await db_1.db
-            .update(debts_schema_1.debts)
-            .set({
-            status: newStatus,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        })
-            .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
+        let finalTotalPaid = 0;
+        await db_1.db.transaction(async (tx) => {
+            // 1. Revertir transacción y cuenta asociada si existía
+            if (payment.transactionID) {
+                const txRecord = await tx
+                    .select()
+                    .from(transactions_schema_1.transactions)
+                    .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, payment.transactionID))
+                    .get();
+                if (txRecord) {
+                    const acc = await tx
+                        .select()
+                        .from(accounts_schema_1.accounts)
+                        .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, txRecord.accountID))
+                        .get();
+                    if (acc) {
+                        const restoredBalance = txRecord.type === "Expense"
+                            ? (acc.amount ?? 0) + txRecord.amount
+                            : (acc.amount ?? 0) - txRecord.amount;
+                        await tx
+                            .update(accounts_schema_1.accounts)
+                            .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                            .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, acc.id));
+                    }
+                    await tx
+                        .delete(transactions_schema_1.transactions)
+                        .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, txRecord.id));
+                }
+            }
+            // 2. Eliminar el pago en DebtPayments
+            await tx.delete(debts_schema_1.debtPayments).where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.id, paymentID));
+            // 3. Recalcular pagos acumulados para la deuda y actualizar status
+            const paymentsSum = await tx
+                .select({
+                total: (0, drizzle_orm_1.sql) `COALESCE(SUM(${debts_schema_1.debtPayments.amount}), 0)`,
+            })
+                .from(debts_schema_1.debtPayments)
+                .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, debt.id))
+                .get();
+            finalTotalPaid = Number(paymentsSum?.total) || 0;
+            if (finalTotalPaid >= debt.totalAmount) {
+                newStatus = "Settled";
+            }
+            else if (finalTotalPaid > 0) {
+                newStatus = "Partial";
+            }
+            else {
+                newStatus = "Pending";
+            }
+            await tx
+                .update(debts_schema_1.debts)
+                .set({
+                status: newStatus,
+                updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            })
+                .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
+        });
         return {
             deletedPaymentId: paymentID,
             debtId: debt.id,
             debtStatus: newStatus,
-            totalPaid,
-            remainingAmount: Math.max(0, debt.totalAmount - totalPaid),
+            totalPaid: finalTotalPaid,
+            remainingAmount: Math.max(0, debt.totalAmount - finalTotalPaid),
         };
     },
 };

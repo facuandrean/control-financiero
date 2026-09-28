@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.debtController = void 0;
 const debts_service_1 = require("./debts.service");
 const responses_1 = require("../../core/utils/responses");
+const debts_validators_1 = require("./debts.validators");
 exports.debtController = {
     getAllDebts: async (req, res, next) => {
         try {
@@ -63,8 +64,8 @@ exports.debtController = {
         try {
             const id = req.params.id; // debtID
             const userID = req.user.id;
-            const data = req.body;
-            const result = await debts_service_1.debtService.addPayment(id, userID, data);
+            const validatedData = debts_validators_1.createDebtPaymentSchema.parse(req.body);
+            const result = await debts_service_1.debtService.addPayment(id, userID, validatedData);
             return (0, responses_1.sendSuccess)(res, result, "Pago registrado con éxito", 201);
         }
         catch (error) {

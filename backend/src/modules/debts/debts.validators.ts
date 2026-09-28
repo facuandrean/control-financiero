@@ -28,6 +28,7 @@ export const createDebtPaymentSchema = z.object({
     .number()
     .int("El monto debe ser un número entero")
     .positive("El monto a pagar debe ser mayor a 0"),
+  accountID: z.string().min(1, "La cuenta es obligatoria"),
   date: z.string().optional(),
   notes: z.string().nullable().optional(),
 });

@@ -1,0 +1,55 @@
+.transaction-tabs-nav {
+  display: flex;
+  background-color: #f1f5f9;
+  padding: 0.35rem;
+  border-radius: 0.75rem;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.transaction-tab-btn {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  background: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.transaction-tab-btn:hover:not(.active) {
+  color: #1e293b;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.transaction-tab-btn.active {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.transaction-tab-btn.tab-expense.active {
+  color: #dc2626;
+}
+
+.transaction-tab-btn.tab-income.active {
+  color: #16a34a;
+}
+
+.transaction-tab-btn.tab-transfer.active {
+  color: #0284c7;
+}
+
+.account-balance-preview {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: -0.5rem;
+  margin-bottom: 0.85rem;
+  padding-left: 0.25rem;
+}

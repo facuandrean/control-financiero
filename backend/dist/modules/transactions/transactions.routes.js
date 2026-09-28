@@ -9,4 +9,5 @@ router.get("/", transactions_controller_1.transactionController.getAllTransactio
 router.get("/:id", transactions_controller_1.transactionController.getTransactionById);
 router.post("/", transactions_controller_1.transactionController.createTransaction);
 router.patch("/:id", transactions_controller_1.transactionController.updateTransaction);
+router.delete("/:id", transactions_controller_1.transactionController.deleteTransaction);
 exports.default = router;

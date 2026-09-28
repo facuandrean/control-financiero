@@ -96,6 +96,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     const isOk = await addPayment(
       selectedDebt.id,
       formData.amount,
+      formData.accountID,
       formData.date,
       formData.notes
     );

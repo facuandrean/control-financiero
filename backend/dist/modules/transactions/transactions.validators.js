@@ -5,15 +5,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateTransactionSchema = exports.createTransactionSchema = void 0;
 const zod_1 = __importDefault(require("zod"));
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 exports.createTransactionSchema = zod_1.default.object({
-    accountID: zod_1.default.string().regex(uuidRegex, "El ID de la cuenta debe ser un UUID válido"),
-    categoryID: zod_1.default.string().regex(uuidRegex, "El ID de la categoría debe ser un UUID válido"),
-    entityID: zod_1.default.string().regex(uuidRegex, "El ID de la entidad debe ser un UUID válido"),
-    amount: zod_1.default.number().positive("El monto debe ser mayor a 0"),
-    type: zod_1.default.enum(["Income", "Expense"], { message: "El tipo debe ser Income (Ingreso) o Expense (Egreso)" }),
-    description: zod_1.default.string().trim().optional(),
+    type: zod_1.default.enum(["Income", "Expense", "Transfer"]),
+    amount: zod_1.default
+        .number()
+        .int("El monto debe ser un número entero")
+        .positive("El monto debe ser positivo y mayor a 0"),
+    accountID: zod_1.default.string().min(1, "La cuenta origen es obligatoria"),
+    toAccountID: zod_1.default.string().nullable().optional(),
+    categoryID: zod_1.default.string().nullable().optional(),
+    entityID: zod_1.default.string().nullable().optional(),
+    date: zod_1.default.string().min(1, "La fecha es obligatoria"),
+    description: zod_1.default.string().min(1, "La descripción es obligatoria"),
 });
 exports.updateTransactionSchema = zod_1.default.object({
-    status: zod_1.default.enum(["Recorded", "Reverted"]),
+    type: zod_1.default.enum(["Income", "Expense", "Transfer"]).optional(),
+    amount: zod_1.default
+        .number()
+        .int("El monto debe ser un número entero")
+        .positive("El monto debe ser positivo y mayor a 0")
+        .optional(),
+    accountID: zod_1.default.string().min(1, "La cuenta origen no puede estar vacía").optional(),
+    toAccountID: zod_1.default.string().nullable().optional(),
+    categoryID: zod_1.default.string().nullable().optional(),
+    entityID: zod_1.default.string().nullable().optional(),
+    date: zod_1.default.string().min(1, "La fecha no puede estar vacía").optional(),
+    description: zod_1.default.string().min(1, "La descripción no puede estar vacía").optional(),
 });

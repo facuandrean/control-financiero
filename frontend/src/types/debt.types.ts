@@ -27,6 +27,7 @@ export interface DebtPayment {
   amount: number;
   date?: string;
   notes?: string | null;
+  transactionID?: string | null;
   createdAt?: string;
 }
 
@@ -48,6 +49,7 @@ export interface UpdateDebtDTO {
 
 export interface CreateDebtPaymentDTO {
   amount: number;
+  accountID: string;
   date?: string;
   notes?: string | null;
 }

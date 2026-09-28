@@ -1,62 +1,111 @@
 import { NextFunction, Request, Response } from "express";
 import { sendSuccess } from "../../core/utils/responses";
-import { Transaction, CreateTransactionInput, NewTransaction, UpdateTransactionInput } from "./transactions.types";
 import { transactionService } from "./transactions.service";
+import {
+  createTransactionSchema,
+  updateTransactionSchema,
+} from "./transactions.validators";
 
 export const transactionController = {
-  getAllTransactions: async (req: Request, res: Response, next: NextFunction) => {
+  getAllTransactions: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const userID = req.user.id;
-      const allTransactions: Transaction[] = await transactionService.getAllTransactions(userID);
-      return sendSuccess(res, allTransactions);
+      const { month, year, accountID, type } = req.query;
+
+      const transactions = await transactionService.getAllTransactions(userID, {
+        month: month ? String(month) : undefined,
+        year: year ? String(year) : undefined,
+        accountID: accountID ? String(accountID) : undefined,
+        type: type ? String(type) : undefined,
+      });
+
+      return sendSuccess(res, transactions);
     } catch (error) {
       next(error);
     }
   },
 
-  getTransactionById: async (req: Request, res: Response, next: NextFunction) => {
+  getTransactionById: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const id = req.params.id as string;
-      
       const userID = req.user.id;
-      const exists = await transactionService.getTransactionById(id, userID);
+      const transaction = await transactionService.getTransactionById(
+        id,
+        userID
+      );
 
-      return sendSuccess(res, exists);
+      return sendSuccess(res, transaction);
     } catch (error) {
       next(error);
     }
   },
 
-  createTransaction: async (req: Request, res: Response, next: NextFunction) => {
+  createTransaction: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const data: CreateTransactionInput = req.body;
-
       const userID = req.user.id;
-      
-      const newTransaction: NewTransaction = await transactionService.createTransaction({
-        ...data,
+      const validatedData = createTransactionSchema.parse(req.body);
+
+      const newTransaction = await transactionService.createTransaction({
+        ...validatedData,
         userID,
       });
-      return sendSuccess(res, newTransaction);
+
+      return sendSuccess(res, newTransaction, "Transacción creada exitosamente", 201);
     } catch (error) {
       next(error);
     }
   },
 
-  updateTransaction: async (req: Request, res: Response, next: NextFunction) => {
+  updateTransaction: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const id = req.params.id as string;
-
       const userID = req.user.id;
-      await transactionService.getTransactionById(id, userID);
+      const validatedData = updateTransactionSchema.parse(req.body);
 
-      const data: UpdateTransactionInput = req.body;
-      
-      const updatedTransaction: Transaction = await transactionService.updateTransaction(id, data);
+      const updatedTransaction = await transactionService.updateTransaction(
+        id,
+        userID,
+        validatedData
+      );
+
       return sendSuccess(res, updatedTransaction);
     } catch (error) {
       next(error);
     }
   },
-};
 
+  deleteTransaction: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id = req.params.id as string;
+      const userID = req.user.id;
+
+      await transactionService.deleteTransaction(id, userID);
+
+      return sendSuccess(res, {
+        message: "Transacción eliminada correctamente",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+};

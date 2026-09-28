@@ -1,4 +1,6 @@
-import { Form, Input, Textarea } from '../../../components/ui';
+import { useEffect } from 'react';
+import { Form, Input, Select, Textarea } from '../../../components/ui';
+import { useAccounts } from '../../accounts';
 import type { Debt } from '../../../types/debt.types';
 
 interface PaymentFormProps {
@@ -24,12 +26,25 @@ export const PaymentForm = ({
   modalId,
   formId,
 }: PaymentFormProps) => {
+  const { accounts, fetchAccounts } = useAccounts();
+
+  useEffect(() => {
+    fetchAccounts();
+  }, [fetchAccounts]);
+
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-AR', {
       style: 'currency',
       currency: 'ARS',
       minimumFractionDigits: 0,
     }).format(val);
+
+  const accountOptions = accounts
+    .filter((a) => a.status === 'Active')
+    .map((a) => ({
+      value: a.id,
+      label: `${a.bank} - ${a.name} (${formatCurrency(a.amount ?? 0)})`,
+    }));
 
   const remaining = debt
     ? debt.remainingAmount ?? Math.max(0, debt.totalAmount - (debt.paidAmount ?? 0))
@@ -38,7 +53,8 @@ export const PaymentForm = ({
   const handleFormSubmit = async (data: any) => {
     await onSubmit({
       amount: Number(data.amount),
-      date: data.date || new Date().toISOString(),
+      accountID: data.accountID,
+      date: data.date || new Date().toISOString().split('T')[0],
       notes: data.notes || '',
     });
   };
@@ -56,6 +72,7 @@ export const PaymentForm = ({
       clearSuccess={clearSuccess}
       modalId={modalId}
       defaultValues={{
+        accountID: '',
         amount: remaining > 0 ? remaining : '',
         date: today,
         notes: '',
@@ -77,6 +94,12 @@ export const PaymentForm = ({
                 <strong className="text-dark">{debt.entity?.name || 'Entidad'}</strong>
               </div>
               <div className="d-flex justify-content-between mb-1">
+                <span className="text-muted">Tipo:</span>
+                <span className={debt.type === 'Payable' ? 'text-danger' : 'text-success'}>
+                  {debt.type === 'Payable' ? 'Debo (Pago / Egreso)' : 'Me deben (Cobro / Ingreso)'}
+                </span>
+              </div>
+              <div className="d-flex justify-content-between mb-1">
                 <span className="text-muted">Total de la Deuda:</span>
                 <span>{formatCurrency(debt.totalAmount)}</span>
               </div>
@@ -93,10 +116,26 @@ export const PaymentForm = ({
             </div>
           )}
 
+          {/* Selector de Cuenta */}
+          <Select
+            formID={formId}
+            name="accountID"
+            label={
+              debt?.type === 'Payable'
+                ? 'Cuenta de Origen (Pago)'
+                : 'Cuenta de Destino (Cobro)'
+            }
+            placeholder="Seleccionar cuenta..."
+            control={control}
+            rules={{ required: 'Debes seleccionar una cuenta' }}
+            errors={errors}
+            options={accountOptions}
+          />
+
           <Input
             formID={formId}
             name="amount"
-            label="Monto a pagar"
+            label="Monto a pagar / cobrar"
             placeholder="Ej: 10000"
             type="number"
             control={control}

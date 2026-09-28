@@ -1,17 +1,30 @@
 import z from "zod";
 
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export const createTransactionSchema = z.object({
-  accountID: z.string().regex(uuidRegex, "El ID de la cuenta debe ser un UUID válido"),
-  categoryID: z.string().regex(uuidRegex, "El ID de la categoría debe ser un UUID válido"),
-  entityID: z.string().regex(uuidRegex, "El ID de la entidad debe ser un UUID válido"),
-  amount: z.number().positive("El monto debe ser mayor a 0"),
-  type: z.enum(["Income", "Expense"], { message: "El tipo debe ser Income (Ingreso) o Expense (Egreso)" }),
-  description: z.string().trim().optional(),
+  type: z.enum(["Income", "Expense", "Transfer"]),
+  amount: z
+    .number()
+    .int("El monto debe ser un número entero")
+    .positive("El monto debe ser positivo y mayor a 0"),
+  accountID: z.string().min(1, "La cuenta origen es obligatoria"),
+  toAccountID: z.string().nullable().optional(),
+  categoryID: z.string().nullable().optional(),
+  entityID: z.string().nullable().optional(),
+  date: z.string().min(1, "La fecha es obligatoria"),
+  description: z.string().min(1, "La descripción es obligatoria"),
 });
 
 export const updateTransactionSchema = z.object({
-  status: z.enum(["Recorded", "Reverted"]),
+  type: z.enum(["Income", "Expense", "Transfer"]).optional(),
+  amount: z
+    .number()
+    .int("El monto debe ser un número entero")
+    .positive("El monto debe ser positivo y mayor a 0")
+    .optional(),
+  accountID: z.string().min(1, "La cuenta origen no puede estar vacía").optional(),
+  toAccountID: z.string().nullable().optional(),
+  categoryID: z.string().nullable().optional(),
+  entityID: z.string().nullable().optional(),
+  date: z.string().min(1, "La fecha no puede estar vacía").optional(),
+  description: z.string().min(1, "La descripción no puede estar vacía").optional(),
 });
-

@@ -56,11 +56,29 @@ Formulario reactivo construido sobre el componente genérico `<Form>` con Render
 
 ### 4. `PaymentForm`
 Formulario dedicado para registrar abonos parciales:
-- Muestra una caja resumen con el monto original, total abonado hasta el momento y saldo restante por saldar.
+- Muestra una caja resumen con la entidad, el tipo (Pago/Egreso vs Cobro/Ingreso), el monto original, total abonado hasta el momento y saldo restante por saldar.
+- Integra `useAccounts` con un selector obligatorio de **Cuenta de Origen** (si es deuda a pagar) o **Cuenta de Destino** (si es deuda a cobrar), mostrando el saldo disponible en tiempo real.
 - Precompleta la fecha con el día actual y valida que el monto ingresado sea positivo.
+- En caso de fondos insuficientes en la cuenta elegida, el error 400 es capturado y renderizado en `<MessageError>` sin cerrar el modal.
 - Permite adjuntar notas aclaratorias o números de comprobante de transferencia.
 
 ---
+
+## 🔄 Integración con Transacciones y Cuentas (Doble Impacto)
+
+El flujo de amortización de deudas está estrechamente acoplado con el módulo de `Transactions` y `Accounts`:
+1. **Registro Atómico (`addPayment`)**:
+   - Todo el proceso corre dentro de una transacción `db.transaction(async (tx) => { ... })`.
+   - Si la deuda es `Payable` (Egreso) y la cuenta elegida no es tarjeta de crédito, valida que el saldo cubra el monto; de lo contrario aborta con `400 Bad Request` ("Saldo insuficiente").
+   - Inserta el registro en `DebtPayments` guardando la referencia `transactionID`.
+   - Crea automáticamente la transacción asociada en `Transactions` con tipo `Expense` (Payable) o `Income` (Receivable) vinculada a la misma entidad.
+   - Modifica el saldo de la cuenta en `Accounts` (resta en egreso, suma en ingreso).
+   - Recalcula el `status` de la deuda (`Pending`, `Partial` o `Settled`).
+2. **Reversión Atómica (`deletePayment`)**:
+   - Rastrea el `transactionID` vinculado al pago.
+   - Restaura el saldo original en la cuenta involucrada en `Accounts`.
+   - Elimina la transacción de `Transactions`.
+   - Elimina el abono de `DebtPayments` y recalcula el estado de la deuda.
 
 ## 🪝 Hook de API (`useDebts.ts`)
 

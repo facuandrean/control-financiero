@@ -5,6 +5,7 @@ const sqlite_core_1 = require("drizzle-orm/sqlite-core");
 const drizzle_orm_1 = require("drizzle-orm");
 const users_schema_1 = require("../users/users.schema");
 const entities_schema_1 = require("../entities/entities.schema");
+const transactions_schema_1 = require("../transactions/transactions.schema");
 exports.debts = (0, sqlite_core_1.sqliteTable)("Debts", {
     id: (0, sqlite_core_1.text)("id").primaryKey(),
     userID: (0, sqlite_core_1.text)("id_user").notNull().references(() => users_schema_1.users.id, { onDelete: "cascade" }),
@@ -23,5 +24,6 @@ exports.debtPayments = (0, sqlite_core_1.sqliteTable)("DebtPayments", {
     amount: (0, sqlite_core_1.integer)("amount").notNull(),
     date: (0, sqlite_core_1.text)("date").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
     notes: (0, sqlite_core_1.text)("notes"),
+    transactionID: (0, sqlite_core_1.text)("id_transaction").references(() => transactions_schema_1.transactions.id, { onDelete: "set null" }),
     createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
 });

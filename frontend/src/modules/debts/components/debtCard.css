@@ -156,7 +156,7 @@
 }
 
 .fill-payable {
-  background-color: #f97316;
+  background-color: #64748b;
 }
 
 .debt-remaining-info {
@@ -197,12 +197,12 @@
 
 .btn-pay {
   background-color: #f1f5f9;
-  color: #0284c7;
+  color: #64748b;
 }
 
 .btn-pay:hover:not(:disabled) {
   background-color: #e0f2fe;
-  color: #0369a1;
+  color: #788daa;
 }
 
 .btn-pay:disabled {
@@ -217,7 +217,7 @@
 }
 
 .btn-edit-debt {
-  color: #0284c7;
+  color: #788daa;
 }
 
 .btn-edit-debt:hover {

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { debtService } from "./debts.service";
 import { sendSuccess } from "../../core/utils/responses";
 import { CreateDebtDTO, UpdateDebtDTO, CreateDebtPaymentDTO } from "./debts.types";
+import { createDebtPaymentSchema } from "./debts.validators";
 
 export const debtController = {
   getAllDebts: async (req: Request, res: Response, next: NextFunction) => {
@@ -63,8 +64,8 @@ export const debtController = {
     try {
       const id = req.params.id as string; // debtID
       const userID = req.user.id;
-      const data: CreateDebtPaymentDTO = req.body;
-      const result = await debtService.addPayment(id, userID, data);
+      const validatedData: CreateDebtPaymentDTO = createDebtPaymentSchema.parse(req.body);
+      const result = await debtService.addPayment(id, userID, validatedData);
       return sendSuccess(res, result, "Pago registrado con éxito", 201);
     } catch (error) {
       next(error);

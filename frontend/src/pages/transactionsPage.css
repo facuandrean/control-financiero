@@ -1,0 +1,130 @@
+.transactions-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.transactions-controls-box {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.transactions-date-selector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.transactions-date-pickers {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.transactions-select-filter {
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transactions-select-filter:focus {
+  border-color: #7a96b4;
+  box-shadow: 0 0 0 2px rgba(122, 150, 180, 0.2);
+}
+
+.transactions-search-input {
+  flex: 1;
+  min-width: 240px;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transactions-search-input:focus {
+  border-color: #7a96b4;
+  box-shadow: 0 0 0 2px rgba(122, 150, 180, 0.2);
+}
+
+.transactions-type-pills {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-tx-filter-tag {
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-tx-filter-tag:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.btn-tx-filter-tag.active {
+  background: #7a96b4;
+  color: #ffffff;
+}
+
+.transactions-list-container {
+  padding: 1.5rem;
+}
+
+.transactions-loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+@media (max-width: 768px) {
+  .transactions-date-selector-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .transactions-date-pickers {
+    width: 100%;
+  }
+
+  .transactions-select-filter {
+    flex: 1;
+  }
+
+  .transactions-search-input {
+    width: 100%;
+  }
+
+  .transactions-type-pills {
+    justify-content: center;
+  }
+
+}
