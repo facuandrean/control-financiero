@@ -230,6 +230,8 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         id="account-modal"
         formId="account-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
       >
         <AccountForm
           onSubmit={handleSubmitAccount}
@@ -261,6 +263,8 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
           id="account-update-modal"
           formId="account-update-form"
           loading={loading || isSuccessClosing}
+          clearError={clearError}
+          clearSuccess={clearSuccess}
           buttonSubmit={{
             label: "Actualizar",
             labelLoading: "Actualizando...",
@@ -277,11 +281,11 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
             successMessage={success}
             clearError={clearError}
             clearSuccess={clearSuccess}
+            isEditing={true}
             defaultValues={{
               bank: selectedAccount.bank,
               name: selectedAccount.name,
               type: selectedAccount.type,
-              amount: selectedAccount.amount || 0,
               description: selectedAccount.description || '',
               lastDigits: selectedAccount.lastDigits || '',
               creditLimit: selectedAccount.creditLimit || '',

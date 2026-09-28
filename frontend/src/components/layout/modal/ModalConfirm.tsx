@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { Loading } from '../../ui/loading/Loading';
 import { MessageError } from '../../ui/messages/MessageError';
 import { MessageSuccess } from '../../ui/messages/MessageSuccess';
 import './modal-delete.css';
 import { useClear } from '../../../hooks';
+import { onModalHidden } from '../../../utils/modal.utils';
 
 interface ModalConfirmProps {
   id: string;
@@ -19,6 +21,7 @@ interface ModalConfirmProps {
   successMessage?: string | null;
   clearError?: () => void;
   clearSuccess?: () => void;
+  onHidden?: () => void;
 }
 export const ModalConfirm = ({ 
   id, 
@@ -34,11 +37,20 @@ export const ModalConfirm = ({
   errorMessage,
   successMessage,
   clearError,
-  clearSuccess
+  clearSuccess,
+  onHidden
 }: ModalConfirmProps) => {
 
   useClear({ message: errorMessage, clearMessage: clearError ?? (() => {}) });
   useClear({ message: successMessage, clearMessage: clearSuccess ?? (() => {}) });
+
+  useEffect(() => {
+    return onModalHidden(id, () => {
+      clearError?.();
+      clearSuccess?.();
+      onHidden?.();
+    });
+  }, [id, clearError, clearSuccess, onHidden]);
 
   return (
     <>

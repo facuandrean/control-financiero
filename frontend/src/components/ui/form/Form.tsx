@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm, type Control, type FieldErrors } from "react-hook-form";
+import { useForm, type Control, type FieldErrors, type UseFormWatch } from "react-hook-form";
 
 import { Loading } from "../loading/Loading";
 import { MessageSuccess } from "../messages/MessageSuccess";
@@ -11,13 +11,13 @@ import { onModalHidden } from "../../../utils/modal.utils";
 import './form.css';
 
 interface FormProps {
-  children: (props: { control: Control<any>, errors: FieldErrors<any> }) => React.ReactNode;
+  children: (props: { control: Control<any>, errors: FieldErrors<any>, watch: UseFormWatch<any> }) => React.ReactNode;
   onSubmit: (data: any) => void;
   
   loading?: boolean; // Es una propiedad que viene del padre porque el padre es quien maneja el estado de carga debido a que es el que hace la peticion al backend
 
-  successMessage?: string;
-  errorMessage?: string;
+  successMessage?: string | null;
+  errorMessage?: string | null;
   clearError?: () => void;
   clearSuccess?: () => void;
 
@@ -45,12 +45,17 @@ export const Form = ({
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm({ mode: "onSubmit", defaultValues });
 
   useEffect(() => {
     if (!modalId) return;
-    return onModalHidden(modalId, () => reset(defaultValues));
-  }, [modalId]);
+    return onModalHidden(modalId, () => {
+      reset(defaultValues);
+      clearError?.();
+      clearSuccess?.();
+    });
+  }, [modalId, clearError, clearSuccess, defaultValues, reset]);
 
   useClear({ message: errorMessage, clearMessage: clearError ?? (() => {}) });
   useClear({ message: successMessage, clearMessage: clearSuccess ?? (() => {}) });
@@ -58,7 +63,7 @@ export const Form = ({
   return (
     <>
       <form id={formId} className="form" onSubmit={handleSubmit(onSubmit)}>
-        {children({ control, errors })}
+        {children({ control, errors, watch })}
       </form>
 
       {loading && (

@@ -1,16 +1,15 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodObject } from "zod";
+import { ZodSchema } from "zod";
 
 /**
  * Middleware para validar el esquema de una petición (body, params o query).
  * Si la validación falla, delega el error al globalErrorHandler.
  */
-export const validate = (schema: ZodObject) => {
+export const validate = (schema: ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Validamos el body contra el esquema de Zod
-      // parseAsync lanza una excepción (un error) si la validación falla, integrándose con el globalErrorHandler.
-      await schema.parseAsync(req.body);
+      // Validamos el body contra el esquema de Zod y asignamos el resultado tipado/sanitizado
+      req.body = await schema.parseAsync(req.body);
       
       next();
     } catch (error) {

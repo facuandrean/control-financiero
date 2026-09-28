@@ -231,3 +231,116 @@
 .btn-delete-debt:hover {
   background-color: #fee2e2;
 }
+
+/* Historial de Pagos / Acordeón */
+.debt-payments-toggle-container {
+  margin-top: 0.85rem;
+}
+
+.btn-toggle-payments {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-payments:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.debt-payments-list {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.debt-payments-empty {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 0.6rem;
+  margin: 0;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.debt-payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  transition: background-color 0.15s ease;
+}
+
+.debt-payment-item:hover {
+  background-color: #f1f5f9;
+}
+
+.debt-payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  overflow: hidden;
+}
+
+.debt-payment-amount {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.debt-payment-date {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.debt-payment-notes {
+  font-size: 0.75rem;
+  color: #475569;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.btn-delete-payment {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  padding: 0.35rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-payment:hover:not(:disabled) {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-delete-payment:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

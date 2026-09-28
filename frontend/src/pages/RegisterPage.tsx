@@ -1,11 +1,12 @@
-import { useRegister } from '../hooks';
+import { GoogleLogin } from '@react-oauth/google';
+import { useRegister, useGoogleAuth } from '../hooks';
 
-import { AuthLayout, RegisterForm } from '../components';
+import { AuthLayout, RegisterForm, MessageError } from '../components';
 import { Stamp } from '../components/layout/stamp/Stamp';
 
 export const RegisterPage = () => {
-  // Usamos el hook para obtener la lógica
   const { register, loading, error, setError } = useRegister();
+  const { onGoogleSuccess, onGoogleError, googleError } = useGoogleAuth();
 
   return (
     <AuthLayout
@@ -21,6 +22,29 @@ export const RegisterPage = () => {
         errorMessage={error || ''} 
         clearError={() => setError(null)} 
       />
+
+      <div className="auth-divider">
+        <span>O continuar con</span>
+      </div>
+
+      <div className="google-auth-container">
+        <GoogleLogin
+          onSuccess={onGoogleSuccess}
+          onError={onGoogleError}
+          text="signup_with"
+          shape="rectangular"
+          theme="outline"
+          size="large"
+          width="100%"
+        />
+      </div>
+
+      {googleError && (
+        <MessageError 
+          message={googleError} 
+          className="mt-2 text-center" 
+        />
+      )}
     </AuthLayout>
   );
 };

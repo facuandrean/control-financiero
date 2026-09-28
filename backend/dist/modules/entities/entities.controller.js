@@ -43,9 +43,8 @@ exports.entityController = {
         try {
             const id = req.params.id;
             const userID = req.user.id;
-            await entities_service_1.entityService.getEntityById(id, userID);
             const data = req.body;
-            const updatedEntity = await entities_service_1.entityService.updateEntity(id, data);
+            const updatedEntity = await entities_service_1.entityService.updateEntity(id, userID, data);
             return (0, responses_1.sendSuccess)(res, updatedEntity);
         }
         catch (error) {
@@ -56,8 +55,7 @@ exports.entityController = {
         try {
             const id = req.params.id;
             const userID = req.user.id;
-            await entities_service_1.entityService.getEntityById(id, userID);
-            const deactivatedEntity = await entities_service_1.entityService.deactivateEntity(id);
+            const deactivatedEntity = await entities_service_1.entityService.deactivateEntity(id, userID);
             return (0, responses_1.sendSuccess)(res, deactivatedEntity);
         }
         catch (error) {

@@ -9,7 +9,7 @@ const transactions_schema_1 = require("../transactions/transactions.schema");
 exports.debts = (0, sqlite_core_1.sqliteTable)("Debts", {
     id: (0, sqlite_core_1.text)("id").primaryKey(),
     userID: (0, sqlite_core_1.text)("id_user").notNull().references(() => users_schema_1.users.id, { onDelete: "cascade" }),
-    entityID: (0, sqlite_core_1.text)("id_entity").notNull().references(() => entities_schema_1.entities.id, { onDelete: "cascade" }),
+    entityID: (0, sqlite_core_1.text)("id_entity").references(() => entities_schema_1.entities.id, { onDelete: "set null" }),
     type: (0, sqlite_core_1.text)("type").notNull(), // 'Payable' | 'Receivable'
     description: (0, sqlite_core_1.text)("description").notNull(),
     totalAmount: (0, sqlite_core_1.integer)("total_amount").notNull(),

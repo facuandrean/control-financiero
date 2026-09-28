@@ -35,6 +35,7 @@ export interface CreateTransactionDTO {
   entityID?: string | null;
   date: string;
   description: string;
+  installments?: number;
 }
 
 export interface UpdateTransactionDTO {
@@ -46,6 +47,7 @@ export interface UpdateTransactionDTO {
   entityID?: string | null;
   date?: string;
   description?: string;
+  installments?: number;
 }
 
 export interface TransactionFilters {

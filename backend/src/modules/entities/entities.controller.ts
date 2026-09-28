@@ -45,13 +45,10 @@ export const entityController = {
   updateEntity: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
       const userID = req.user.id;
-      await entityService.getEntityById(id, userID);
-
       const data: UpdateEntityInput = req.body;
       
-      const updatedEntity: Entity = await entityService.updateEntity(id, data);
+      const updatedEntity: Entity = await entityService.updateEntity(id, userID, data);
       return sendSuccess(res, updatedEntity);
     } catch (error) {
       next(error);
@@ -61,11 +58,9 @@ export const entityController = {
   deactivateEntity: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
       const userID = req.user.id;
-      await entityService.getEntityById(id, userID);
 
-      const deactivatedEntity: Entity = await entityService.deactivateEntity(id);
+      const deactivatedEntity: Entity = await entityService.deactivateEntity(id, userID);
       return sendSuccess(res, deactivatedEntity);
     } catch (error) {
       next(error);

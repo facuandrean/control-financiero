@@ -43,9 +43,8 @@ exports.categoryController = {
         try {
             const id = req.params.id;
             const userID = req.user.id;
-            await categories_service_1.categoryService.getCategoryById(id, userID);
             const data = req.body;
-            const updatedCategory = await categories_service_1.categoryService.updateCategory(id, data);
+            const updatedCategory = await categories_service_1.categoryService.updateCategory(id, userID, data);
             return (0, responses_1.sendSuccess)(res, updatedCategory);
         }
         catch (error) {
@@ -56,8 +55,7 @@ exports.categoryController = {
         try {
             const id = req.params.id;
             const userID = req.user.id;
-            await categories_service_1.categoryService.getCategoryById(id, userID);
-            const deactivatedCategory = await categories_service_1.categoryService.deactivateCategory(id);
+            const deactivatedCategory = await categories_service_1.categoryService.deactivateCategory(id, userID);
             return (0, responses_1.sendSuccess)(res, deactivatedCategory);
         }
         catch (error) {

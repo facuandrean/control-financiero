@@ -147,6 +147,8 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         id="entity-modal"
         formId="entity-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
       >
         <EntityForm
           onSubmit={handleCreateSubmit}
@@ -166,6 +168,9 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         id="entity-update-modal"
         formId="entity-update-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        onHidden={() => setSelectedEntity(null)}
         buttonSubmit={{
           label: 'Actualizar',
           labelLoading: 'Actualizando...',

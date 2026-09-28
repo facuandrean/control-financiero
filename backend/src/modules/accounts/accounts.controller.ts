@@ -30,18 +30,13 @@ export const accountController = {
     try {
       const data: CreateAccountInput = req.body;
 
-      console.log('createAccount data:', data);
-
       const userID = req.user.id;
-
-      console.log('createAccount userID:', userID);
 
       const newAccount: NewAccount = await accountService.createAccount({
         ...data,
         userID,
       });
 
-      console.log('createAccount newAccount:', newAccount);
       return sendSuccess(res, newAccount);
     } catch (error) {
       next(error);
@@ -51,13 +46,10 @@ export const accountController = {
   updateAccount: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
       const userID = req.user.id;
-      await accountService.getAccountById(id, userID);
-
       const data: UpdateAccountInput = req.body;
-      
-      const updatedAccount: Account = await accountService.updateAccount(id, data);
+
+      const updatedAccount: Account = await accountService.updateAccount(id, userID, data);
       return sendSuccess(res, updatedAccount);
     } catch (error) {
       next(error);
@@ -67,11 +59,9 @@ export const accountController = {
   deactivateAccount: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
       const userID = req.user.id;
-      await accountService.getAccountById(id, userID);
 
-      const deactivatedAccount: Account = await accountService.deactivateAccount(id);
+      const deactivatedAccount: Account = await accountService.deactivateAccount(id, userID);
       return sendSuccess(res, deactivatedAccount);
     } catch (error) {
       next(error);

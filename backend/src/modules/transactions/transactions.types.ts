@@ -28,4 +28,6 @@ export interface TransactionFilters {
   year?: string | number;
   accountID?: string;
   type?: string;
+  page?: string | number;
+  pageSize?: string | number;
 }

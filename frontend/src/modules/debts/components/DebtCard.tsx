@@ -1,4 +1,13 @@
-import { BsPencil, BsTrash, BsCashCoin, BsCalendar3 } from 'react-icons/bs';
+import { useState } from 'react';
+import {
+  BsPencil,
+  BsTrash,
+  BsCashCoin,
+  BsCalendar3,
+  BsClockHistory,
+  BsChevronDown,
+  BsChevronUp,
+} from 'react-icons/bs';
 import type { Debt } from '../../../types/debt.types';
 import './debtCard.css';
 
@@ -7,9 +16,19 @@ interface DebtCardProps {
   onAddPayment: (debt: Debt) => void;
   onEdit: (debt: Debt) => void;
   onDelete: (debt: Debt) => void;
+  onDeletePayment?: (paymentId: string) => Promise<boolean | void>;
 }
 
-export const DebtCard = ({ debt, onAddPayment, onEdit, onDelete }: DebtCardProps) => {
+export const DebtCard = ({
+  debt,
+  onAddPayment,
+  onEdit,
+  onDelete,
+  onDeletePayment,
+}: DebtCardProps) => {
+  const [showPayments, setShowPayments] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -39,6 +58,25 @@ export const DebtCard = ({ debt, onAddPayment, onEdit, onDelete }: DebtCardProps
   const total = debt.totalAmount;
   const percentage = Math.min(100, Math.max(0, Math.round((paid / total) * 100)));
   const remaining = debt.remainingAmount ?? Math.max(0, total - paid);
+  const payments = debt.payments || [];
+
+  const handleDeletePayment = async (paymentId: string) => {
+    if (
+      !window.confirm(
+        '¿Estás seguro de que querés revertir y eliminar este pago? Esta acción restituirá el saldo en la cuenta bancaria vinculada.'
+      )
+    ) {
+      return;
+    }
+    if (!onDeletePayment) return;
+
+    setDeletingId(paymentId);
+    try {
+      await onDeletePayment(paymentId);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const getStatusBadge = () => {
     switch (debt.status) {
@@ -59,8 +97,9 @@ export const DebtCard = ({ debt, onAddPayment, onEdit, onDelete }: DebtCardProps
             {debt.entity?.name || 'Entidad no especificada'}
           </h3>
           <span
-            className={`debt-type-pill ${debt.type === 'Receivable' ? 'pill-receivable' : 'pill-payable'
-              }`}
+            className={`debt-type-pill ${
+              debt.type === 'Receivable' ? 'pill-receivable' : 'pill-payable'
+            }`}
           >
             {debt.type === 'Receivable' ? 'Me deben' : 'Debo'}
           </span>
@@ -89,8 +128,9 @@ export const DebtCard = ({ debt, onAddPayment, onEdit, onDelete }: DebtCardProps
           </div>
           <div className="debt-progress-track">
             <div
-              className={`debt-progress-fill ${debt.type === 'Receivable' ? 'fill-receivable' : 'fill-payable'
-                }`}
+              className={`debt-progress-fill ${
+                debt.type === 'Receivable' ? 'fill-receivable' : 'fill-payable'
+              }`}
               style={{ width: `${percentage}%` }}
             />
           </div>
@@ -100,6 +140,63 @@ export const DebtCard = ({ debt, onAddPayment, onEdit, onDelete }: DebtCardProps
             </div>
           )}
         </div>
+
+        {/* ACORDEÓN / HISTORIAL DE PAGOS */}
+        <div className="debt-payments-toggle-container">
+          <button
+            type="button"
+            className="btn-toggle-payments"
+            onClick={() => setShowPayments(!showPayments)}
+            aria-expanded={showPayments}
+          >
+            <div className="d-flex align-items-center gap-2">
+              <BsClockHistory size={13} />
+              <span>Historial de pagos ({payments.length})</span>
+            </div>
+            {showPayments ? <BsChevronUp size={12} /> : <BsChevronDown size={12} />}
+          </button>
+        </div>
+
+        {showPayments && (
+          <div className="debt-payments-list">
+            {payments.length === 0 ? (
+              <p className="debt-payments-empty">No hay pagos registrados aún.</p>
+            ) : (
+              payments.map((p) => (
+                <div key={p.id} className="debt-payment-item">
+                  <div className="debt-payment-info">
+                    <span className="debt-payment-amount">{formatCurrency(p.amount)}</span>
+                    <span className="debt-payment-date">{formatDate(p.date)}</span>
+                    {p.notes && (
+                      <span className="debt-payment-notes" title={p.notes}>
+                        {p.notes}
+                      </span>
+                    )}
+                  </div>
+                  {p.id && onDeletePayment && (
+                    <button
+                      type="button"
+                      className="btn-delete-payment"
+                      onClick={() => handleDeletePayment(p.id!)}
+                      disabled={deletingId === p.id}
+                      title="Eliminar y revertir pago"
+                    >
+                      {deletingId === p.id ? (
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <BsTrash size={13} />
+                      )}
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       <div className="debt-card-footer">

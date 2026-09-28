@@ -21,6 +21,7 @@ export interface DebtWithDetails extends Debt {
   entity?: Entity | null;
   totalPaid: number;
   remainingAmount: number;
+  payments?: DebtPayment[];
 }
 
 export interface DebtDetailResponse extends DebtWithDetails {

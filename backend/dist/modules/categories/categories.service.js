@@ -38,28 +38,42 @@ exports.categoryService = {
         }
         return newCategory;
     },
-    updateCategory: async (id, data) => {
-        const updatedCategory = await db_1.db.update(categories_schema_1.categories).set({
+    updateCategory: async (id, userID, data) => {
+        const updatedCategory = await db_1.db
+            .update(categories_schema_1.categories)
+            .set({
             ...data,
             updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        }).where((0, drizzle_orm_1.eq)(categories_schema_1.categories.id, id)).returning().get();
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(categories_schema_1.categories.id, id), (0, drizzle_orm_1.eq)(categories_schema_1.categories.userID, userID)))
+            .returning()
+            .get();
         if (!updatedCategory) {
             throw new AppError_1.AppError("No se pudo actualizar la categoría", 500, "CATEGORY_UPDATE_FAILED");
         }
         return updatedCategory;
     },
-    deactivateCategory: async (id) => {
-        const deactivatedCategory = await db_1.db.update(categories_schema_1.categories).set({
+    deactivateCategory: async (id, userID) => {
+        const deactivatedCategory = await db_1.db
+            .update(categories_schema_1.categories)
+            .set({
             status: "Inactive",
             updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        }).where((0, drizzle_orm_1.eq)(categories_schema_1.categories.id, id)).returning().get();
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(categories_schema_1.categories.id, id), (0, drizzle_orm_1.eq)(categories_schema_1.categories.userID, userID)))
+            .returning()
+            .get();
         if (!deactivatedCategory) {
             throw new AppError_1.AppError("No se pudo desactivar la categoría", 500, "CATEGORY_DEACTIVATION_FAILED");
         }
         return deactivatedCategory;
     },
-    deleteCategory: async (id) => {
-        const deletedCategory = await db_1.db.delete(categories_schema_1.categories).where((0, drizzle_orm_1.eq)(categories_schema_1.categories.id, id)).returning().get();
+    deleteCategory: async (id, userID) => {
+        const deletedCategory = await db_1.db
+            .delete(categories_schema_1.categories)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(categories_schema_1.categories.id, id), (0, drizzle_orm_1.eq)(categories_schema_1.categories.userID, userID)))
+            .returning()
+            .get();
         if (!deletedCategory) {
             throw new AppError_1.AppError("No se pudo eliminar la categoría", 500, "CATEGORY_DELETION_FAILED");
         }

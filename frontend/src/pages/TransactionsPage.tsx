@@ -12,6 +12,7 @@ import {
   TransactionForm,
   useTransactions,
 } from '../modules/transactions';
+import { useAccounts } from '../modules/accounts';
 import { useAuthStore } from '../store';
 import { closeModal, openModal } from '../utils/modal.utils';
 import type {
@@ -74,13 +75,15 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [isSuccessClosing, setIsSuccessClosing] = useState(false);
+  const { fetchAccounts } = useAccounts();
 
-  const loadData = useCallback(() => {
-    fetchTransactions({
+  const loadData = useCallback(async () => {
+    await fetchAccounts();
+    return fetchTransactions({
       month: selectedMonth === 'all' ? undefined : selectedMonth,
       year: selectedYear ? selectedYear : undefined,
     });
-  }, [fetchTransactions, selectedMonth, selectedYear]);
+  }, [fetchAccounts, fetchTransactions, selectedMonth, selectedYear]);
 
   useEffect(() => {
     loadData();
@@ -290,6 +293,8 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         id="transaction-create-modal"
         formId="transaction-create-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
       >
         <TransactionForm
           onSubmit={handleCreateSubmit}
@@ -309,6 +314,9 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         id="transaction-update-modal"
         formId="transaction-update-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        onHidden={() => setSelectedTransaction(null)}
         buttonSubmit={{
           label: 'Actualizar',
           labelLoading: 'Actualizando...',
@@ -334,7 +342,13 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
               categoryID: selectedTransaction.categoryID || '',
               entityID: selectedTransaction.entityID || '',
               date: selectedTransaction.date,
-              description: selectedTransaction.description,
+              description: selectedTransaction.description
+                ? selectedTransaction.description.replace(/\s*\(Cuota \d+\/\d+\)\s*$/i, '')
+                : '',
+              installments: (() => {
+                const match = selectedTransaction.description?.match(/\(Cuota \d+\/(\d+)\)/);
+                return match ? Number(match[1]) : 1;
+              })(),
             }}
             modalId="transaction-update-modal"
             formId="transaction-update-form"
@@ -352,6 +366,7 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         successMessage={success || undefined}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedTransaction(null)}
         buttonLabel="Eliminar"
         buttonLabelLoading="Eliminando..."
         confirmButtonClass="btn btn-danger"

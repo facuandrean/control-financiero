@@ -1,4 +1,4 @@
-import { Controller, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { Form } from "../../../components/ui/form/Form";
 import { Input } from "../../../components/ui/inputs/Input";
 import { Select } from "../../../components/ui/inputs/Select";
@@ -18,6 +18,7 @@ interface AccountFormProps {
   defaultValues?: any;
   modalId: string;
   formId: string;
+  isEditing?: boolean;
 }
 
 /**
@@ -39,11 +40,21 @@ export const AccountForm = ({
   clearSuccess, 
   defaultValues, 
   modalId,
-  formId
+  formId,
+  isEditing = false
 }: AccountFormProps) => {
+  const handleFormSubmit = async (formData: any) => {
+    if (isEditing) {
+      const { amount, ...rest } = formData;
+      await onSubmit(rest);
+    } else {
+      await onSubmit(formData);
+    }
+  };
+
   return (
     <Form 
-      onSubmit={onSubmit} 
+      onSubmit={handleFormSubmit} 
       loading={loading} 
       errorMessage={errorMessage}
       successMessage={successMessage}
@@ -99,15 +110,17 @@ export const AccountForm = ({
               options={ACCOUNT_TYPES}
             />
 
-            <Input 
-              formID={formId}
-              name="amount"
-              label={isCreditCard ? "Monto gastado actual / Deuda inicial" : "Saldo / Monto Inicial"}
-              placeholder="0"
-              control={control}
-              errors={errors}
-              type="number"
-            />
+            {!isEditing && (
+              <Input 
+                formID={formId}
+                name="amount"
+                label={isCreditCard ? "Monto gastado actual / Deuda inicial" : "Saldo / Monto Inicial"}
+                placeholder="0"
+                control={control}
+                errors={errors}
+                type="number"
+              />
+            )}
 
             {canHaveLastDigits && (
               <Input 

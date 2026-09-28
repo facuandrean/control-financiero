@@ -15,3 +15,7 @@ export const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(1, "La contraseña es requerida"),
 });
+
+export const googleLoginSchema = z.object({
+  token: z.string().min(1, "El token de Google es requerido"),
+});

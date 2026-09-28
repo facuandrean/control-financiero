@@ -39,11 +39,16 @@ export const entityService = {
     return newEntity;
   },
 
-  updateEntity: async (id: string, data: UpdateEntityInput): Promise<Entity> => {
-    const updatedEntity = await db.update(entities).set({
-      ...data,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).where(eq(entities.id, id)).returning().get();
+  updateEntity: async (id: string, userID: string, data: UpdateEntityInput): Promise<Entity> => {
+    const updatedEntity = await db
+      .update(entities)
+      .set({
+        ...data,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(and(eq(entities.id, id), eq(entities.userID, userID)))
+      .returning()
+      .get();
 
     if (!updatedEntity) {
       throw new AppError("No se pudo actualizar la entidad", 500, "ENTITY_UPDATE_FAILED");
@@ -52,11 +57,16 @@ export const entityService = {
     return updatedEntity;
   },
 
-  deactivateEntity: async (id: string): Promise<Entity> => {
-    const deactivatedEntity = await db.update(entities).set({
-      status: "Inactive",
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).where(eq(entities.id, id)).returning().get();
+  deactivateEntity: async (id: string, userID: string): Promise<Entity> => {
+    const deactivatedEntity = await db
+      .update(entities)
+      .set({
+        status: "Inactive",
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(and(eq(entities.id, id), eq(entities.userID, userID)))
+      .returning()
+      .get();
 
     if (!deactivatedEntity) {
       throw new AppError("No se pudo desactivar la entidad", 500, "ENTITY_DEACTIVATION_FAILED");
@@ -65,8 +75,12 @@ export const entityService = {
     return deactivatedEntity;
   },
 
-  deleteEntity: async (id: string): Promise<void> => {
-    const deletedEntity = await db.delete(entities).where(eq(entities.id, id)).returning().get();
+  deleteEntity: async (id: string, userID: string): Promise<void> => {
+    const deletedEntity = await db
+      .delete(entities)
+      .where(and(eq(entities.id, id), eq(entities.userID, userID)))
+      .returning()
+      .get();
     if (!deletedEntity) {
       throw new AppError("No se pudo eliminar la entidad", 500, "ENTITY_DELETION_FAILED");
     }

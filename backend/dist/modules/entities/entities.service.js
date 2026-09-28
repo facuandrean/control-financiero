@@ -38,28 +38,42 @@ exports.entityService = {
         }
         return newEntity;
     },
-    updateEntity: async (id, data) => {
-        const updatedEntity = await db_1.db.update(entities_schema_1.entities).set({
+    updateEntity: async (id, userID, data) => {
+        const updatedEntity = await db_1.db
+            .update(entities_schema_1.entities)
+            .set({
             ...data,
             updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        }).where((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id)).returning().get();
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id), (0, drizzle_orm_1.eq)(entities_schema_1.entities.userID, userID)))
+            .returning()
+            .get();
         if (!updatedEntity) {
             throw new AppError_1.AppError("No se pudo actualizar la entidad", 500, "ENTITY_UPDATE_FAILED");
         }
         return updatedEntity;
     },
-    deactivateEntity: async (id) => {
-        const deactivatedEntity = await db_1.db.update(entities_schema_1.entities).set({
+    deactivateEntity: async (id, userID) => {
+        const deactivatedEntity = await db_1.db
+            .update(entities_schema_1.entities)
+            .set({
             status: "Inactive",
             updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        }).where((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id)).returning().get();
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id), (0, drizzle_orm_1.eq)(entities_schema_1.entities.userID, userID)))
+            .returning()
+            .get();
         if (!deactivatedEntity) {
             throw new AppError_1.AppError("No se pudo desactivar la entidad", 500, "ENTITY_DEACTIVATION_FAILED");
         }
         return deactivatedEntity;
     },
-    deleteEntity: async (id) => {
-        const deletedEntity = await db_1.db.delete(entities_schema_1.entities).where((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id)).returning().get();
+    deleteEntity: async (id, userID) => {
+        const deletedEntity = await db_1.db
+            .delete(entities_schema_1.entities)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id), (0, drizzle_orm_1.eq)(entities_schema_1.entities.userID, userID)))
+            .returning()
+            .get();
         if (!deletedEntity) {
             throw new AppError_1.AppError("No se pudo eliminar la entidad", 500, "ENTITY_DELETION_FAILED");
         }

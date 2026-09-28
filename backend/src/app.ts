@@ -12,6 +12,7 @@ import accountRoutes from './modules/accounts/accounts.routes';
 import transactionRoutes from './modules/transactions/transactions.routes';
 import entityRoutes from './modules/entities/entities.routes';
 import debtRoutes from './modules/debts/debts.routes';
+import dashboardRoutes from './modules/dashboard/dashboard.routes';
 
 
 const app: Application = express();
@@ -35,10 +36,8 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/entities', entityRoutes);
 app.use('/api/debts', debtRoutes);
-
-// app.all('*', (req, res, next) => {
-//   next(new AppError(`No se encontró la ruta ${req.originalUrl} en este servidor`, 404));
-// });
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/dashboard', dashboardRoutes);
 
 app.use(globalErrorHandler);
 

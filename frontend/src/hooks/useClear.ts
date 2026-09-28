@@ -1,17 +1,18 @@
 import { useEffect } from "react";
 
 interface UseClearProps {
-  message?: string;
+  message?: string | null;
   clearMessage: () => void;
+  time?: number;
 }
 
-export const useClear = ({ message, clearMessage }: UseClearProps) => {
+export const useClear = ({ message, clearMessage, time = 3000 }: UseClearProps) => {
   useEffect(() => {
     if (message && clearMessage) {
       const timer = setTimeout(() => {
         clearMessage();
-      }, 3000);
+      }, time);
       return () => clearTimeout(timer);
     }
-  }, [message, clearMessage]);
-}
+  }, [message, clearMessage, time]);
+};

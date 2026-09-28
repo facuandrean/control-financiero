@@ -30,7 +30,6 @@ export const useAccounts = () => {
     setSuccess(null);
 
     try {
-      console.log("payload", data)
       const payload: Record<string, any> = {
         bank: data.bank,
         name: data.name,
@@ -87,10 +86,6 @@ export const useAccounts = () => {
       if (data.name !== undefined) payload.name = data.name;
       if (data.type !== undefined) payload.type = data.type;
       if (data.tag !== undefined) payload.tag = data.tag;
-      
-      if (data.amount !== undefined && data.amount !== null && data.amount !== '') {
-        payload.amount = Number(data.amount);
-      }
 
       if (data.description !== undefined) {
         payload.description = data.description;
@@ -103,13 +98,13 @@ export const useAccounts = () => {
       }
 
       if (data.type === 'Tarjeta de Crédito') {
-        if (data.creditLimit !== undefined && data.creditLimit !== null && data.creditLimit !== '') {
+        if (data.creditLimit !== undefined && data.creditLimit !== null && !isNaN(Number(data.creditLimit))) {
           payload.creditLimit = Number(data.creditLimit);
         }
-        if (data.closingDay !== undefined && data.closingDay !== null && data.closingDay !== '') {
+        if (data.closingDay !== undefined && data.closingDay !== null && !isNaN(Number(data.closingDay))) {
           payload.closingDay = Number(data.closingDay);
         }
-        if (data.dueDate !== undefined && data.dueDate !== null && data.dueDate !== '') {
+        if (data.dueDate !== undefined && data.dueDate !== null && !isNaN(Number(data.dueDate))) {
           payload.dueDate = Number(data.dueDate);
         }
       } else if (data.type && data.type !== 'Tarjeta de Crédito') {

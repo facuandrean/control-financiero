@@ -9,4 +9,5 @@ export const config = {
   dbToken: process.env.DB_TOKEN,
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
   nodeEnv: process.env.NODE_ENV || 'development',
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '867079303651-jstcsunru0h51bo1t6a2ej601sgapmaf.apps.googleusercontent.com',
 };

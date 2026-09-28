@@ -1,6 +1,6 @@
 .entity-box {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -11,7 +11,8 @@
 }
 
 .table-box .body-content {
-  display: block; /* Para que la tabla respete el layout y no actúe como grilla */
+  display: block;
+  /* Para que la tabla respete el layout y no actúe como grilla */
 }
 
 .entities-controls {

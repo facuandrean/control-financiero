@@ -21,10 +21,10 @@ exports.transactions = (0, sqlite_core_1.sqliteTable)("transactions", {
         onDelete: "cascade",
     }),
     categoryID: (0, sqlite_core_1.text)("id_category").references(() => categories_schema_1.categories.id, {
-        onDelete: "cascade",
+        onDelete: "set null",
     }),
     entityID: (0, sqlite_core_1.text)("id_entity").references(() => entities_schema_1.entities.id, {
-        onDelete: "cascade",
+        onDelete: "set null",
     }),
     date: (0, sqlite_core_1.text)("date").notNull(),
     description: (0, sqlite_core_1.text)("description"),
@@ -35,4 +35,7 @@ exports.transactions = (0, sqlite_core_1.sqliteTable)("transactions", {
         .notNull()
         .default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`)
         .$onUpdate(() => (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
-});
+}, (table) => [
+    (0, sqlite_core_1.index)("idx_transactions_user_date").on(table.userID, table.date),
+    (0, sqlite_core_1.index)("idx_transactions_account").on(table.accountID),
+]);

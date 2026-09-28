@@ -8,9 +8,8 @@ exports.validate = void 0;
 const validate = (schema) => {
     return async (req, res, next) => {
         try {
-            // Validamos el body contra el esquema de Zod
-            // parseAsync lanza una excepción (un error) si la validación falla, integrándose con el globalErrorHandler.
-            await schema.parseAsync(req.body);
+            // Validamos el body contra el esquema de Zod y asignamos el resultado tipado/sanitizado
+            req.body = await schema.parseAsync(req.body);
             next();
         }
         catch (error) {

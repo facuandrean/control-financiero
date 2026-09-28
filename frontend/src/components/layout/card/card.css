@@ -9,5 +9,36 @@
 
 .auth-card .card-header .card-title {
   font-weight: 600;
-  color: #5f7892
+  color: #5f7892;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.25rem 0 1rem 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.auth-divider span {
+  padding: 0 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.google-auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
 }

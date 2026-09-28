@@ -5,30 +5,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateTransactionSchema = exports.createTransactionSchema = void 0;
 const zod_1 = __importDefault(require("zod"));
+const optionalUuid = zod_1.default
+    .string()
+    .uuid("Formato de ID inválido")
+    .nullable()
+    .optional()
+    .or(zod_1.default.literal("").transform(() => null));
 exports.createTransactionSchema = zod_1.default.object({
     type: zod_1.default.enum(["Income", "Expense", "Transfer"]),
     amount: zod_1.default
-        .number()
-        .int("El monto debe ser un número entero")
-        .positive("El monto debe ser positivo y mayor a 0"),
-    accountID: zod_1.default.string().min(1, "La cuenta origen es obligatoria"),
-    toAccountID: zod_1.default.string().nullable().optional(),
-    categoryID: zod_1.default.string().nullable().optional(),
-    entityID: zod_1.default.string().nullable().optional(),
-    date: zod_1.default.string().min(1, "La fecha es obligatoria"),
-    description: zod_1.default.string().min(1, "La descripción es obligatoria"),
+        .number({ message: "El monto debe ser un número" })
+        .positive("El monto debe ser positivo y mayor a 0")
+        .max(1000000000, "El monto no puede superar 1.000.000.000"),
+    accountID: zod_1.default.string().uuid("ID de cuenta inválido"),
+    toAccountID: optionalUuid,
+    categoryID: optionalUuid,
+    entityID: optionalUuid,
+    date: zod_1.default.string().min(1, "La fecha es obligatoria").max(50, "Fecha inválida"),
+    description: zod_1.default.string().min(1, "La descripción es obligatoria").max(255, "Máximo 255 caracteres"),
+    installments: zod_1.default.number().int().min(1).max(72).optional().default(1),
 });
 exports.updateTransactionSchema = zod_1.default.object({
     type: zod_1.default.enum(["Income", "Expense", "Transfer"]).optional(),
     amount: zod_1.default
-        .number()
-        .int("El monto debe ser un número entero")
+        .number({ message: "El monto debe ser un número" })
         .positive("El monto debe ser positivo y mayor a 0")
+        .max(1000000000, "El monto no puede superar 1.000.000.000")
         .optional(),
-    accountID: zod_1.default.string().min(1, "La cuenta origen no puede estar vacía").optional(),
-    toAccountID: zod_1.default.string().nullable().optional(),
-    categoryID: zod_1.default.string().nullable().optional(),
-    entityID: zod_1.default.string().nullable().optional(),
-    date: zod_1.default.string().min(1, "La fecha no puede estar vacía").optional(),
-    description: zod_1.default.string().min(1, "La descripción no puede estar vacía").optional(),
+    accountID: zod_1.default.string().uuid("ID de cuenta inválido").optional(),
+    toAccountID: optionalUuid,
+    categoryID: optionalUuid,
+    entityID: optionalUuid,
+    date: zod_1.default.string().min(1, "La fecha no puede estar vacía").max(50, "Fecha inválida").optional(),
+    description: zod_1.default.string().min(1, "La descripción no puede estar vacía").max(255, "Máximo 255 caracteres").optional(),
+    installments: zod_1.default.number().int().min(1).max(72).optional(),
 });

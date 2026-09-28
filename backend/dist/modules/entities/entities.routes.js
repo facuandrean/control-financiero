@@ -2,12 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_middleware_1 = require("../../core/middlewares/auth.middleware");
+const validate_middleware_1 = require("../../core/middlewares/validate.middleware");
+const entities_validators_1 = require("./entities.validators");
 const entities_controller_1 = require("./entities.controller");
 const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authMiddleware);
 router.get("/", entities_controller_1.entityController.getAllEntities);
 router.get("/:id", entities_controller_1.entityController.getEntityById);
-router.post("/", entities_controller_1.entityController.createEntity);
-router.patch("/:id", entities_controller_1.entityController.updateEntity);
+router.post("/", (0, validate_middleware_1.validate)(entities_validators_1.createEntitySchema), entities_controller_1.entityController.createEntity);
+router.patch("/:id", (0, validate_middleware_1.validate)(entities_validators_1.updateEntitySchema), entities_controller_1.entityController.updateEntity);
 router.delete("/:id", entities_controller_1.entityController.deactivateEntity);
 exports.default = router;

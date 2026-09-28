@@ -39,11 +39,16 @@ export const categoryService = {
     return newCategory;
   },
 
-  updateCategory: async (id: string, data: UpdateCategoryInput): Promise<Category> => {
-    const updatedCategory = await db.update(categories).set({
-      ...data,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).where(eq(categories.id, id)).returning().get();
+  updateCategory: async (id: string, userID: string, data: UpdateCategoryInput): Promise<Category> => {
+    const updatedCategory = await db
+      .update(categories)
+      .set({
+        ...data,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(and(eq(categories.id, id), eq(categories.userID, userID)))
+      .returning()
+      .get();
 
     if (!updatedCategory) {
       throw new AppError("No se pudo actualizar la categoría", 500, "CATEGORY_UPDATE_FAILED");
@@ -52,11 +57,16 @@ export const categoryService = {
     return updatedCategory;
   },
 
-  deactivateCategory: async (id: string): Promise<Category> => {
-    const deactivatedCategory = await db.update(categories).set({
-      status: "Inactive",
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).where(eq(categories.id, id)).returning().get();
+  deactivateCategory: async (id: string, userID: string): Promise<Category> => {
+    const deactivatedCategory = await db
+      .update(categories)
+      .set({
+        status: "Inactive",
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(and(eq(categories.id, id), eq(categories.userID, userID)))
+      .returning()
+      .get();
 
     if (!deactivatedCategory) {
       throw new AppError("No se pudo desactivar la categoría", 500, "CATEGORY_DEACTIVATION_FAILED");
@@ -65,10 +75,14 @@ export const categoryService = {
     return deactivatedCategory;
   },
 
-  deleteCategory: async (id: string): Promise<void> => {
-    const deletedCategory = await db.delete(categories).where(eq(categories.id, id)).returning().get();
+  deleteCategory: async (id: string, userID: string): Promise<void> => {
+    const deletedCategory = await db
+      .delete(categories)
+      .where(and(eq(categories.id, id), eq(categories.userID, userID)))
+      .returning()
+      .get();
     if (!deletedCategory) {
       throw new AppError("No se pudo eliminar la categoría", 500, "CATEGORY_DELETION_FAILED");
     }
   },
-}
+};

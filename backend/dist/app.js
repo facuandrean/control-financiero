@@ -15,6 +15,7 @@ const accounts_routes_1 = __importDefault(require("./modules/accounts/accounts.r
 const transactions_routes_1 = __importDefault(require("./modules/transactions/transactions.routes"));
 const entities_routes_1 = __importDefault(require("./modules/entities/entities.routes"));
 const debts_routes_1 = __importDefault(require("./modules/debts/debts.routes"));
+const dashboard_routes_1 = __importDefault(require("./modules/dashboard/dashboard.routes"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
     origin: config_1.config.frontendUrl || 'http://localhost:5173',
@@ -32,9 +33,8 @@ app.use('/api/accounts', accounts_routes_1.default);
 app.use('/api/transactions', transactions_routes_1.default);
 app.use('/api/entities', entities_routes_1.default);
 app.use('/api/debts', debts_routes_1.default);
-// app.all('*', (req, res, next) => {
-//   next(new AppError(`No se encontró la ruta ${req.originalUrl} en este servidor`, 404));
-// });
+app.use('/api/dashboard', dashboard_routes_1.default);
+app.use('/dashboard', dashboard_routes_1.default);
 app.use(error_middleware_1.globalErrorHandler);
 app.listen(config_1.config.port, () => {
     console.log(`Server is running on port http://localhost:${config_1.config.port}`);

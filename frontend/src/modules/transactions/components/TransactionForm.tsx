@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useWatch } from 'react-hook-form';
 import { Form, Input, Select } from '../../../components/ui';
 import { useAccounts } from '../../accounts';
 import { useCategories } from '../../categories';
@@ -82,7 +83,21 @@ export const TransactionForm = ({
     clearSuccess();
   };
 
+  const isAccountCreditCard = (accId?: string) => {
+    const acc = accounts.find((a) => a.id === accId);
+    return Boolean(
+      acc &&
+        (acc.type === 'Credit Card' ||
+          acc.type === 'Tarjeta de Crédito' ||
+          acc.tag === 'crédito' ||
+          acc.type?.toLowerCase().includes('crédit') ||
+          acc.type?.toLowerCase().includes('credit'))
+    );
+  };
+
   const handleFormSubmit = async (data: any) => {
+    const isCreditCard = isAccountCreditCard(data.accountID);
+
     await onSubmit({
       type: currentType,
       amount: Number(data.amount),
@@ -92,6 +107,10 @@ export const TransactionForm = ({
       entityID: currentType === 'Transfer' ? null : data.entityID || null,
       date: data.date,
       description: data.description,
+      installments:
+        currentType === 'Expense' && isCreditCard && data.installments
+          ? Number(data.installments)
+          : 1,
     });
   };
 
@@ -144,55 +163,77 @@ export const TransactionForm = ({
           categoryID: defaultValues?.categoryID || '',
           entityID: defaultValues?.entityID || '',
           amount: defaultValues?.amount || '',
+          installments: defaultValues?.installments || 1,
           date: defaultValues?.date ? defaultValues.date.split('T')[0] : today,
           description: defaultValues?.description || '',
         }}
       >
-        {({ control, errors }) => (
-          <>
-            {/* Cuenta Origen */}
-            <Select
-              formID={formId}
-              name="accountID"
-              label={currentType === 'Transfer' ? 'Cuenta Origen' : 'Cuenta'}
-              placeholder="Seleccionar cuenta..."
-              control={control}
-              rules={{ required: 'Debes seleccionar una cuenta' }}
-              errors={errors}
-              options={accountOptions}
-            />
+        {({ control, errors }) => {
+          const selectedAccountID = useWatch({ control, name: 'accountID' });
+          const isCreditCard = isAccountCreditCard(selectedAccountID);
 
-            {/* Cuenta Destino (solo para Transferencias) */}
-            {currentType === 'Transfer' && (
+          return (
+            <>
+              {/* Cuenta Origen */}
               <Select
                 formID={formId}
-                name="toAccountID"
-                label="Cuenta Destino"
-                placeholder="Seleccionar cuenta de destino..."
+                name="accountID"
+                label={currentType === 'Transfer' ? 'Cuenta Origen' : 'Cuenta'}
+                placeholder="Seleccionar cuenta..."
                 control={control}
-                rules={{ required: 'Debes seleccionar la cuenta destino' }}
+                rules={{ required: 'Debes seleccionar una cuenta' }}
                 errors={errors}
                 options={accountOptions}
               />
-            )}
 
-            {/* Monto */}
-            <Input
-              formID={formId}
-              name="amount"
-              label="Monto"
-              placeholder="Ej: 5000"
-              type="number"
-              control={control}
-              rules={{
-                required: 'El monto es obligatorio',
-                min: { value: 1, message: 'El monto debe ser mayor a 0' },
-              }}
-              errors={errors}
-            />
+              {/* Cuenta Destino (solo para Transferencias) */}
+              {currentType === 'Transfer' && (
+                <Select
+                  formID={formId}
+                  name="toAccountID"
+                  label="Cuenta Destino"
+                  placeholder="Seleccionar cuenta de destino..."
+                  control={control}
+                  rules={{ required: 'Debes seleccionar la cuenta destino' }}
+                  errors={errors}
+                  options={accountOptions}
+                />
+              )}
 
-            {/* Fecha */}
-            <Input
+              {/* Monto */}
+              <Input
+                formID={formId}
+                name="amount"
+                label="Monto"
+                placeholder="Ej: 5000"
+                type="number"
+                control={control}
+                rules={{
+                  required: 'El monto es obligatorio',
+                  min: { value: 1, message: 'El monto debe ser mayor a 0' },
+                }}
+                errors={errors}
+              />
+
+              {/* Cantidad de Cuotas (solo para Egresos con Tarjeta de Crédito) */}
+              {currentType === 'Expense' && isCreditCard && (
+                <Input
+                  formID={formId}
+                  name="installments"
+                  label="Cantidad de Cuotas"
+                  placeholder="1"
+                  type="number"
+                  control={control}
+                  rules={{
+                    min: { value: 1, message: 'Mínimo 1 cuota' },
+                    max: { value: 72, message: 'Máximo 72 cuotas' },
+                  }}
+                  errors={errors}
+                />
+              )}
+
+              {/* Fecha */}
+              <Input
               formID={formId}
               name="date"
               label="Fecha"
@@ -246,7 +287,8 @@ export const TransactionForm = ({
               errors={errors}
             />
           </>
-        )}
+        );
+      }}
       </Form>
     </div>
   );

@@ -39,6 +39,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     updateDebt,
     deleteDebt,
     addPayment,
+    deletePayment,
     clearError,
     clearSuccess,
   } = useDebts();
@@ -227,6 +228,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
                   clearSuccess();
                   openModal({ idModal: 'debt-delete-modal' });
                 }}
+                onDeletePayment={deletePayment}
               />
             ))}
           </div>
@@ -239,6 +241,8 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         id="debt-create-modal"
         formId="debt-create-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
       >
         <DebtForm
           onSubmit={handleCreateSubmit}
@@ -258,6 +262,9 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         id="debt-update-modal"
         formId="debt-update-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        onHidden={() => setSelectedDebt(null)}
         buttonSubmit={{
           label: 'Actualizar',
           labelLoading: 'Actualizando...',
@@ -294,6 +301,9 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         id="debt-payment-modal"
         formId="debt-payment-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        onHidden={() => setSelectedDebt(null)}
         buttonSubmit={{
           label: 'Registrar',
           labelLoading: 'Registrando...',
@@ -328,6 +338,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         successMessage={success || undefined}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedDebt(null)}
         buttonLabel="Eliminar"
         buttonLabelLoading="Eliminando..."
         confirmButtonClass="btn btn-danger"

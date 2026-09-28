@@ -1,4 +1,3 @@
-import React from 'react';
 import { BsPencil, BsArrowDown, BsArrowUp } from 'react-icons/bs';
 import type { Category } from '../../../types/category.types';
 import './categoryTable.css';

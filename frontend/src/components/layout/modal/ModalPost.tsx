@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { onModalHidden } from '../../../utils/modal.utils';
 import './modal-post.css';
 
 interface ModalPostProps {
@@ -7,6 +9,9 @@ interface ModalPostProps {
   loading?: boolean;
   children: React.ReactNode;
   className?: string;
+  onHidden?: () => void;
+  clearError?: () => void;
+  clearSuccess?: () => void;
   buttonSubmit?: {
     label: string;
     labelLoading: string;
@@ -23,6 +28,9 @@ export const ModalPost = ({
   loading = false, 
   children, 
   className = "",
+  onHidden,
+  clearError,
+  clearSuccess,
   buttonSubmit = {
     label: "Registrar",
     labelLoading: "Registrando...",
@@ -31,6 +39,13 @@ export const ModalPost = ({
     onClick: () => {},
   }
 }: ModalPostProps) => {
+  useEffect(() => {
+    return onModalHidden(id, () => {
+      clearError?.();
+      clearSuccess?.();
+      onHidden?.();
+    });
+  }, [id, clearError, clearSuccess, onHidden]);
   return (
     <>
       <div className="modal fade" id={id} aria-hidden="true" aria-labelledby={`${id}Label`} tabIndex={-1}>

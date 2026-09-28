@@ -2,12 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_middleware_1 = require("../../core/middlewares/auth.middleware");
+const validate_middleware_1 = require("../../core/middlewares/validate.middleware");
+const accounts_validators_1 = require("./accounts.validators");
 const accounts_controller_1 = require("./accounts.controller");
 const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authMiddleware);
 router.get("/", accounts_controller_1.accountController.getAllAccounts);
 router.get("/:id", accounts_controller_1.accountController.getAccountById);
-router.post("/", accounts_controller_1.accountController.createAccount);
-router.patch("/:id", accounts_controller_1.accountController.updateAccount);
+router.post("/", (0, validate_middleware_1.validate)(accounts_validators_1.createAccountSchema), accounts_controller_1.accountController.createAccount);
+router.patch("/:id", (0, validate_middleware_1.validate)(accounts_validators_1.updateAccountSchema), accounts_controller_1.accountController.updateAccount);
 router.delete("/:id", accounts_controller_1.accountController.deactivateAccount);
 exports.default = router;

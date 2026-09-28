@@ -28,14 +28,11 @@ exports.accountController = {
     createAccount: async (req, res, next) => {
         try {
             const data = req.body;
-            console.log('createAccount data:', data);
             const userID = req.user.id;
-            console.log('createAccount userID:', userID);
             const newAccount = await accounts_service_1.accountService.createAccount({
                 ...data,
                 userID,
             });
-            console.log('createAccount newAccount:', newAccount);
             return (0, responses_1.sendSuccess)(res, newAccount);
         }
         catch (error) {
@@ -46,9 +43,8 @@ exports.accountController = {
         try {
             const id = req.params.id;
             const userID = req.user.id;
-            await accounts_service_1.accountService.getAccountById(id, userID);
             const data = req.body;
-            const updatedAccount = await accounts_service_1.accountService.updateAccount(id, data);
+            const updatedAccount = await accounts_service_1.accountService.updateAccount(id, userID, data);
             return (0, responses_1.sendSuccess)(res, updatedAccount);
         }
         catch (error) {
@@ -59,8 +55,7 @@ exports.accountController = {
         try {
             const id = req.params.id;
             const userID = req.user.id;
-            await accounts_service_1.accountService.getAccountById(id, userID);
-            const deactivatedAccount = await accounts_service_1.accountService.deactivateAccount(id);
+            const deactivatedAccount = await accounts_service_1.accountService.deactivateAccount(id, userID);
             return (0, responses_1.sendSuccess)(res, deactivatedAccount);
         }
         catch (error) {

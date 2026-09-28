@@ -16,8 +16,11 @@ const accounts_service_1 = require("../accounts/accounts.service");
 const transactions_schema_1 = require("../transactions/transactions.schema");
 exports.debtService = {
     createDebt: async (data) => {
-        // Verificar que la entidad pertenezca al usuario
-        await entities_service_1.entityService.getEntityById(data.entityID, data.userID);
+        // Verificar que la entidad pertenezca al usuario y esté activa
+        const entity = await entities_service_1.entityService.getEntityById(data.entityID, data.userID);
+        if (entity.status === "Inactive") {
+            throw new AppError_1.AppError("No se puede registrar una deuda con una entidad inactiva", 400, "INACTIVE_ENTITY");
+        }
         const newDebt = await db_1.db
             .insert(debts_schema_1.debts)
             .values({
@@ -52,6 +55,21 @@ exports.debtService = {
             .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.userID, userID))
             .groupBy(debts_schema_1.debts.id)
             .all();
+        const userDebtIds = rows.map((r) => r.debt.id);
+        const paymentsMap = {};
+        if (userDebtIds.length > 0) {
+            const allPayments = await db_1.db
+                .select()
+                .from(debts_schema_1.debtPayments)
+                .where((0, drizzle_orm_1.inArray)(debts_schema_1.debtPayments.debtID, userDebtIds))
+                .orderBy((0, drizzle_orm_1.desc)(debts_schema_1.debtPayments.date))
+                .all();
+            for (const p of allPayments) {
+                if (!paymentsMap[p.debtID])
+                    paymentsMap[p.debtID] = [];
+                paymentsMap[p.debtID].push(p);
+            }
+        }
         return rows.map((r) => {
             const paid = Number(r.totalPaid) || 0;
             return {
@@ -59,6 +77,7 @@ exports.debtService = {
                 entity: r.entity?.id ? r.entity : null,
                 totalPaid: paid,
                 remainingAmount: Math.max(0, r.debt.totalAmount - paid),
+                payments: paymentsMap[r.debt.id] || [],
             };
         });
     },
@@ -71,11 +90,13 @@ exports.debtService = {
         if (!debt) {
             throw new AppError_1.AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
         }
-        const entity = (await db_1.db
-            .select()
-            .from(entities_schema_1.entities)
-            .where((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, debt.entityID))
-            .get()) || null;
+        const entity = debt.entityID
+            ? (await db_1.db
+                .select()
+                .from(entities_schema_1.entities)
+                .where((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, debt.entityID))
+                .get()) || null
+            : null;
         const payments = await db_1.db
             .select()
             .from(debts_schema_1.debtPayments)
@@ -100,7 +121,10 @@ exports.debtService = {
             throw new AppError_1.AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
         }
         if (data.entityID && data.entityID !== currentDebt.entityID) {
-            await entities_service_1.entityService.getEntityById(data.entityID, userID);
+            const entity = await entities_service_1.entityService.getEntityById(data.entityID, userID);
+            if (entity.status === "Inactive") {
+                throw new AppError_1.AppError("No se puede vincular una entidad inactiva", 400, "INACTIVE_ENTITY");
+            }
         }
         const targetTotalAmount = data.totalAmount ?? currentDebt.totalAmount;
         // Recalcular status basado en pagos actuales y el nuevo totalAmount
@@ -112,6 +136,9 @@ exports.debtService = {
             .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, id))
             .get();
         const totalPaid = Number(paymentsSum?.total) || 0;
+        if (data.totalAmount !== undefined && data.totalAmount < totalPaid) {
+            throw new AppError_1.AppError(`El monto total ($${data.totalAmount}) no puede ser menor a lo ya pagado ($${totalPaid})`, 400, "INVALID_TOTAL_AMOUNT");
+        }
         let calculatedStatus = "Pending";
         if (totalPaid >= targetTotalAmount) {
             calculatedStatus = "Settled";
@@ -146,8 +173,47 @@ exports.debtService = {
         if (!currentDebt) {
             throw new AppError_1.AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
         }
-        await db_1.db.delete(debts_schema_1.debtPayments).where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, id));
-        await db_1.db.delete(debts_schema_1.debts).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, id), (0, drizzle_orm_1.eq)(debts_schema_1.debts.userID, userID)));
+        await db_1.db.transaction(async (tx) => {
+            // 1. Obtener todos los pagos asociados a la deuda
+            const payments = await tx
+                .select()
+                .from(debts_schema_1.debtPayments)
+                .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, id))
+                .all();
+            // 2. Para cada pago, si tiene transacción vinculada, restaurar saldo de cuenta y borrar transacción
+            for (const payment of payments) {
+                if (payment.transactionID) {
+                    const txRecord = await tx
+                        .select()
+                        .from(transactions_schema_1.transactions)
+                        .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, payment.transactionID))
+                        .get();
+                    if (txRecord) {
+                        const acc = await tx
+                            .select()
+                            .from(accounts_schema_1.accounts)
+                            .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, txRecord.accountID))
+                            .get();
+                        if (acc) {
+                            const restoredBalance = txRecord.type === "Expense"
+                                ? (acc.amount ?? 0) + txRecord.amount
+                                : (acc.amount ?? 0) - txRecord.amount;
+                            await tx
+                                .update(accounts_schema_1.accounts)
+                                .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                                .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, acc.id));
+                        }
+                        await tx
+                            .delete(transactions_schema_1.transactions)
+                            .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, txRecord.id));
+                    }
+                }
+            }
+            // 3. Eliminar los pagos de la deuda
+            await tx.delete(debts_schema_1.debtPayments).where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, id));
+            // 4. Eliminar la deuda
+            await tx.delete(debts_schema_1.debts).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, id), (0, drizzle_orm_1.eq)(debts_schema_1.debts.userID, userID)));
+        });
     },
     addPayment: async (debtID, userID, data) => {
         const debt = await db_1.db
@@ -158,8 +224,27 @@ exports.debtService = {
         if (!debt) {
             throw new AppError_1.AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
         }
-        // 1. Obtener la cuenta y validar fondos si la deuda es a pagar (Payable)
+        if (debt.status === "Settled") {
+            throw new AppError_1.AppError("Esta deuda ya se encuentra saldada", 400, "DEBT_ALREADY_SETTLED");
+        }
+        // Calcular pagos actuales
+        const currentPaymentsSum = await db_1.db
+            .select({
+            total: (0, drizzle_orm_1.sql) `COALESCE(SUM(${debts_schema_1.debtPayments.amount}), 0)`,
+        })
+            .from(debts_schema_1.debtPayments)
+            .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, debt.id))
+            .get();
+        const currentTotalPaid = Number(currentPaymentsSum?.total) || 0;
+        const remaining = Math.max(0, debt.totalAmount - currentTotalPaid);
+        if (data.amount > remaining) {
+            throw new AppError_1.AppError(`El monto a pagar ($${data.amount}) no puede superar el saldo pendiente ($${remaining})`, 400, "OVERPAYMENT_NOT_ALLOWED");
+        }
+        // 1. Obtener la cuenta y validar que esté activa
         const account = await accounts_service_1.accountService.getAccountById(data.accountID, userID);
+        if (account.status === "Inactive") {
+            throw new AppError_1.AppError("No se pueden registrar pagos con una cuenta inactiva", 400, "INACTIVE_ACCOUNT");
+        }
         const isCreditCard = (type) => {
             const lower = type.toLowerCase();
             return lower.includes("crédito") || lower.includes("credito");

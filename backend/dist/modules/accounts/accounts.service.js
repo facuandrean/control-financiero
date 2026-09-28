@@ -38,28 +38,44 @@ exports.accountService = {
         }
         return newAccount;
     },
-    updateAccount: async (id, data) => {
-        const updatedAccount = await db_1.db.update(accounts_schema_1.accounts).set({
-            ...data,
+    updateAccount: async (id, userID, data) => {
+        // Proteger saldo: el saldo no se muta manualmente, solo por transacciones
+        const { amount: _, ...allowedData } = data;
+        const updatedAccount = await db_1.db
+            .update(accounts_schema_1.accounts)
+            .set({
+            ...allowedData,
             updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        }).where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id)).returning().get();
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id), (0, drizzle_orm_1.eq)(accounts_schema_1.accounts.userID, userID)))
+            .returning()
+            .get();
         if (!updatedAccount) {
             throw new AppError_1.AppError("No se pudo actualizar la cuenta", 500, "ACCOUNT_UPDATE_FAILED");
         }
         return updatedAccount;
     },
-    deactivateAccount: async (id) => {
-        const deactivatedAccount = await db_1.db.update(accounts_schema_1.accounts).set({
+    deactivateAccount: async (id, userID) => {
+        const deactivatedAccount = await db_1.db
+            .update(accounts_schema_1.accounts)
+            .set({
             status: "Inactive",
             updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        }).where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id)).returning().get();
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id), (0, drizzle_orm_1.eq)(accounts_schema_1.accounts.userID, userID)))
+            .returning()
+            .get();
         if (!deactivatedAccount) {
             throw new AppError_1.AppError("No se pudo desactivar la cuenta", 500, "ACCOUNT_DEACTIVATION_FAILED");
         }
         return deactivatedAccount;
     },
-    deleteAccount: async (id) => {
-        const deletedAccount = await db_1.db.delete(accounts_schema_1.accounts).where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id)).returning().get();
+    deleteAccount: async (id, userID) => {
+        const deletedAccount = await db_1.db
+            .delete(accounts_schema_1.accounts)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id), (0, drizzle_orm_1.eq)(accounts_schema_1.accounts.userID, userID)))
+            .returning()
+            .get();
         if (!deletedAccount) {
             throw new AppError_1.AppError("No se pudo eliminar la cuenta", 500, "ACCOUNT_DELETION_FAILED");
         }

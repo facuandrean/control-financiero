@@ -7,7 +7,7 @@ import { transactions } from "../transactions/transactions.schema";
 export const debts = sqliteTable("Debts", {
   id: text("id").primaryKey(),
   userID: text("id_user").notNull().references(() => users.id, { onDelete: "cascade" }),
-  entityID: text("id_entity").notNull().references(() => entities.id, { onDelete: "cascade" }),
+  entityID: text("id_entity").references(() => entities.id, { onDelete: "set null" }),
   type: text("type").notNull(), // 'Payable' | 'Receivable'
   description: text("description").notNull(),
   totalAmount: integer("total_amount").notNull(),

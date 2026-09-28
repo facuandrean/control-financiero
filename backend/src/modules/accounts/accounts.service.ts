@@ -39,11 +39,19 @@ export const accountService = {
     return newAccount;
   },
 
-  updateAccount: async (id: string, data: UpdateAccountInput): Promise<Account> => {
-    const updatedAccount = await db.update(accounts).set({
-      ...data,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).where(eq(accounts.id, id)).returning().get();
+  updateAccount: async (id: string, userID: string, data: UpdateAccountInput): Promise<Account> => {
+    // Proteger saldo: el saldo no se muta manualmente, solo por transacciones
+    const { amount: _, ...allowedData } = data as any;
+
+    const updatedAccount = await db
+      .update(accounts)
+      .set({
+        ...allowedData,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(and(eq(accounts.id, id), eq(accounts.userID, userID)))
+      .returning()
+      .get();
 
     if (!updatedAccount) {
       throw new AppError("No se pudo actualizar la cuenta", 500, "ACCOUNT_UPDATE_FAILED");
@@ -52,11 +60,16 @@ export const accountService = {
     return updatedAccount;
   },
 
-  deactivateAccount: async (id: string): Promise<Account> => {
-    const deactivatedAccount = await db.update(accounts).set({
-      status: "Inactive",
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).where(eq(accounts.id, id)).returning().get();
+  deactivateAccount: async (id: string, userID: string): Promise<Account> => {
+    const deactivatedAccount = await db
+      .update(accounts)
+      .set({
+        status: "Inactive",
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(and(eq(accounts.id, id), eq(accounts.userID, userID)))
+      .returning()
+      .get();
 
     if (!deactivatedAccount) {
       throw new AppError("No se pudo desactivar la cuenta", 500, "ACCOUNT_DEACTIVATION_FAILED");
@@ -65,8 +78,12 @@ export const accountService = {
     return deactivatedAccount;
   },
 
-  deleteAccount: async (id: string): Promise<void> => {
-    const deletedAccount = await db.delete(accounts).where(eq(accounts.id, id)).returning().get();
+  deleteAccount: async (id: string, userID: string): Promise<void> => {
+    const deletedAccount = await db
+      .delete(accounts)
+      .where(and(eq(accounts.id, id), eq(accounts.userID, userID)))
+      .returning()
+      .get();
     if (!deletedAccount) {
       throw new AppError("No se pudo eliminar la cuenta", 500, "ACCOUNT_DELETION_FAILED");
     }

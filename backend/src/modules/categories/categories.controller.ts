@@ -46,13 +46,10 @@ export const categoryController = {
   updateCategory: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
       const userID = req.user.id;
-      await categoryService.getCategoryById(id, userID);
-
       const data: UpdateCategoryInput = req.body;
       
-      const updatedCategory: Category = await categoryService.updateCategory(id, data);
+      const updatedCategory: Category = await categoryService.updateCategory(id, userID, data);
       return sendSuccess(res, updatedCategory);
     } catch (error) {
       next(error);
@@ -62,14 +59,12 @@ export const categoryController = {
   deactivateCategory: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id as string;
-
       const userID = req.user.id;
-      await categoryService.getCategoryById(id, userID);
 
-      const deactivatedCategory: Category = await categoryService.deactivateCategory(id);
+      const deactivatedCategory: Category = await categoryService.deactivateCategory(id, userID);
       return sendSuccess(res, deactivatedCategory);
     } catch (error) {
       next(error);
     }
   }
-}
+};

@@ -1,13 +1,13 @@
 import z from "zod";
 
 export const createEntitySchema = z.object({
-  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
-  description: z.string().trim().optional()
+  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres").max(255, "Máximo 255 caracteres"),
+  description: z.string().trim().max(255, "Máximo 255 caracteres").optional()
 });
 
 export const updateEntitySchema = z.object({
-  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres").optional(),
-  description: z.string().trim().optional(),
+  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres").max(255, "Máximo 255 caracteres").optional(),
+  description: z.string().trim().max(255, "Máximo 255 caracteres").optional(),
   status: z.enum(["Active", "Inactive"]).optional(),
 });
 

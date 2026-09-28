@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changePasswordSchema = exports.updateUserSchema = void 0;
 const zod_1 = require("zod");
-const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 exports.updateUserSchema = zod_1.z.object({
     email: zod_1.z.string().email("Email inválido"),
     password: zod_1.z.string().min(8).regex(passwordRegex).optional(),

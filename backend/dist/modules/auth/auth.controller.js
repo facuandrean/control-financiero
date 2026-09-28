@@ -28,18 +28,7 @@ exports.authController = {
     register: async (req, res, next) => {
         try {
             const { email, password, name, lastName } = req.body;
-            const existingUser = await users_service_1.userService.findByEmail(email);
-            if (existingUser) {
-                throw new AppError_1.AppError("El email ya está registrado", 409, "AUTH_EMAIL_EXISTS");
-            }
-            const hashedPassword = await bcrypt_1.default.hash(password, 10);
-            const newUser = await users_service_1.userService.createUser({
-                name,
-                lastName,
-                email,
-                password: hashedPassword
-            });
-            const { password: _, ...publicUser } = newUser;
+            const publicUser = await auth_service_1.authService.register({ name, lastName, email, password });
             return (0, responses_1.sendSuccess)(res, publicUser, "Usuario registrado con éxito", 201);
         }
         catch (error) {
@@ -107,6 +96,27 @@ exports.authController = {
         }
         catch (error) {
             (0, exports.clearAuthCookies)(res);
+            next(error);
+        }
+    },
+    // POST /google
+    googleLogin: async (req, res, next) => {
+        try {
+            const { token } = req.body;
+            const userAgent = req.headers['user-agent'] || 'unknown';
+            const ipAddress = req.ip || req.socket.remoteAddress || 'unknown';
+            const { user, accessToken, refreshToken, sessionToken } = await auth_service_1.authService.googleLogin(token, userAgent, ipAddress);
+            res.cookie('accessToken', accessToken, {
+                ...exports.cookieBaseOptions,
+                maxAge: 15 * 60 * 1000,
+            });
+            res.cookie('refreshToken', refreshToken, {
+                ...exports.cookieBaseOptions,
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+            return (0, responses_1.sendSuccess)(res, { user, sessionToken }, "Inicio de sesión con Google exitoso");
+        }
+        catch (error) {
             next(error);
         }
     }

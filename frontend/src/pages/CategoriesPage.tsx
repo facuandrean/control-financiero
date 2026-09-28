@@ -147,6 +147,8 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         id="category-modal"
         formId="category-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
       >
         <CategoryForm
           onSubmit={handleCreateSubmit}
@@ -166,6 +168,9 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         id="category-update-modal"
         formId="category-update-form"
         loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        onHidden={() => setSelectedCategory(null)}
         buttonSubmit={{
           label: 'Actualizar',
           labelLoading: 'Actualizando...',
