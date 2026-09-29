@@ -2,6 +2,9 @@ import { useCallback, useState } from 'react';
 import { api } from '../../../api/axios';
 import type { Account, CreateAccountInput } from '../../../types/account.types';
 
+const isValidNumber = (val: unknown): boolean =>
+  val !== undefined && val !== null && String(val).trim() !== '' && !isNaN(Number(val));
+
 export const useAccounts = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
@@ -87,7 +90,7 @@ export const useAccounts = () => {
       if (data.type !== undefined) payload.type = data.type;
       if (data.tag !== undefined) payload.tag = data.tag;
 
-      if (data.amount !== undefined && data.amount !== null && data.amount !== '' && !isNaN(Number(data.amount))) {
+      if (isValidNumber(data.amount)) {
         payload.amount = Number(data.amount);
       }
 
@@ -102,21 +105,9 @@ export const useAccounts = () => {
       }
 
       if (data.type === 'Tarjeta de Crédito') {
-        if (data.creditLimit !== undefined && data.creditLimit !== null && data.creditLimit !== '' && !isNaN(Number(data.creditLimit))) {
-          payload.creditLimit = Number(data.creditLimit);
-        } else {
-          payload.creditLimit = null;
-        }
-        if (data.closingDay !== undefined && data.closingDay !== null && data.closingDay !== '' && !isNaN(Number(data.closingDay))) {
-          payload.closingDay = Number(data.closingDay);
-        } else {
-          payload.closingDay = null;
-        }
-        if (data.dueDate !== undefined && data.dueDate !== null && data.dueDate !== '' && !isNaN(Number(data.dueDate))) {
-          payload.dueDate = Number(data.dueDate);
-        } else {
-          payload.dueDate = null;
-        }
+        payload.creditLimit = isValidNumber(data.creditLimit) ? Number(data.creditLimit) : null;
+        payload.closingDay = isValidNumber(data.closingDay) ? Number(data.closingDay) : null;
+        payload.dueDate = isValidNumber(data.dueDate) ? Number(data.dueDate) : null;
       } else if (data.type && data.type !== 'Tarjeta de Crédito') {
         payload.creditLimit = null;
         payload.closingDay = null;
