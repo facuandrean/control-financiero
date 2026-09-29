@@ -44,9 +44,14 @@ export const accountService = {
 
     const allowedData: any = { ...data };
 
-    // Solo se permite modificar el saldo directamente si la cuenta es de tipo 'Efectivo'
-    const isCash = existing.type === "Efectivo" || data.type === "Efectivo";
-    if (!isCash) {
+    // Se permite modificar el saldo directamente si la cuenta es de tipo 'Efectivo' o 'Billetera virtual'
+    const isDirectlyEditable =
+      existing.type === "Efectivo" ||
+      data.type === "Efectivo" ||
+      existing.type === "Billetera virtual" ||
+      data.type === "Billetera virtual";
+
+    if (!isDirectlyEditable) {
       delete allowedData.amount;
     }
 

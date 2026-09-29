@@ -6,13 +6,15 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
+  cursor: pointer;
 }
 
 .debt-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
 }
 
 .debt-card-header {
@@ -47,6 +49,7 @@
   flex-shrink: 0;
 }
 
+/* Badges y Pasteles */
 .debt-type-pill {
   font-size: 0.75rem;
   font-weight: 700;
@@ -56,8 +59,8 @@
 }
 
 .pill-payable {
-  background-color: #fee2e2;
-  color: #b91c1c;
+  background-color: #ffe4e6;
+  color: #c46262;
 }
 
 .pill-receivable {
@@ -84,86 +87,70 @@
 
 .badge-settled {
   background-color: #dcfce7;
-  color: #166534;
+  color: #15803d;
 }
 
 .debt-card-body {
   flex: 1;
   margin-bottom: 1.25rem;
-}
-
-.debt-card-desc {
-  font-size: 0.925rem;
-  color: #475569;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.debt-due-date {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.825rem;
-  color: #64748b;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.debt-progress-wrapper {
+/* Balance Box */
+.debt-card-balance-box {
   background-color: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 0.75rem;
   padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.debt-progress-labels {
+.debt-card-balance-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.debt-card-balance-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.debt-card-balance-value.value-settled {
+  color: #15803d;
+}
+
+.debt-card-balance-value.value-payable {
+  color: #c46262;
+}
+
+.debt-card-balance-value.value-receivable {
+  color: #15803d;
+}
+
+.debt-card-subinfo {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.825rem;
-  margin-bottom: 0.45rem;
+  color: #64748b;
+  padding: 0 0.25rem;
 }
 
-.debt-progress-text {
+.debt-card-movements-count {
+  font-size: 0.8rem;
   font-weight: 600;
   color: #475569;
-}
-
-.debt-progress-amounts {
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.debt-progress-track {
-  width: 100%;
-  height: 8px;
-  background-color: #e2e8f0;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.debt-progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.fill-receivable {
-  background-color: #22c55e;
-}
-
-.fill-payable {
-  background-color: #64748b;
-}
-
-.debt-remaining-info {
-  margin-top: 0.45rem;
-  font-size: 0.78rem;
-  color: #64748b;
-  text-align: right;
+  background-color: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 .debt-card-footer {
@@ -173,12 +160,6 @@
   gap: 0.5rem;
   padding-top: 0.85rem;
   border-top: 1px solid #f1f5f9;
-}
-
-.debt-card-action-group {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 .btn-card-action {
@@ -195,19 +176,14 @@
   transition: all 0.2s ease;
 }
 
-.btn-pay {
+.btn-timeline-open {
   background-color: #f1f5f9;
-  color: #64748b;
+  color: #334155;
 }
 
-.btn-pay:hover:not(:disabled) {
-  background-color: #e0f2fe;
-  color: #788daa;
-}
-
-.btn-pay:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.btn-timeline-open:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 
 .btn-icon-only {
@@ -216,113 +192,172 @@
   font-size: 0.95rem;
 }
 
-.btn-edit-debt {
-  color: #788daa;
-}
-
-.btn-edit-debt:hover {
-  background-color: #e0f2fe;
-}
-
 .btn-delete-debt {
-  color: #dc2626;
+  color: #be123c;
 }
 
 .btn-delete-debt:hover {
-  background-color: #fee2e2;
+  background-color: #ffe4e6;
 }
 
-/* Historial de Pagos / Acordeón */
-.debt-payments-toggle-container {
-  margin-top: 0.85rem;
+/* ========================================================
+   LÍNEA DE TIEMPO (TIMELINE)
+   ======================================================== */
+.debt-timeline-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.btn-toggle-payments {
-  width: 100%;
+.debt-timeline-summary {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.debt-timeline-summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  margin-bottom: 0.4rem;
 }
 
-.btn-toggle-payments:hover {
-  background-color: #f1f5f9;
-  color: #1e293b;
-  border-color: #cbd5e1;
+.debt-timeline-summary-row:last-child {
+  margin-bottom: 0;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #cbd5e1;
 }
 
-.debt-payments-list {
-  margin-top: 0.5rem;
+.debt-timeline-scroll {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  max-height: 180px;
+  gap: 0.75rem;
+  max-height: 380px;
   overflow-y: auto;
-  padding-right: 0.25rem;
+  padding-right: 4px;
 }
 
-.debt-payments-empty {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  text-align: center;
-  padding: 0.6rem;
-  margin: 0;
+.movement-timeline-card {
+  border-radius: 0.65rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+}
+
+.movement-timeline-card:hover {
+  filter: brightness(0.98);
+}
+
+/* Tarjeta CARGO (Rojo Pastel Suave) */
+.movement-charge {
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-left: 4px solid #fb7185;
+}
+
+/* Tarjeta PAGO (Verde Pastel Suave) */
+.movement-payment {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 4px solid #4ade80;
+}
+
+/* Tarjeta INICIAL (Gris Pastel Neutro) */
+.movement-initial {
   background-color: #f8fafc;
-  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #94a3b8;
 }
 
-.debt-payment-item {
+.movement-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 0.45rem 0.65rem;
-  transition: background-color 0.15s ease;
 }
 
-.debt-payment-item:hover {
-  background-color: #f1f5f9;
-}
-
-.debt-payment-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  overflow: hidden;
-}
-
-.debt-payment-amount {
-  font-size: 0.85rem;
+.movement-pill {
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #0f172a;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
 }
 
-.debt-payment-date {
+.pill-charge {
+  background-color: #ffe4e6;
+  color: #c46262;
+}
+
+.pill-payment {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.pill-initial {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.movement-card-date {
   font-size: 0.75rem;
   color: #64748b;
+  font-weight: 500;
 }
 
-.debt-payment-notes {
-  font-size: 0.75rem;
-  color: #475569;
-  font-style: italic;
-  white-space: nowrap;
+.movement-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.movement-card-desc {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  white-space: nowrap;
 }
 
-.btn-delete-payment {
+.movement-card-amount {
+  font-size: 1rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.amount-charge {
+  color: #c46262;
+}
+
+.amount-payment {
+  color: #15803d;
+}
+
+.amount-initial {
+  color: #475569;
+}
+
+.movement-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.2rem;
+}
+
+.movement-tx-badge {
+  font-size: 0.72rem;
+  color: #4b4646;
+  background-color: #e7dadb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.btn-delete-movement {
   background: none;
   border: none;
   color: #94a3b8;
@@ -333,14 +368,62 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  margin-left: auto;
 }
 
-.btn-delete-payment:hover:not(:disabled) {
-  background-color: #fee2e2;
-  color: #dc2626;
+.btn-delete-movement:hover:not(:disabled) {
+  background-color: #ffe4e6;
+  color: #be123c;
 }
 
-.btn-delete-payment:disabled {
+.btn-delete-movement:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Footer con los dos botones de acción en tonos pasteles */
+.debt-timeline-footer-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-timeline-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btn-timeline-charge {
+  background-color: #fff1f2;
+  color: #a04a4a;
+  border-color: #fecdd3;
+}
+
+.btn-timeline-charge:hover {
+  background-color: #ffe4e6;
+  color: #c46262;
+  border-color: #fda4af;
+}
+
+.btn-timeline-payment {
+  background-color: #f0fdf4;
+  color: #388a56;
+  border-color: #bbf7d0;
+}
+
+.btn-timeline-payment:hover {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
 }

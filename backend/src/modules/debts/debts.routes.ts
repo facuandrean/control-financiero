@@ -5,6 +5,7 @@ import { debtController } from "./debts.controller";
 import {
   createDebtSchema,
   updateDebtSchema,
+  createMovementSchema,
   createDebtPaymentSchema,
 } from "./debts.validators";
 
@@ -20,8 +21,12 @@ router.post("/", validate(createDebtSchema), debtController.createDebt);
 router.patch("/:id", validate(updateDebtSchema), debtController.updateDebt);
 router.delete("/:id", debtController.deleteDebt);
 
-// Rutas de Pagos
-router.post("/:id/payments", validate(createDebtPaymentSchema), debtController.addPayment);
-router.delete("/payments/:paymentId", debtController.deletePayment);
+// Rutas de Movimientos (Ledger)
+router.post("/:id/movements", validate(createMovementSchema), debtController.addMovement);
+router.delete("/movements/:movementId", debtController.deleteMovement);
+
+// Rutas de Pagos (compatibilidad)
+router.post("/:id/payments", validate(createDebtPaymentSchema), debtController.addLegacyPayment);
+router.delete("/payments/:paymentId", debtController.deleteMovement);
 
 export default router;

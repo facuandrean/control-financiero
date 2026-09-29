@@ -47,7 +47,10 @@ export const PaymentForm = ({
     }));
 
   const remaining = debt
-    ? debt.remainingAmount ?? Math.max(0, debt.totalAmount - (debt.paidAmount ?? 0))
+    ? debt.remainingAmount ??
+      (debt.balance !== undefined
+        ? Math.max(0, debt.balance)
+        : Math.max(0, (debt.totalAmount ?? debt.initialAmount ?? 0) - (debt.paidAmount ?? 0)))
     : 0;
 
   const handleFormSubmit = async (data: any) => {
@@ -101,7 +104,7 @@ export const PaymentForm = ({
               </div>
               <div className="d-flex justify-content-between mb-1">
                 <span className="text-muted">Total de la Deuda:</span>
-                <span>{formatCurrency(debt.totalAmount)}</span>
+                <span>{formatCurrency(debt.totalAmount ?? debt.initialAmount ?? 0)}</span>
               </div>
               <div className="d-flex justify-content-between mb-1">
                 <span className="text-muted">Ya Pagado:</span>

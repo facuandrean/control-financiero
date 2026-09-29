@@ -169,7 +169,7 @@
   border-radius: 6px;
   transition: background-color 0.15s ease;
   width: auto;
-  max-width: 130px;
+  max-width: 170px;
 }
 
 .dashboard-month-input:hover,
@@ -693,7 +693,7 @@
 
   .dashboard-month-input {
     font-size: 0.825rem;
-    max-width: 160px;
+    max-width: 170px;
     padding: 0.15rem 0.25rem;
   }
 

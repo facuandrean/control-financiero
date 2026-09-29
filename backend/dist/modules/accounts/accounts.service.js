@@ -39,8 +39,16 @@ exports.accountService = {
         return newAccount;
     },
     updateAccount: async (id, userID, data) => {
-        // Proteger saldo: el saldo no se muta manualmente, solo por transacciones
-        const { amount: _, ...allowedData } = data;
+        const existing = await exports.accountService.getAccountById(id, userID);
+        const allowedData = { ...data };
+        // Se permite modificar el saldo directamente si la cuenta es de tipo 'Efectivo' o 'Billetera virtual'
+        const isDirectlyEditable = existing.type === "Efectivo" ||
+            data.type === "Efectivo" ||
+            existing.type === "Billetera virtual" ||
+            data.type === "Billetera virtual";
+        if (!isDirectlyEditable) {
+            delete allowedData.amount;
+        }
         const updatedAccount = await db_1.db
             .update(accounts_schema_1.accounts)
             .set({

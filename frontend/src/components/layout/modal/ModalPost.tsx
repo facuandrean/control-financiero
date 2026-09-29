@@ -5,13 +5,14 @@ import './modal-post.css';
 interface ModalPostProps {
   id: string;
   title: string;
-  formId: string;
+  formId?: string;
   loading?: boolean;
   children: React.ReactNode;
   className?: string;
   onHidden?: () => void;
   clearError?: () => void;
   clearSuccess?: () => void;
+  customFooter?: React.ReactNode;
   buttonSubmit?: {
     label: string;
     labelLoading: string;
@@ -31,6 +32,7 @@ export const ModalPost = ({
   onHidden,
   clearError,
   clearSuccess,
+  customFooter,
   buttonSubmit = {
     label: "Registrar",
     labelLoading: "Registrando...",
@@ -59,18 +61,26 @@ export const ModalPost = ({
               {children}
             </div>
             <div className="modal-footer" style={{ flexWrap: 'wrap' }}>
-              <button type="button" className="btn btn-outline-secondary" disabled={loading} data-bs-dismiss="modal">
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                form={formId} 
-                className={`${buttonSubmit.className}`} 
-                disabled={loading || buttonSubmit.disabled} 
-                onClick={buttonSubmit.onClick}
-              >
-                {loading ? buttonSubmit.labelLoading : buttonSubmit.label}
-              </button>
+              {customFooter ? (
+                customFooter
+              ) : (
+                <>
+                  <button type="button" className="btn btn-outline-secondary" disabled={loading} data-bs-dismiss="modal">
+                    Cancelar
+                  </button>
+                  {formId && (
+                    <button 
+                      type="submit" 
+                      form={formId} 
+                      className={`${buttonSubmit.className}`} 
+                      disabled={loading || buttonSubmit.disabled} 
+                      onClick={buttonSubmit.onClick}
+                    >
+                      {loading ? buttonSubmit.labelLoading : buttonSubmit.label}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

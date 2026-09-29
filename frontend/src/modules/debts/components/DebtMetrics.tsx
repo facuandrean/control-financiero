@@ -19,7 +19,14 @@ export const DebtMetrics = ({ debts }: DebtMetricsProps) => {
     .filter((d) => d.type === 'Payable' && d.status !== 'Settled')
     .reduce(
       (acc, d) =>
-        acc + (d.remainingAmount ?? Math.max(0, d.totalAmount - (d.paidAmount ?? 0))),
+        acc +
+        (d.remainingAmount ??
+          (d.balance !== undefined
+            ? Math.max(0, d.balance)
+            : Math.max(
+                0,
+                (d.totalAmount ?? d.initialAmount ?? 0) - (d.paidAmount ?? 0)
+              ))),
       0
     );
 
@@ -28,7 +35,14 @@ export const DebtMetrics = ({ debts }: DebtMetricsProps) => {
     .filter((d) => d.type === 'Receivable' && d.status !== 'Settled')
     .reduce(
       (acc, d) =>
-        acc + (d.remainingAmount ?? Math.max(0, d.totalAmount - (d.paidAmount ?? 0))),
+        acc +
+        (d.remainingAmount ??
+          (d.balance !== undefined
+            ? Math.max(0, d.balance)
+            : Math.max(
+                0,
+                (d.totalAmount ?? d.initialAmount ?? 0) - (d.paidAmount ?? 0)
+              ))),
       0
     );
 

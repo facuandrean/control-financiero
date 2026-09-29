@@ -70,10 +70,12 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
 
   // Debts module integration
   const {
+    debts,
     loading: debtLoading,
     error: debtError,
     success: debtSuccess,
     createDebt,
+    addMovement,
     clearError: clearDebtError,
     clearSuccess: clearDebtSuccess,
   } = useDebts();
@@ -176,8 +178,25 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     }
   };
 
-  const handleDebtSubmit = async (formData: any) => {
-    const isOk = await createDebt(formData);
+  const handleDebtSubmit = async (formData: any, existingDebtId?: string) => {
+    let isOk = false;
+    if (existingDebtId) {
+      isOk = await addMovement(existingDebtId, {
+        type: 'CHARGE',
+        amount: formData.amount,
+        description: formData.description || 'Nuevo cargo',
+        date: formData.date,
+        accountID: formData.accountID || null,
+      });
+    } else {
+      isOk = await createDebt({
+        entityID: formData.entityID,
+        type: formData.type,
+        initialAmount: formData.amount,
+        description: formData.description,
+      });
+    }
+
     if (isOk) {
       setIsDebtSuccessClosing(true);
       await fetchSummary(selectedMonth, selectedYear);
@@ -578,6 +597,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
         loading={debtLoading || isDebtSuccessClosing}
       >
         <DebtForm
+          debts={debts}
           onSubmit={handleDebtSubmit}
           loading={debtLoading}
           errorMessage={debtError}

@@ -44,9 +44,12 @@ export const AccountForm = ({
   isEditing = false
 }: AccountFormProps) => {
   const handleFormSubmit = async (formData: any) => {
-    const isCash = formData.type === "Efectivo";
+    const canEditBalance =
+      formData.type === "Efectivo" ||
+      formData.type === "Billetera virtual" ||
+      formData.type === "Billetera Virtual";
     if (isEditing) {
-      if (isCash) {
+      if (canEditBalance) {
         await onSubmit({
           ...formData,
           amount: formData.amount !== undefined && formData.amount !== null && formData.amount !== ''
@@ -85,6 +88,10 @@ export const AccountForm = ({
         
         const isCreditCard = type === "Tarjeta de Crédito";
         const isCash = type === "Efectivo";
+        const canEditBalance =
+          isCash ||
+          type === "Billetera virtual" ||
+          type === "Billetera Virtual";
         
         // Any account that isn't cash can optionally have last digits
         const canHaveLastDigits = !isCash && !!type; 
@@ -125,7 +132,7 @@ export const AccountForm = ({
               options={ACCOUNT_TYPES}
             />
 
-            {(!isEditing || isCash) && (
+            {(!isEditing || canEditBalance) && (
               <Input 
                 formID={formId}
                 name="amount"

@@ -14,7 +14,10 @@ router.get("/:id", debts_controller_1.debtController.getDebtById);
 router.post("/", (0, validate_middleware_1.validate)(debts_validators_1.createDebtSchema), debts_controller_1.debtController.createDebt);
 router.patch("/:id", (0, validate_middleware_1.validate)(debts_validators_1.updateDebtSchema), debts_controller_1.debtController.updateDebt);
 router.delete("/:id", debts_controller_1.debtController.deleteDebt);
-// Rutas de Pagos
-router.post("/:id/payments", (0, validate_middleware_1.validate)(debts_validators_1.createDebtPaymentSchema), debts_controller_1.debtController.addPayment);
-router.delete("/payments/:paymentId", debts_controller_1.debtController.deletePayment);
+// Rutas de Movimientos (Ledger)
+router.post("/:id/movements", (0, validate_middleware_1.validate)(debts_validators_1.createMovementSchema), debts_controller_1.debtController.addMovement);
+router.delete("/movements/:movementId", debts_controller_1.debtController.deleteMovement);
+// Rutas de Pagos (compatibilidad)
+router.post("/:id/payments", (0, validate_middleware_1.validate)(debts_validators_1.createDebtPaymentSchema), debts_controller_1.debtController.addLegacyPayment);
+router.delete("/payments/:paymentId", debts_controller_1.debtController.deleteMovement);
 exports.default = router;

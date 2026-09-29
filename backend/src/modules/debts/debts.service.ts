@@ -1,47 +1,84 @@
 import { db } from "../../core/db/db";
-import { debts, debtPayments } from "./debts.schema";
+import { debts, debtMovements } from "./debts.schema";
 import { entities } from "../entities/entities.schema";
+import { accounts } from "../accounts/accounts.schema";
+import { transactions } from "../transactions/transactions.schema";
 import { AppError } from "../../core/utils/AppError";
 import {
   Debt,
-  DebtPayment,
+  DebtMovement,
   CreateDebtDTO,
   UpdateDebtDTO,
-  CreateDebtPaymentDTO,
+  CreateMovementDTO,
   DebtWithDetails,
   DebtDetailResponse,
 } from "./debts.types";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { entityService } from "../entities/entities.service";
-import { accounts } from "../accounts/accounts.schema";
 import { accountService } from "../accounts/accounts.service";
-import { transactions } from "../transactions/transactions.schema";
+
+const isCreditCard = (accountType?: string | null, accountTag?: string | null): boolean => {
+  if (accountType === "Credit Card") return true;
+  if (
+    accountTag &&
+    (accountTag.toLowerCase().includes("crédito") ||
+      accountTag.toLowerCase().includes("credito") ||
+      accountTag.toLowerCase().includes("credit"))
+  ) {
+    return true;
+  }
+  if (!accountType) return false;
+  const lower = accountType.toLowerCase();
+  return lower.includes("crédito") || lower.includes("credito") || lower.includes("credit");
+};
 
 export const debtService = {
   createDebt: async (data: CreateDebtDTO & { userID: string }): Promise<Debt> => {
-    // Verificar que la entidad pertenezca al usuario y esté activa
+    // 1. Verificar que la entidad pertenezca al usuario y esté activa
     const entity = await entityService.getEntityById(data.entityID, data.userID);
     if (entity.status === "Inactive") {
       throw new AppError("No se puede registrar una deuda con una entidad inactiva", 400, "INACTIVE_ENTITY");
     }
 
-    const newDebt = await db
+    // 2. Verificar si ya existe una deuda Pending para esa entityID y type
+    const existingDebt = await db
+      .select()
+      .from(debts)
+      .where(
+        and(
+          eq(debts.userID, data.userID),
+          eq(debts.entityID, data.entityID),
+          eq(debts.type, data.type),
+          eq(debts.status, "Pending")
+        )
+      )
+      .get();
+
+    if (existingDebt) {
+      throw new AppError(
+        "Ya existe una cuenta pendiente con esta persona para este tipo de deuda",
+        400,
+        "DEBT_ALREADY_EXISTS"
+      );
+    }
+
+    const initialAmount = data.initialAmount ?? 0;
+    const initialStatus = initialAmount <= 0 ? "Pending" : "Pending";
+
+    const [newDebt] = await db
       .insert(debts)
       .values({
         id: crypto.randomUUID(),
         userID: data.userID,
         entityID: data.entityID,
         type: data.type,
-        description: data.description,
-        totalAmount: data.totalAmount,
-        status: "Pending",
-        dueDate: data.dueDate || null,
+        initialAmount: initialAmount,
+        status: initialStatus,
         createdAt: sql`CURRENT_TIMESTAMP`,
         updatedAt: sql`CURRENT_TIMESTAMP`,
       })
-      .returning()
-      .get();
+      .returning();
 
     if (!newDebt) {
       throw new AppError("No se pudo crear la deuda", 500, "DEBT_CREATION_FAILED");
@@ -55,38 +92,56 @@ export const debtService = {
       .select({
         debt: debts,
         entity: entities,
-        totalPaid: sql<number>`COALESCE(SUM(${debtPayments.amount}), 0)`,
       })
       .from(debts)
       .leftJoin(entities, eq(debts.entityID, entities.id))
-      .leftJoin(debtPayments, eq(debts.id, debtPayments.debtID))
       .where(eq(debts.userID, userID))
-      .groupBy(debts.id)
       .all();
 
     const userDebtIds = rows.map((r) => r.debt.id);
-    const paymentsMap: Record<string, DebtPayment[]> = {};
+    const movementsMap: Record<string, DebtMovement[]> = {};
+
     if (userDebtIds.length > 0) {
-      const allPayments = await db
+      const allMovements = await db
         .select()
-        .from(debtPayments)
-        .where(inArray(debtPayments.debtID, userDebtIds))
-        .orderBy(desc(debtPayments.date))
+        .from(debtMovements)
+        .where(inArray(debtMovements.debtID, userDebtIds))
+        .orderBy(asc(debtMovements.date), asc(debtMovements.createdAt))
         .all();
-      for (const p of allPayments) {
-        if (!paymentsMap[p.debtID]) paymentsMap[p.debtID] = [];
-        paymentsMap[p.debtID].push(p);
+
+      for (const m of allMovements) {
+        if (!movementsMap[m.debtID]) movementsMap[m.debtID] = [];
+        movementsMap[m.debtID].push(m);
       }
     }
 
     return rows.map((r) => {
-      const paid = Number(r.totalPaid) || 0;
+      const mvts = movementsMap[r.debt.id] || [];
+      const totalCharges = mvts
+        .filter((m) => m.type === "CHARGE")
+        .reduce((sum, m) => sum + m.amount, 0);
+
+      const totalPayments = mvts
+        .filter((m) => m.type === "PAYMENT")
+        .reduce((sum, m) => sum + m.amount, 0);
+
+      const initialAmount = r.debt.initialAmount ?? 0;
+      const balance = initialAmount + totalCharges - totalPayments;
+      const calculatedStatus: "Pending" | "Settled" = balance <= 0 ? "Settled" : "Pending";
+
       return {
         ...r.debt,
+        status: calculatedStatus,
         entity: r.entity?.id ? r.entity : null,
-        totalPaid: paid,
-        remainingAmount: Math.max(0, r.debt.totalAmount - paid),
-        payments: paymentsMap[r.debt.id] || [],
+        balance,
+        totalCharges,
+        totalPayments,
+        remainingAmount: Math.max(0, balance),
+        totalAmount: initialAmount + totalCharges,
+        totalPaid: totalPayments,
+        paidAmount: totalPayments,
+        movements: mvts,
+        payments: mvts.filter((m) => m.type === "PAYMENT"),
       };
     });
   },
@@ -110,20 +165,38 @@ export const debtService = {
           .get()) || null
       : null;
 
-    const payments = await db
+    const movements = await db
       .select()
-      .from(debtPayments)
-      .where(eq(debtPayments.debtID, id))
+      .from(debtMovements)
+      .where(eq(debtMovements.debtID, id))
+      .orderBy(asc(debtMovements.date), asc(debtMovements.createdAt))
       .all();
 
-    const totalPaid = payments.reduce((acc, p) => acc + p.amount, 0);
+    const totalCharges = movements
+      .filter((m) => m.type === "CHARGE")
+      .reduce((sum, m) => sum + m.amount, 0);
+
+    const totalPayments = movements
+      .filter((m) => m.type === "PAYMENT")
+      .reduce((sum, m) => sum + m.amount, 0);
+
+    const initialAmount = debt.initialAmount ?? 0;
+    const balance = initialAmount + totalCharges - totalPayments;
+    const calculatedStatus: "Pending" | "Settled" = balance <= 0 ? "Settled" : "Pending";
 
     return {
       ...debt,
+      status: calculatedStatus,
       entity,
-      totalPaid,
-      remainingAmount: Math.max(0, debt.totalAmount - totalPaid),
-      payments,
+      balance,
+      totalCharges,
+      totalPayments,
+      remainingAmount: Math.max(0, balance),
+      totalAmount: initialAmount + totalCharges,
+      totalPaid: totalPayments,
+      paidAmount: totalPayments,
+      movements,
+      payments: movements.filter((m) => m.type === "PAYMENT"),
     };
   },
 
@@ -142,59 +215,258 @@ export const debtService = {
       throw new AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
     }
 
-    if (data.entityID && data.entityID !== currentDebt.entityID) {
-      const entity = await entityService.getEntityById(data.entityID, userID);
-      if (entity.status === "Inactive") {
-        throw new AppError("No se puede vincular una entidad inactiva", 400, "INACTIVE_ENTITY");
-      }
-    }
-
-    const targetTotalAmount = data.totalAmount ?? currentDebt.totalAmount;
-
-    // Recalcular status basado en pagos actuales y el nuevo totalAmount
-    const paymentsSum = await db
-      .select({
-        total: sql<number>`COALESCE(SUM(${debtPayments.amount}), 0)`,
-      })
-      .from(debtPayments)
-      .where(eq(debtPayments.debtID, id))
-      .get();
-
-    const totalPaid = Number(paymentsSum?.total) || 0;
-
-    if (data.totalAmount !== undefined && data.totalAmount < totalPaid) {
-      throw new AppError(
-        `El monto total ($${data.totalAmount}) no puede ser menor a lo ya pagado ($${totalPaid})`,
-        400,
-        "INVALID_TOTAL_AMOUNT"
-      );
-    }
-
-    let calculatedStatus: "Pending" | "Partial" | "Settled" = "Pending";
-    if (totalPaid >= targetTotalAmount) {
-      calculatedStatus = "Settled";
-    } else if (totalPaid > 0) {
-      calculatedStatus = "Partial";
-    } else {
-      calculatedStatus = "Pending";
-    }
-
-    const updatedDebt = await db
+    const [updatedDebt] = await db
       .update(debts)
       .set({
         ...data,
-        status: calculatedStatus,
         updatedAt: sql`CURRENT_TIMESTAMP`,
       })
       .where(and(eq(debts.id, id), eq(debts.userID, userID)))
-      .returning()
-      .get();
-
-    if (!updatedDebt) {
-      throw new AppError("No se pudo actualizar la deuda", 500, "DEBT_UPDATE_FAILED");
-    }
+      .returning();
 
     return updatedDebt;
+  },
+
+  addMovement: async (
+    debtID: string,
+    userID: string,
+    data: CreateMovementDTO
+  ): Promise<{
+    movement: DebtMovement;
+    debtStatus: "Pending" | "Settled";
+    balance: number;
+    totalCharges: number;
+    totalPayments: number;
+  }> => {
+    const debt = await db
+      .select()
+      .from(debts)
+      .where(and(eq(debts.id, debtID), eq(debts.userID, userID)))
+      .get();
+
+    if (!debt) {
+      throw new AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
+    }
+
+    let transactionID: string | null = null;
+    let transactionType: "Income" | "Expense" | null = null;
+
+    return await db.transaction(async (tx) => {
+      // 1. Si se provee accountID, aplicar validaciones de saldo estricto y crear transacción
+      if (data.accountID) {
+        const account = await tx
+          .select()
+          .from(accounts)
+          .where(and(eq(accounts.id, data.accountID), eq(accounts.userID, userID)))
+          .get();
+
+        if (!account) {
+          throw new AppError("Cuenta bancaria no encontrada", 404, "ACCOUNT_NOT_FOUND");
+        }
+
+        if (account.status === "Inactive") {
+          throw new AppError("No se pueden registrar movimientos con una cuenta inactiva", 400, "INACTIVE_ACCOUNT");
+        }
+
+        // Determinar tipo de transacción según tipo de deuda y movimiento:
+        // - Payable (Debo dinero):
+        //     PAYMENT -> Pago a la persona -> Sale dinero de mi cuenta -> Expense
+        //     CHARGE  -> Me prestaron más plata -> Entra dinero a mi cuenta -> Income
+        // - Receivable (Me deben dinero):
+        //     PAYMENT -> La persona me paga -> Entra dinero a mi cuenta -> Income
+        //     CHARGE  -> Le presto más plata -> Sale dinero de mi cuenta -> Expense
+        if (debt.type === "Payable") {
+          transactionType = data.type === "PAYMENT" ? "Expense" : "Income";
+        } else {
+          transactionType = data.type === "PAYMENT" ? "Income" : "Expense";
+        }
+
+        // Si es Egreso (Expense), verificar saldo disponible en la cuenta (a menos que sea tarjeta de crédito)
+        if (transactionType === "Expense") {
+          const currentBalance = account.amount ?? 0;
+          if (!isCreditCard(account.type, account.tag) && data.amount > currentBalance) {
+            throw new AppError("Saldo insuficiente en la cuenta seleccionada", 400, "INSUFFICIENT_FUNDS");
+          }
+        }
+
+        transactionID = crypto.randomUUID();
+        const txDescription = `${data.type === "PAYMENT" ? "Pago de deuda" : "Cargo de deuda"}: ${data.description}`;
+
+        // Insertar en Transactions
+        await tx.insert(transactions).values({
+          id: transactionID,
+          userID: userID,
+          type: transactionType,
+          amount: data.amount,
+          accountID: data.accountID,
+          toAccountID: null,
+          categoryID: null,
+          entityID: debt.entityID,
+          date: data.date,
+          description: txDescription,
+          createdAt: sql`CURRENT_TIMESTAMP`,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        });
+
+        // Actualizar saldo de la cuenta
+        const newBalance =
+          transactionType === "Expense"
+            ? (account.amount ?? 0) - data.amount
+            : (account.amount ?? 0) + data.amount;
+
+        await tx
+          .update(accounts)
+          .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .where(eq(accounts.id, account.id));
+      }
+
+      // 2. Inserta el registro en DebtMovements
+      const movementID = crypto.randomUUID();
+      const [insertedMovement] = await tx
+        .insert(debtMovements)
+        .values({
+          id: movementID,
+          debtID: debt.id,
+          type: data.type,
+          amount: data.amount,
+          description: data.description,
+          date: data.date,
+          transactionID: transactionID || null,
+          createdAt: sql`CURRENT_TIMESTAMP`,
+        })
+        .returning();
+
+      // 3. Recalcular el balance total de la deuda: initialAmount + SUM(cargos) - SUM(pagos)
+      const allMovements = await tx
+        .select()
+        .from(debtMovements)
+        .where(eq(debtMovements.debtID, debt.id))
+        .all();
+
+      const totalCharges = allMovements
+        .filter((m) => m.type === "CHARGE")
+        .reduce((sum, m) => sum + m.amount, 0);
+
+      const totalPayments = allMovements
+        .filter((m) => m.type === "PAYMENT")
+        .reduce((sum, m) => sum + m.amount, 0);
+
+      const currentBalance = (debt.initialAmount ?? 0) + totalCharges - totalPayments;
+      const newStatus: "Pending" | "Settled" = currentBalance <= 0 ? "Settled" : "Pending";
+
+      await tx
+        .update(debts)
+        .set({
+          status: newStatus,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(debts.id, debt.id));
+
+      return {
+        movement: insertedMovement,
+        debtStatus: newStatus,
+        balance: currentBalance,
+        totalCharges,
+        totalPayments,
+      };
+    });
+  },
+
+  deleteMovement: async (
+    movementID: string,
+    userID: string
+  ): Promise<{
+    deletedMovementId: string;
+    debtId: string;
+    debtStatus: "Pending" | "Settled";
+    balance: number;
+  }> => {
+    return await db.transaction(async (tx) => {
+      const row = await tx
+        .select({
+          movement: debtMovements,
+          debt: debts,
+        })
+        .from(debtMovements)
+        .innerJoin(debts, eq(debtMovements.debtID, debts.id))
+        .where(and(eq(debtMovements.id, movementID), eq(debts.userID, userID)))
+        .get();
+
+      if (!row) {
+        throw new AppError("Movimiento no encontrado", 404, "MOVEMENT_NOT_FOUND");
+      }
+
+      const { movement, debt } = row;
+
+      // 1. Si el movimiento tiene un transactionID, eliminar esa transacción y restaurar saldo en Accounts
+      if (movement.transactionID) {
+        const txRecord = await tx
+          .select()
+          .from(transactions)
+          .where(eq(transactions.id, movement.transactionID))
+          .get();
+
+        if (txRecord) {
+          const acc = await tx
+            .select()
+            .from(accounts)
+            .where(eq(accounts.id, txRecord.accountID))
+            .get();
+
+          if (acc) {
+            const restoredBalance =
+              txRecord.type === "Expense"
+                ? (acc.amount ?? 0) + txRecord.amount
+                : (acc.amount ?? 0) - txRecord.amount;
+
+            await tx
+              .update(accounts)
+              .set({ amount: restoredBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+              .where(eq(accounts.id, acc.id));
+          }
+
+          await tx
+            .delete(transactions)
+            .where(eq(transactions.id, txRecord.id));
+        }
+      }
+
+      // 2. Elimina el registro de DebtMovements
+      await tx.delete(debtMovements).where(eq(debtMovements.id, movement.id));
+
+      // 3. Recalcular el balance total de la Deuda para actualizar su status
+      const remainingMovements = await tx
+        .select()
+        .from(debtMovements)
+        .where(eq(debtMovements.debtID, debt.id))
+        .all();
+
+      const totalCharges = remainingMovements
+        .filter((m) => m.type === "CHARGE")
+        .reduce((sum, m) => sum + m.amount, 0);
+
+      const totalPayments = remainingMovements
+        .filter((m) => m.type === "PAYMENT")
+        .reduce((sum, m) => sum + m.amount, 0);
+
+      const currentBalance = (debt.initialAmount ?? 0) + totalCharges - totalPayments;
+      const newStatus: "Pending" | "Settled" = currentBalance <= 0 ? "Settled" : "Pending";
+
+      await tx
+        .update(debts)
+        .set({
+          status: newStatus,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(debts.id, debt.id));
+
+      return {
+        deletedMovementId: movement.id,
+        debtId: debt.id,
+        debtStatus: newStatus,
+        balance: currentBalance,
+      };
+    });
   },
 
   deleteDebt: async (id: string, userID: string): Promise<void> => {
@@ -209,20 +481,20 @@ export const debtService = {
     }
 
     await db.transaction(async (tx) => {
-      // 1. Obtener todos los pagos asociados a la deuda
-      const payments = await tx
+      // 1. Obtener todos los movimientos asociados
+      const movements = await tx
         .select()
-        .from(debtPayments)
-        .where(eq(debtPayments.debtID, id))
+        .from(debtMovements)
+        .where(eq(debtMovements.debtID, id))
         .all();
 
-      // 2. Para cada pago, si tiene transacción vinculada, restaurar saldo de cuenta y borrar transacción
-      for (const payment of payments) {
-        if (payment.transactionID) {
+      // 2. Para cada movimiento, revertir transacción y cuenta vinculada
+      for (const m of movements) {
+        if (m.transactionID) {
           const txRecord = await tx
             .select()
             .from(transactions)
-            .where(eq(transactions.id, payment.transactionID))
+            .where(eq(transactions.id, m.transactionID))
             .get();
 
           if (txRecord) {
@@ -251,272 +523,11 @@ export const debtService = {
         }
       }
 
-      // 3. Eliminar los pagos de la deuda
-      await tx.delete(debtPayments).where(eq(debtPayments.debtID, id));
+      // 3. Eliminar los movimientos
+      await tx.delete(debtMovements).where(eq(debtMovements.debtID, id));
 
       // 4. Eliminar la deuda
       await tx.delete(debts).where(and(eq(debts.id, id), eq(debts.userID, userID)));
     });
-  },
-
-  addPayment: async (
-    debtID: string,
-    userID: string,
-    data: CreateDebtPaymentDTO
-  ): Promise<{
-    payment: DebtPayment;
-    debtStatus: "Pending" | "Partial" | "Settled";
-    totalPaid: number;
-    remainingAmount: number;
-  }> => {
-    const debt = await db
-      .select()
-      .from(debts)
-      .where(and(eq(debts.id, debtID), eq(debts.userID, userID)))
-      .get();
-
-    if (!debt) {
-      throw new AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
-    }
-
-    if (debt.status === "Settled") {
-      throw new AppError("Esta deuda ya se encuentra saldada", 400, "DEBT_ALREADY_SETTLED");
-    }
-
-    // Calcular pagos actuales
-    const currentPaymentsSum = await db
-      .select({
-        total: sql<number>`COALESCE(SUM(${debtPayments.amount}), 0)`,
-      })
-      .from(debtPayments)
-      .where(eq(debtPayments.debtID, debt.id))
-      .get();
-
-    const currentTotalPaid = Number(currentPaymentsSum?.total) || 0;
-    const remaining = Math.max(0, debt.totalAmount - currentTotalPaid);
-
-    if (data.amount > remaining) {
-      throw new AppError(
-        `El monto a pagar ($${data.amount}) no puede superar el saldo pendiente ($${remaining})`,
-        400,
-        "OVERPAYMENT_NOT_ALLOWED"
-      );
-    }
-
-    // 1. Obtener la cuenta y validar que esté activa
-    const account = await accountService.getAccountById(data.accountID, userID);
-    if (account.status === "Inactive") {
-      throw new AppError("No se pueden registrar pagos con una cuenta inactiva", 400, "INACTIVE_ACCOUNT");
-    }
-
-    const isCreditCard = (type: string) => {
-      const lower = type.toLowerCase();
-      return lower.includes("crédito") || lower.includes("credito");
-    };
-
-    if (debt.type === "Payable") {
-      const currentBalance = account.amount ?? 0;
-      if (!isCreditCard(account.type) && data.amount > currentBalance) {
-        throw new AppError("Saldo insuficiente", 400, "INSUFFICIENT_FUNDS");
-      }
-    }
-
-    const paymentID = crypto.randomUUID();
-    const transactionID = crypto.randomUUID();
-    const transactionType = debt.type === "Payable" ? "Expense" : "Income";
-    const paymentDate = data.date || new Date().toISOString().split("T")[0];
-
-    let resultPayment: DebtPayment;
-    let newStatus: "Pending" | "Partial" | "Settled" = "Pending";
-    let finalTotalPaid = 0;
-
-    await db.transaction(async (tx) => {
-      // 1. Crear el registro en la tabla Transactions primero para satisfacer la FK
-      await tx.insert(transactions).values({
-        id: transactionID,
-        userID: userID,
-        type: transactionType,
-        amount: data.amount,
-        accountID: data.accountID,
-        toAccountID: null,
-        categoryID: null,
-        entityID: debt.entityID,
-        date: paymentDate,
-        description: `Pago de deuda: ${debt.description}`,
-        createdAt: sql`CURRENT_TIMESTAMP`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
-      });
-
-      // 2. Insertar el pago en DebtPayments vinculando transactionID existente
-      const [insertedPayment] = await tx
-        .insert(debtPayments)
-        .values({
-          id: paymentID,
-          debtID: debt.id,
-          amount: data.amount,
-          date: paymentDate,
-          notes: data.notes || null,
-          transactionID: transactionID,
-          createdAt: sql`CURRENT_TIMESTAMP`,
-        })
-        .returning();
-
-      resultPayment = insertedPayment;
-
-      // 4. Actualizar el saldo en la tabla Accounts
-      const currentAccount = await tx
-        .select()
-        .from(accounts)
-        .where(eq(accounts.id, data.accountID))
-        .get();
-
-      if (currentAccount) {
-        const newBalance =
-          transactionType === "Expense"
-            ? (currentAccount.amount ?? 0) - data.amount
-            : (currentAccount.amount ?? 0) + data.amount;
-
-        await tx
-          .update(accounts)
-          .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
-          .where(eq(accounts.id, currentAccount.id));
-      }
-
-      // 5. Recalcular pagos acumulados para la deuda y actualizar status
-      const paymentsSum = await tx
-        .select({
-          total: sql<number>`COALESCE(SUM(${debtPayments.amount}), 0)`,
-        })
-        .from(debtPayments)
-        .where(eq(debtPayments.debtID, debt.id))
-        .get();
-
-      finalTotalPaid = Number(paymentsSum?.total) || 0;
-
-      if (finalTotalPaid >= debt.totalAmount) {
-        newStatus = "Settled";
-      } else if (finalTotalPaid > 0) {
-        newStatus = "Partial";
-      } else {
-        newStatus = "Pending";
-      }
-
-      await tx
-        .update(debts)
-        .set({
-          status: newStatus,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
-        })
-        .where(eq(debts.id, debt.id));
-    });
-
-    return {
-      payment: resultPayment!,
-      debtStatus: newStatus,
-      totalPaid: finalTotalPaid,
-      remainingAmount: Math.max(0, debt.totalAmount - finalTotalPaid),
-    };
-  },
-
-  deletePayment: async (
-    paymentID: string,
-    userID: string
-  ): Promise<{
-    deletedPaymentId: string;
-    debtId: string;
-    debtStatus: "Pending" | "Partial" | "Settled";
-    totalPaid: number;
-    remainingAmount: number;
-  }> => {
-    const paymentRow = await db
-      .select({
-        payment: debtPayments,
-        debt: debts,
-      })
-      .from(debtPayments)
-      .innerJoin(debts, eq(debtPayments.debtID, debts.id))
-      .where(and(eq(debtPayments.id, paymentID), eq(debts.userID, userID)))
-      .get();
-
-    if (!paymentRow) {
-      throw new AppError("Pago no encontrado", 404, "PAYMENT_NOT_FOUND");
-    }
-
-    const { payment, debt } = paymentRow;
-    let newStatus: "Pending" | "Partial" | "Settled" = "Pending";
-    let finalTotalPaid = 0;
-
-    await db.transaction(async (tx) => {
-      // 1. Revertir transacción y cuenta asociada si existía
-      if (payment.transactionID) {
-        const txRecord = await tx
-          .select()
-          .from(transactions)
-          .where(eq(transactions.id, payment.transactionID))
-          .get();
-
-        if (txRecord) {
-          const acc = await tx
-            .select()
-            .from(accounts)
-            .where(eq(accounts.id, txRecord.accountID))
-            .get();
-
-          if (acc) {
-            const restoredBalance =
-              txRecord.type === "Expense"
-                ? (acc.amount ?? 0) + txRecord.amount
-                : (acc.amount ?? 0) - txRecord.amount;
-
-            await tx
-              .update(accounts)
-              .set({ amount: restoredBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
-              .where(eq(accounts.id, acc.id));
-          }
-
-          await tx
-            .delete(transactions)
-            .where(eq(transactions.id, txRecord.id));
-        }
-      }
-
-      // 2. Eliminar el pago en DebtPayments
-      await tx.delete(debtPayments).where(eq(debtPayments.id, paymentID));
-
-      // 3. Recalcular pagos acumulados para la deuda y actualizar status
-      const paymentsSum = await tx
-        .select({
-          total: sql<number>`COALESCE(SUM(${debtPayments.amount}), 0)`,
-        })
-        .from(debtPayments)
-        .where(eq(debtPayments.debtID, debt.id))
-        .get();
-
-      finalTotalPaid = Number(paymentsSum?.total) || 0;
-
-      if (finalTotalPaid >= debt.totalAmount) {
-        newStatus = "Settled";
-      } else if (finalTotalPaid > 0) {
-        newStatus = "Partial";
-      } else {
-        newStatus = "Pending";
-      }
-
-      await tx
-        .update(debts)
-        .set({
-          status: newStatus,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
-        })
-        .where(eq(debts.id, debt.id));
-    });
-
-    return {
-      deletedPaymentId: paymentID,
-      debtId: debt.id,
-      debtStatus: newStatus,
-      totalPaid: finalTotalPaid,
-      remainingAmount: Math.max(0, debt.totalAmount - finalTotalPaid),
-    };
   },
 };

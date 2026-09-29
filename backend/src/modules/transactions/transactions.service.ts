@@ -3,7 +3,7 @@ import { transactions } from "./transactions.schema";
 import { accounts } from "../accounts/accounts.schema";
 import { categories } from "../categories/categories.schema";
 import { entities } from "../entities/entities.schema";
-import { debts, debtPayments } from "../debts/debts.schema";
+import { debts, debtMovements } from "../debts/debts.schema";
 import { AppError } from "../../core/utils/AppError";
 import {
   CreateTransactionInput,
@@ -685,21 +685,21 @@ export const transactionService = {
         }
       }
 
-      // Si la transacción está vinculada a un pago de deuda, sincronizar el pago y recalcular el estado de la deuda
-      const linkedPayments = await tx
+      // Si la transacción está vinculada a un movimiento de deuda, sincronizar el movimiento y recalcular el estado de la deuda
+      const linkedMovements = await tx
         .select()
-        .from(debtPayments)
-        .where(eq(debtPayments.transactionID, id))
+        .from(debtMovements)
+        .where(eq(debtMovements.transactionID, id))
         .all();
 
-      for (const linked of linkedPayments) {
+      for (const linked of linkedMovements) {
         await tx
-          .update(debtPayments)
+          .update(debtMovements)
           .set({
             amount: targetAmount,
             date: targetDate,
           })
-          .where(eq(debtPayments.id, linked.id));
+          .where(eq(debtMovements.id, linked.id));
 
         const debt = await tx
           .select()
@@ -708,24 +708,22 @@ export const transactionService = {
           .get();
 
         if (debt) {
-          const paymentsSum = await tx
-            .select({
-              total: sql<number>`COALESCE(SUM(${debtPayments.amount}), 0)`,
-            })
-            .from(debtPayments)
-            .where(eq(debtPayments.debtID, debt.id))
-            .get();
+          const allMovements = await tx
+            .select()
+            .from(debtMovements)
+            .where(eq(debtMovements.debtID, debt.id))
+            .all();
 
-          const totalPaid = Number(paymentsSum?.total) || 0;
+          const totalCharges = allMovements
+            .filter((m) => m.type === "CHARGE")
+            .reduce((sum, m) => sum + m.amount, 0);
 
-          let newStatus: "Pending" | "Partial" | "Settled" = "Pending";
-          if (totalPaid >= debt.totalAmount) {
-            newStatus = "Settled";
-          } else if (totalPaid > 0) {
-            newStatus = "Partial";
-          } else {
-            newStatus = "Pending";
-          }
+          const totalPayments = allMovements
+            .filter((m) => m.type === "PAYMENT")
+            .reduce((sum, m) => sum + m.amount, 0);
+
+          const currentBalance = (debt.initialAmount ?? 0) + totalCharges - totalPayments;
+          const newStatus: "Pending" | "Settled" = currentBalance <= 0 ? "Settled" : "Pending";
 
           await tx
             .update(debts)
@@ -818,17 +816,17 @@ export const transactionService = {
         }
       }
 
-      // Revertir y eliminar pago de deuda vinculado si existía
-      const linkedPayments = await tx
+      // Revertir y eliminar movimiento de deuda vinculado si existía
+      const linkedMovements = await tx
         .select()
-        .from(debtPayments)
-        .where(eq(debtPayments.transactionID, id))
+        .from(debtMovements)
+        .where(eq(debtMovements.transactionID, id))
         .all();
 
-      for (const linked of linkedPayments) {
+      for (const linked of linkedMovements) {
         await tx
-          .delete(debtPayments)
-          .where(eq(debtPayments.id, linked.id));
+          .delete(debtMovements)
+          .where(eq(debtMovements.id, linked.id));
 
         const debt = await tx
           .select()
@@ -837,24 +835,22 @@ export const transactionService = {
           .get();
 
         if (debt) {
-          const paymentsSum = await tx
-            .select({
-              total: sql<number>`COALESCE(SUM(${debtPayments.amount}), 0)`,
-            })
-            .from(debtPayments)
-            .where(eq(debtPayments.debtID, debt.id))
-            .get();
+          const allMovements = await tx
+            .select()
+            .from(debtMovements)
+            .where(eq(debtMovements.debtID, debt.id))
+            .all();
 
-          const totalPaid = Number(paymentsSum?.total) || 0;
+          const totalCharges = allMovements
+            .filter((m) => m.type === "CHARGE")
+            .reduce((sum, m) => sum + m.amount, 0);
 
-          let newStatus: "Pending" | "Partial" | "Settled" = "Pending";
-          if (totalPaid >= debt.totalAmount) {
-            newStatus = "Settled";
-          } else if (totalPaid > 0) {
-            newStatus = "Partial";
-          } else {
-            newStatus = "Pending";
-          }
+          const totalPayments = allMovements
+            .filter((m) => m.type === "PAYMENT")
+            .reduce((sum, m) => sum + m.amount, 0);
+
+          const currentBalance = (debt.initialAmount ?? 0) + totalCharges - totalPayments;
+          const newStatus: "Pending" | "Settled" = currentBalance <= 0 ? "Settled" : "Pending";
 
           await tx
             .update(debts)

@@ -2,9 +2,10 @@ import { useCallback, useState } from 'react';
 import { api } from '../../../api/axios';
 import type {
   Debt,
+  DebtStatus,
   CreateDebtDTO,
   UpdateDebtDTO,
-  CreateDebtPaymentDTO,
+  CreateMovementDTO,
 } from '../../../types/debt.types';
 
 export const useDebts = () => {
@@ -24,14 +25,43 @@ export const useDebts = () => {
         ? response.data
         : response.data.data || [];
 
-      // Normalizar para que paidAmount y totalPaid siempre existan
+      // Normalizar para que balance, remainingAmount y movimientos siempre existan
       const normalizedList = rawList.map((d) => {
-        const paid = d.totalPaid ?? d.paidAmount ?? 0;
+        const initialAmount = Number(d.initialAmount) || 0;
+        const mvts = d.movements || [];
+        const totalCharges =
+          d.totalCharges ??
+          mvts.filter((m) => m.type === 'CHARGE').reduce((sum, m) => sum + m.amount, 0);
+        const totalPayments =
+          d.totalPayments ??
+          mvts.filter((m) => m.type === 'PAYMENT').reduce((sum, m) => sum + m.amount, 0);
+        const balance =
+          d.balance !== undefined
+            ? Number(d.balance)
+            : initialAmount + totalCharges - totalPayments;
+        const remaining =
+          d.remainingAmount !== undefined
+            ? Number(d.remainingAmount)
+            : Math.max(0, balance);
+        const totalAmount =
+          d.totalAmount !== undefined
+            ? Number(d.totalAmount)
+            : initialAmount + totalCharges;
+        const status: DebtStatus = balance <= 0 ? 'Settled' : 'Pending';
+
         return {
           ...d,
-          totalPaid: paid,
-          paidAmount: paid,
-          remainingAmount: d.remainingAmount ?? Math.max(0, d.totalAmount - paid),
+          initialAmount,
+          balance,
+          totalCharges,
+          totalPayments,
+          remainingAmount: remaining,
+          totalAmount,
+          totalPaid: totalPayments,
+          paidAmount: totalPayments,
+          status,
+          movements: mvts,
+          payments: mvts.filter((m) => m.type === 'PAYMENT'),
         };
       });
 
@@ -52,12 +82,17 @@ export const useDebts = () => {
     setError(null);
     setSuccess(null);
     try {
-      await api.post('/debts', data);
-      setSuccess('¡Deuda creada correctamente!');
+      const payload = {
+        entityID: data.entityID,
+        type: data.type,
+        initialAmount: Number(data.initialAmount ?? data.amount ?? 0),
+      };
+      await api.post('/debts', payload);
+      setSuccess('¡Cuenta de deuda creada correctamente!');
       await fetchDebts();
       return true;
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear la deuda');
+      setError(err.response?.data?.message || 'Error al crear la cuenta de deuda');
       return false;
     } finally {
       setLoading(false);
@@ -98,6 +133,48 @@ export const useDebts = () => {
     }
   };
 
+  const addMovement = async (
+    debtId: string,
+    data: CreateMovementDTO
+  ): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.post(`/debts/${debtId}/movements`, data);
+      setSuccess(
+        data.type === 'PAYMENT'
+          ? '¡Pago registrado correctamente!'
+          : '¡Cargo añadido correctamente!'
+      );
+      await fetchDebts();
+      return true;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al registrar el movimiento');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteMovement = async (movementId: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.delete(`/debts/movements/${movementId}`);
+      setSuccess('¡Movimiento eliminado y saldo restaurado correctamente!');
+      await fetchDebts();
+      return true;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al eliminar el movimiento');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Funciones de compatibilidad legada
   const addPayment = async (
     debtId: string,
     amount: number,
@@ -105,43 +182,17 @@ export const useDebts = () => {
     date?: string,
     notes?: string
   ): Promise<boolean> => {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      const payload: CreateDebtPaymentDTO = {
-        amount,
-        accountID,
-        date: date || new Date().toISOString(),
-        notes: notes || null,
-      };
-      await api.post(`/debts/${debtId}/payments`, payload);
-      setSuccess('¡Pago registrado correctamente!');
-      await fetchDebts();
-      return true;
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrar el pago');
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    return addMovement(debtId, {
+      type: 'PAYMENT',
+      amount,
+      description: notes || 'Pago registrado',
+      date: date || new Date().toISOString().split('T')[0],
+      accountID: accountID || null,
+    });
   };
 
   const deletePayment = async (paymentId: string): Promise<boolean> => {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      await api.delete(`/debts/payments/${paymentId}`);
-      setSuccess('¡Pago eliminado correctamente!');
-      await fetchDebts();
-      return true;
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al eliminar el pago');
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    return deleteMovement(paymentId);
   };
 
   return {
@@ -153,6 +204,8 @@ export const useDebts = () => {
     createDebt,
     updateDebt,
     deleteDebt,
+    addMovement,
+    deleteMovement,
     addPayment,
     deletePayment,
     clearError,

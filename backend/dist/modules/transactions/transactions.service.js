@@ -536,44 +536,39 @@ exports.transactionService = {
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, newDestAccount.id));
                 }
             }
-            // Si la transacción está vinculada a un pago de deuda, sincronizar el pago y recalcular el estado de la deuda
-            const linkedPayments = await tx
+            // Si la transacción está vinculada a un movimiento de deuda, sincronizar el movimiento y recalcular el estado de la deuda
+            const linkedMovements = await tx
                 .select()
-                .from(debts_schema_1.debtPayments)
-                .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.transactionID, id))
+                .from(debts_schema_1.debtMovements)
+                .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.transactionID, id))
                 .all();
-            for (const linked of linkedPayments) {
+            for (const linked of linkedMovements) {
                 await tx
-                    .update(debts_schema_1.debtPayments)
+                    .update(debts_schema_1.debtMovements)
                     .set({
                     amount: targetAmount,
                     date: targetDate,
                 })
-                    .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.id, linked.id));
+                    .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.id, linked.id));
                 const debt = await tx
                     .select()
                     .from(debts_schema_1.debts)
                     .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, linked.debtID))
                     .get();
                 if (debt) {
-                    const paymentsSum = await tx
-                        .select({
-                        total: (0, drizzle_orm_1.sql) `COALESCE(SUM(${debts_schema_1.debtPayments.amount}), 0)`,
-                    })
-                        .from(debts_schema_1.debtPayments)
-                        .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, debt.id))
-                        .get();
-                    const totalPaid = Number(paymentsSum?.total) || 0;
-                    let newStatus = "Pending";
-                    if (totalPaid >= debt.totalAmount) {
-                        newStatus = "Settled";
-                    }
-                    else if (totalPaid > 0) {
-                        newStatus = "Partial";
-                    }
-                    else {
-                        newStatus = "Pending";
-                    }
+                    const allMovements = await tx
+                        .select()
+                        .from(debts_schema_1.debtMovements)
+                        .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.debtID, debt.id))
+                        .all();
+                    const totalCharges = allMovements
+                        .filter((m) => m.type === "CHARGE")
+                        .reduce((sum, m) => sum + m.amount, 0);
+                    const totalPayments = allMovements
+                        .filter((m) => m.type === "PAYMENT")
+                        .reduce((sum, m) => sum + m.amount, 0);
+                    const currentBalance = (debt.initialAmount ?? 0) + totalCharges - totalPayments;
+                    const newStatus = currentBalance <= 0 ? "Settled" : "Pending";
                     await tx
                         .update(debts_schema_1.debts)
                         .set({
@@ -654,40 +649,35 @@ exports.transactionService = {
                     }
                 }
             }
-            // Revertir y eliminar pago de deuda vinculado si existía
-            const linkedPayments = await tx
+            // Revertir y eliminar movimiento de deuda vinculado si existía
+            const linkedMovements = await tx
                 .select()
-                .from(debts_schema_1.debtPayments)
-                .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.transactionID, id))
+                .from(debts_schema_1.debtMovements)
+                .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.transactionID, id))
                 .all();
-            for (const linked of linkedPayments) {
+            for (const linked of linkedMovements) {
                 await tx
-                    .delete(debts_schema_1.debtPayments)
-                    .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.id, linked.id));
+                    .delete(debts_schema_1.debtMovements)
+                    .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.id, linked.id));
                 const debt = await tx
                     .select()
                     .from(debts_schema_1.debts)
                     .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, linked.debtID))
                     .get();
                 if (debt) {
-                    const paymentsSum = await tx
-                        .select({
-                        total: (0, drizzle_orm_1.sql) `COALESCE(SUM(${debts_schema_1.debtPayments.amount}), 0)`,
-                    })
-                        .from(debts_schema_1.debtPayments)
-                        .where((0, drizzle_orm_1.eq)(debts_schema_1.debtPayments.debtID, debt.id))
-                        .get();
-                    const totalPaid = Number(paymentsSum?.total) || 0;
-                    let newStatus = "Pending";
-                    if (totalPaid >= debt.totalAmount) {
-                        newStatus = "Settled";
-                    }
-                    else if (totalPaid > 0) {
-                        newStatus = "Partial";
-                    }
-                    else {
-                        newStatus = "Pending";
-                    }
+                    const allMovements = await tx
+                        .select()
+                        .from(debts_schema_1.debtMovements)
+                        .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.debtID, debt.id))
+                        .all();
+                    const totalCharges = allMovements
+                        .filter((m) => m.type === "CHARGE")
+                        .reduce((sum, m) => sum + m.amount, 0);
+                    const totalPayments = allMovements
+                        .filter((m) => m.type === "PAYMENT")
+                        .reduce((sum, m) => sum + m.amount, 0);
+                    const currentBalance = (debt.initialAmount ?? 0) + totalCharges - totalPayments;
+                    const newStatus = currentBalance <= 0 ? "Settled" : "Pending";
                     await tx
                         .update(debts_schema_1.debts)
                         .set({
