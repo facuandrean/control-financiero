@@ -97,9 +97,8 @@ export const DebtCard = ({
             {debt.entity?.name || 'Entidad no especificada'}
           </h3>
           <span
-            className={`debt-type-pill ${
-              debt.type === 'Receivable' ? 'pill-receivable' : 'pill-payable'
-            }`}
+            className={`debt-type-pill ${debt.type === 'Receivable' ? 'pill-receivable' : 'pill-payable'
+              }`}
           >
             {debt.type === 'Receivable' ? 'Me deben' : 'Debo'}
           </span>
@@ -128,9 +127,8 @@ export const DebtCard = ({
           </div>
           <div className="debt-progress-track">
             <div
-              className={`debt-progress-fill ${
-                debt.type === 'Receivable' ? 'fill-receivable' : 'fill-payable'
-              }`}
+              className={`debt-progress-fill ${debt.type === 'Receivable' ? 'fill-receivable' : 'fill-payable'
+                }`}
               style={{ width: `${percentage}%` }}
             />
           </div>
