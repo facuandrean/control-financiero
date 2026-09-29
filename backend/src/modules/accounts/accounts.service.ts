@@ -40,8 +40,15 @@ export const accountService = {
   },
 
   updateAccount: async (id: string, userID: string, data: UpdateAccountInput): Promise<Account> => {
-    // Proteger saldo: el saldo no se muta manualmente, solo por transacciones
-    const { amount: _, ...allowedData } = data as any;
+    const existing = await accountService.getAccountById(id, userID);
+
+    const allowedData: any = { ...data };
+
+    // Solo se permite modificar el saldo directamente si la cuenta es de tipo 'Efectivo'
+    const isCash = existing.type === "Efectivo" || data.type === "Efectivo";
+    if (!isCash) {
+      delete allowedData.amount;
+    }
 
     const updatedAccount = await db
       .update(accounts)

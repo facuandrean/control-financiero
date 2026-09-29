@@ -87,25 +87,35 @@ export const useAccounts = () => {
       if (data.type !== undefined) payload.type = data.type;
       if (data.tag !== undefined) payload.tag = data.tag;
 
+      if (data.amount !== undefined && data.amount !== null && data.amount !== '' && !isNaN(Number(data.amount))) {
+        payload.amount = Number(data.amount);
+      }
+
       if (data.description !== undefined) {
-        payload.description = data.description;
+        payload.description = typeof data.description === 'string' && data.description.trim() ? data.description.trim() : null;
       }
 
       if (data.type && data.type !== 'Efectivo') {
-        if (data.lastDigits !== undefined) payload.lastDigits = data.lastDigits;
+        payload.lastDigits = typeof data.lastDigits === 'string' && data.lastDigits.trim() ? data.lastDigits.trim() : null;
       } else if (data.type === 'Efectivo') {
         payload.lastDigits = null;
       }
 
       if (data.type === 'Tarjeta de Crédito') {
-        if (data.creditLimit !== undefined && data.creditLimit !== null && !isNaN(Number(data.creditLimit))) {
+        if (data.creditLimit !== undefined && data.creditLimit !== null && data.creditLimit !== '' && !isNaN(Number(data.creditLimit))) {
           payload.creditLimit = Number(data.creditLimit);
+        } else {
+          payload.creditLimit = null;
         }
-        if (data.closingDay !== undefined && data.closingDay !== null && !isNaN(Number(data.closingDay))) {
+        if (data.closingDay !== undefined && data.closingDay !== null && data.closingDay !== '' && !isNaN(Number(data.closingDay))) {
           payload.closingDay = Number(data.closingDay);
+        } else {
+          payload.closingDay = null;
         }
-        if (data.dueDate !== undefined && data.dueDate !== null && !isNaN(Number(data.dueDate))) {
+        if (data.dueDate !== undefined && data.dueDate !== null && data.dueDate !== '' && !isNaN(Number(data.dueDate))) {
           payload.dueDate = Number(data.dueDate);
+        } else {
+          payload.dueDate = null;
         }
       } else if (data.type && data.type !== 'Tarjeta de Crédito') {
         payload.creditLimit = null;

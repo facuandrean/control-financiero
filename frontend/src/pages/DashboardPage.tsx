@@ -193,8 +193,8 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     modalTxType === 'Income'
       ? 'Nuevo Ingreso'
       : modalTxType === 'Expense'
-      ? 'Nuevo Egreso'
-      : 'Nueva Transferencia';
+        ? 'Nuevo Egreso'
+        : 'Nueva Transferencia';
 
   const monthlyBalance = summary?.monthlyBalance ?? 0;
 
@@ -212,7 +212,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
           label: '',
           labelLoading: '',
           className: '',
-          onClick: () => {},
+          onClick: () => { },
           visible: false,
         }}
       />
@@ -284,9 +284,6 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
         {/* B. FILTRO GLOBAL TEMPORAL */}
         <div className="dashboard-filter-bar">
           <div className="dashboard-month-selector">
-            <span className="dashboard-filter-label">
-              <BsCalendar3 /> Período:
-            </span>
             <button
               type="button"
               className="dashboard-month-nav-btn"
@@ -312,16 +309,16 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
             >
               <BsChevronRight />
             </button>
-            {!isCurrentMonth && (
-              <button
-                type="button"
-                className="dashboard-reset-month-btn"
-                onClick={handleResetToCurrentMonth}
-              >
-                Mes actual
-              </button>
-            )}
           </div>
+          {!isCurrentMonth && (
+            <button
+              type="button"
+              className="dashboard-reset-month-btn"
+              onClick={handleResetToCurrentMonth}
+            >
+              Mes actual
+            </button>
+          )}
         </div>
 
         {/* C. TARJETAS DE MÉTRICAS (BODYCONTENT CON 4 CARDS) */}
@@ -367,13 +364,12 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
               </div>
             </div>
             <p
-              className={`dashboard-metric-amount ${
-                monthlyBalance > 0
-                  ? 'metric-income-text'
-                  : monthlyBalance < 0
+              className={`dashboard-metric-amount ${monthlyBalance > 0
+                ? 'metric-income-text'
+                : monthlyBalance < 0
                   ? 'metric-expense-text'
                   : 'metric-neutral-text'
-              }`}
+                }`}
             >
               {formatCurrency(monthlyBalance)}
             </p>
@@ -476,13 +472,12 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
                   <div className="recent-tx-item" key={tx.id}>
                     <div className="recent-tx-left">
                       <div
-                        className={`recent-tx-icon ${
-                          tx.type === 'Income'
-                            ? 'income'
-                            : tx.type === 'Expense'
+                        className={`recent-tx-icon ${tx.type === 'Income'
+                          ? 'income'
+                          : tx.type === 'Expense'
                             ? 'expense'
                             : 'transfer'
-                        }`}
+                          }`}
                       >
                         {tx.type === 'Income' ? (
                           <BsArrowDownLeft />
@@ -493,7 +488,15 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
                         )}
                       </div>
                       <div className="recent-tx-info">
-                        <span className="recent-tx-description">
+                        <span
+                          className="recent-tx-description"
+                          title={
+                            tx.description ||
+                            (tx.type === 'Transfer'
+                              ? 'Transferencia'
+                              : 'Sin descripción')
+                          }
+                        >
                           {tx.description ||
                             (tx.type === 'Transfer'
                               ? 'Transferencia'
@@ -502,12 +505,18 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
                         <div className="recent-tx-meta">
                           <span>{formatDate(tx.date)}</span>
                           {tx.accountName && (
-                            <span className="recent-tx-badge">
+                            <span
+                              className="recent-tx-badge"
+                              title={tx.accountName}
+                            >
                               {tx.accountName}
                             </span>
                           )}
                           {tx.categoryName && (
-                            <span className="recent-tx-badge">
+                            <span
+                              className="recent-tx-badge"
+                              title={tx.categoryName}
+                            >
                               {tx.categoryName}
                             </span>
                           )}
@@ -515,19 +524,18 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
                       </div>
                     </div>
                     <span
-                      className={`recent-tx-amount ${
-                        tx.type === 'Income'
-                          ? 'income'
-                          : tx.type === 'Expense'
+                      className={`recent-tx-amount ${tx.type === 'Income'
+                        ? 'income'
+                        : tx.type === 'Expense'
                           ? 'expense'
                           : 'transfer'
-                      }`}
+                        }`}
                     >
                       {tx.type === 'Income'
                         ? `+${formatCurrency(tx.amount)}`
                         : tx.type === 'Expense'
-                        ? `-${formatCurrency(tx.amount)}`
-                        : formatCurrency(tx.amount)}
+                          ? `-${formatCurrency(tx.amount)}`
+                          : formatCurrency(tx.amount)}
                     </span>
                   </div>
                 ))}

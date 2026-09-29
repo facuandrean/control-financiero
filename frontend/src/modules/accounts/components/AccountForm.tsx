@@ -44,11 +44,26 @@ export const AccountForm = ({
   isEditing = false
 }: AccountFormProps) => {
   const handleFormSubmit = async (formData: any) => {
+    const isCash = formData.type === "Efectivo";
     if (isEditing) {
-      const { amount, ...rest } = formData;
-      await onSubmit(rest);
+      if (isCash) {
+        await onSubmit({
+          ...formData,
+          amount: formData.amount !== undefined && formData.amount !== null && formData.amount !== ''
+            ? Number(formData.amount)
+            : 0
+        });
+      } else {
+        const { amount, ...rest } = formData;
+        await onSubmit(rest);
+      }
     } else {
-      await onSubmit(formData);
+      await onSubmit({
+        ...formData,
+        amount: formData.amount !== undefined && formData.amount !== null && formData.amount !== ''
+          ? Number(formData.amount)
+          : 0
+      });
     }
   };
 
@@ -110,11 +125,11 @@ export const AccountForm = ({
               options={ACCOUNT_TYPES}
             />
 
-            {!isEditing && (
+            {(!isEditing || isCash) && (
               <Input 
                 formID={formId}
                 name="amount"
-                label={isCreditCard ? "Monto gastado actual / Deuda inicial" : "Saldo / Monto Inicial"}
+                label={isEditing ? "Saldo actual" : isCreditCard ? "Monto gastado actual / Deuda inicial" : "Saldo / Monto Inicial"}
                 placeholder="0"
                 control={control}
                 errors={errors}

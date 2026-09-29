@@ -286,6 +286,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
               bank: selectedAccount.bank,
               name: selectedAccount.name,
               type: selectedAccount.type,
+              amount: selectedAccount.amount ?? 0,
               description: selectedAccount.description || '',
               lastDigits: selectedAccount.lastDigits || '',
               creditLimit: selectedAccount.creditLimit || '',
