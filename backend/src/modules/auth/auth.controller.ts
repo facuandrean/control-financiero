@@ -8,10 +8,12 @@ import { sessions } from './auth.schema';
 import { db } from '../../core/db/db';
 import { eq } from 'drizzle-orm';
 
+const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+
 export const cookieBaseOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: (process.env.NODE_ENV === 'production' ? 'strict' : 'lax') as 'strict' | 'lax',
+  secure: isProduction,
+  sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
   path: '/',
 };
 

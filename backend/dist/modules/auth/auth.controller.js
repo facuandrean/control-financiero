@@ -12,10 +12,11 @@ const AppError_1 = require("../../core/utils/AppError");
 const auth_schema_1 = require("./auth.schema");
 const db_1 = require("../../core/db/db");
 const drizzle_orm_1 = require("drizzle-orm");
+const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
 exports.cookieBaseOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: (process.env.NODE_ENV === 'production' ? 'strict' : 'lax'),
+    secure: isProduction,
+    sameSite: (isProduction ? 'none' : 'lax'),
     path: '/',
 };
 const clearAuthCookies = (res) => {

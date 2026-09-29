@@ -17,14 +17,27 @@ const entities_routes_1 = __importDefault(require("./modules/entities/entities.r
 const debts_routes_1 = __importDefault(require("./modules/debts/debts.routes"));
 const dashboard_routes_1 = __importDefault(require("./modules/dashboard/dashboard.routes"));
 const app = (0, express_1.default)();
+const allowedOrigins = [
+    config_1.config.frontendUrl?.replace(/\/$/, ''),
+    'http://localhost:5173',
+    'http://localhost:3000',
+].filter(Boolean);
 app.use((0, cors_1.default)({
-    origin: config_1.config.frontendUrl || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        if (!origin)
+            return callback(null, true);
+        const normalized = origin.replace(/\/$/, '');
+        if (allowedOrigins.includes(normalized) || normalized.endsWith('.vercel.app')) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS no permitido para el origen: ${origin}`));
+    },
     credentials: true,
 }));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.get('/', (req, res) => {
-    res.send('Hello World');
+    res.send('Control Financiero API - OK');
 });
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/users', users_routes_1.default);
@@ -36,7 +49,9 @@ app.use('/api/debts', debts_routes_1.default);
 app.use('/api/dashboard', dashboard_routes_1.default);
 app.use('/dashboard', dashboard_routes_1.default);
 app.use(error_middleware_1.globalErrorHandler);
-app.listen(config_1.config.port, () => {
-    console.log(`Server is running on port http://localhost:${config_1.config.port}`);
-});
+if (!process.env.VERCEL) {
+    app.listen(config_1.config.port, () => {
+        console.log(`Server is running on port http://localhost:${config_1.config.port}`);
+    });
+}
 exports.default = app;

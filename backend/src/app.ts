@@ -17,8 +17,21 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 
 const app: Application = express();
 
+const allowedOrigins = [
+  config.frontendUrl?.replace(/\/$/, ''),
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: config.frontendUrl || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const normalized = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(normalized) || normalized.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS no permitido para el origen: ${origin}`));
+  },
   credentials: true,
 }));
 
@@ -26,7 +39,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get('/', (req, res) => {
-  res.send('Hello World');
+  res.send('Control Financiero API - OK');
 });
 
 app.use('/api/auth', authRoutes);
@@ -41,8 +54,10 @@ app.use('/dashboard', dashboardRoutes);
 
 app.use(globalErrorHandler);
 
-app.listen(config.port, () => {
-  console.log(`Server is running on port http://localhost:${config.port}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(config.port, () => {
+    console.log(`Server is running on port http://localhost:${config.port}`);
+  });
+}
 
 export default app;
