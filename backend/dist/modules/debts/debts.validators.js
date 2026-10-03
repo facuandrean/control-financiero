@@ -17,6 +17,11 @@ exports.createDebtSchema = zod_1.default.object({
 });
 exports.updateDebtSchema = zod_1.default.object({
     status: zod_1.default.enum(["Pending", "Settled"], { message: "Estado inválido" }).optional(),
+    initialAmount: zod_1.default
+        .number({ message: "El monto debe ser un número" })
+        .min(0, "El monto inicial debe ser 0 o mayor")
+        .max(1000000000, "El monto no puede superar 1.000.000.000")
+        .optional(),
 });
 exports.createMovementSchema = zod_1.default.object({
     type: zod_1.default.enum(["CHARGE", "PAYMENT"], { message: "El tipo debe ser CHARGE o PAYMENT" }),

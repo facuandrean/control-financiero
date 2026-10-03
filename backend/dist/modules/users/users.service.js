@@ -26,8 +26,8 @@ exports.userService = {
     createUser: async (data) => {
         const newUser = await db_1.db.insert(users_schema_1.users).values({
             ...data,
-            createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
             id: crypto_1.default.randomUUID(),
         }).returning().get();
         if (!newUser) {
@@ -41,7 +41,7 @@ exports.userService = {
             .update(users_schema_1.users)
             .set({
             ...data,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`
         }).where((0, drizzle_orm_1.eq)(users_schema_1.users.id, id)).returning().get();
         if (!updatedUser) {
             throw new AppError_1.AppError("No se pudo actualizar: Usuario no encontrado", 404, "USER_NOT_FOUND");

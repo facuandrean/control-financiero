@@ -220,7 +220,7 @@ exports.transactionService = {
                     : (sourceAccount.amount ?? 0) - data.amount;
                 await tx
                     .update(accounts_schema_1.accounts)
-                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, sourceAccount.id));
                 // Bulk insert de todas las cuotas generadas
                 await tx.insert(transactions_schema_1.transactions).values(transactionsToInsert);
@@ -238,7 +238,7 @@ exports.transactionService = {
                     : (sourceAccount.amount ?? 0) + data.amount;
                 await tx
                     .update(accounts_schema_1.accounts)
-                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, sourceAccount.id));
             }
             else if (data.type === "Expense") {
@@ -247,7 +247,7 @@ exports.transactionService = {
                     : (sourceAccount.amount ?? 0) - data.amount;
                 await tx
                     .update(accounts_schema_1.accounts)
-                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, sourceAccount.id));
             }
             else if (data.type === "Transfer") {
@@ -260,11 +260,11 @@ exports.transactionService = {
                     : (destinationAccount.amount ?? 0) + data.amount;
                 await tx
                     .update(accounts_schema_1.accounts)
-                    .set({ amount: newSourceBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .set({ amount: newSourceBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, sourceAccount.id));
                 await tx
                     .update(accounts_schema_1.accounts)
-                    .set({ amount: newDestBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .set({ amount: newDestBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, destinationAccount.id));
             }
             // Insertar transacción
@@ -279,8 +279,8 @@ exports.transactionService = {
                 entityID: finalEntityID,
                 date: data.date,
                 description: data.description,
-                createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-                updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+                updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
             });
         });
         return await exports.transactionService.getTransactionById(transactionId, data.userID);
@@ -350,7 +350,7 @@ exports.transactionService = {
                     .update(accounts_schema_1.accounts)
                     .set({
                     amount: revertedBalance,
-                    updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                    updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, oldTx.accountID));
             }
@@ -363,7 +363,7 @@ exports.transactionService = {
                     .update(accounts_schema_1.accounts)
                     .set({
                     amount: revertedBalance,
-                    updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                    updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, oldTx.accountID));
             }
@@ -383,7 +383,7 @@ exports.transactionService = {
                     .update(accounts_schema_1.accounts)
                     .set({
                     amount: revertedSource,
-                    updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                    updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, oldTx.accountID));
                 if (currentOldDest) {
@@ -394,7 +394,7 @@ exports.transactionService = {
                         .update(accounts_schema_1.accounts)
                         .set({
                         amount: revertedDest,
-                        updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                     })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, oldTx.toAccountID));
                 }
@@ -455,7 +455,7 @@ exports.transactionService = {
                     entityID: targetEntityID,
                     date: targetDate,
                     description: `${baseDescription} (Cuota 1/${updateInstallmentsCount})`,
-                    updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                    updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 })
                     .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, id), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userID)));
                 // Generar e insertar las cuotas restantes
@@ -481,7 +481,7 @@ exports.transactionService = {
                 const newBalance = (newSourceAccount.amount ?? 0) + targetAmount;
                 await tx
                     .update(accounts_schema_1.accounts)
-                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, newSourceAccount.id));
             }
             else {
@@ -497,7 +497,7 @@ exports.transactionService = {
                     entityID: targetEntityID,
                     date: targetDate,
                     description: targetDescription,
-                    updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                    updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 })
                     .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, id), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userID)));
                 if (targetType === "Income") {
@@ -506,7 +506,7 @@ exports.transactionService = {
                         : (newSourceAccount.amount ?? 0) + targetAmount;
                     await tx
                         .update(accounts_schema_1.accounts)
-                        .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                        .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, newSourceAccount.id));
                 }
                 else if (targetType === "Expense") {
@@ -515,7 +515,7 @@ exports.transactionService = {
                         : (newSourceAccount.amount ?? 0) - targetAmount;
                     await tx
                         .update(accounts_schema_1.accounts)
-                        .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                        .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, newSourceAccount.id));
                 }
                 else if (targetType === "Transfer" && newDestAccount) {
@@ -528,11 +528,11 @@ exports.transactionService = {
                         : (newDestAccount.amount ?? 0) + targetAmount;
                     await tx
                         .update(accounts_schema_1.accounts)
-                        .set({ amount: newSourceBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                        .set({ amount: newSourceBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, newSourceAccount.id));
                     await tx
                         .update(accounts_schema_1.accounts)
-                        .set({ amount: newDestBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                        .set({ amount: newDestBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, newDestAccount.id));
                 }
             }
@@ -573,7 +573,7 @@ exports.transactionService = {
                         .update(debts_schema_1.debts)
                         .set({
                         status: newStatus,
-                        updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                     })
                         .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
                 }
@@ -600,7 +600,7 @@ exports.transactionService = {
                         .update(accounts_schema_1.accounts)
                         .set({
                         amount: restoredBalance,
-                        updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                     })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, sourceAccount.id));
                 }
@@ -612,7 +612,7 @@ exports.transactionService = {
                         .update(accounts_schema_1.accounts)
                         .set({
                         amount: restoredBalance,
-                        updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                     })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, sourceAccount.id));
                 }
@@ -632,7 +632,7 @@ exports.transactionService = {
                         .update(accounts_schema_1.accounts)
                         .set({
                         amount: restoredSource,
-                        updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                     })
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, sourceAccount.id));
                     if (destAccount) {
@@ -643,7 +643,7 @@ exports.transactionService = {
                             .update(accounts_schema_1.accounts)
                             .set({
                             amount: restoredDest,
-                            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                         })
                             .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, destAccount.id));
                     }
@@ -682,7 +682,7 @@ exports.transactionService = {
                         .update(debts_schema_1.debts)
                         .set({
                         status: newStatus,
-                        updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                     })
                         .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
                 }

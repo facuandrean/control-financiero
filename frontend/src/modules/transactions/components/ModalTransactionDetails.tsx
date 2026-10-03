@@ -80,14 +80,15 @@ export const ModalTransactionDetails = ({
     }
   };
 
-  interface ExtendedTransactionDetails extends Partial<RecentTransactionItem>, Partial<Transaction> {
-    accountName?: string | null;
-    categoryName?: string | null;
-    entityName?: string | null;
-    toAccountName?: string | null;
-    installments?: number;
-    createdAt?: string;
-  }
+  type ExtendedTransactionDetails = Partial<RecentTransactionItem> &
+    Partial<Transaction> & {
+      accountName?: string | null;
+      categoryName?: string | null;
+      entityName?: string | null;
+      toAccountName?: string | null;
+      installments?: number;
+      createdAt?: string;
+    };
 
   const txRecord = (transaction || {}) as ExtendedTransactionDetails;
 

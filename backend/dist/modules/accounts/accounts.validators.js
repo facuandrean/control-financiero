@@ -41,18 +41,8 @@ exports.createAccountSchema = zod_1.default.object({
         .max(1000000000, "Límite máximo superado")
         .optional()
         .nullable(),
-    closingDay: zod_1.default
-        .number({ message: "El día de cierre debe ser entre 1 y 31" })
-        .min(1, "El día de cierre debe ser entre 1 y 31")
-        .max(31, "El día de cierre debe ser entre 1 y 31")
-        .optional()
-        .nullable(),
-    dueDate: zod_1.default
-        .number({ message: "El día de vencimiento debe ser entre 1 y 31" })
-        .min(1, "El día de vencimiento debe ser entre 1 y 31")
-        .max(31, "El día de vencimiento debe ser entre 1 y 31")
-        .optional()
-        .nullable(),
+    closingDay: zod_1.default.number().int().min(1).max(31).optional().nullable(),
+    dueDate: zod_1.default.number().int().min(1).max(31).optional().nullable(),
 });
 exports.updateAccountSchema = zod_1.default.object({
     name: zod_1.default
@@ -91,18 +81,8 @@ exports.updateAccountSchema = zod_1.default.object({
         .max(1000000000, "Monto máximo superado")
         .optional()
         .nullable(),
-    dueDate: zod_1.default
-        .number({ message: "El día de vencimiento debe ser entre 1 y 31" })
-        .min(1, "El día de vencimiento debe ser entre 1 y 31")
-        .max(31, "El día de vencimiento debe ser entre 1 y 31")
-        .optional()
-        .nullable(),
-    closingDay: zod_1.default
-        .number({ message: "El día de cierre debe ser entre 1 y 31" })
-        .min(1, "El día de cierre debe ser entre 1 y 31")
-        .max(31, "El día de cierre debe ser entre 1 y 31")
-        .optional()
-        .nullable(),
+    dueDate: zod_1.default.number().int().min(1).max(31).optional().nullable(),
+    closingDay: zod_1.default.number().int().min(1).max(31).optional().nullable(),
     creditLimit: zod_1.default
         .number({ message: "El límite de crédito debe ser un número positivo" })
         .positive("El límite de crédito debe ser mayor a 0")

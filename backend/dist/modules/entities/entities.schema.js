@@ -11,6 +11,6 @@ exports.entities = (0, sqlite_core_2.sqliteTable)("entities", {
     name: (0, sqlite_core_1.text)("name").notNull(),
     status: (0, sqlite_core_1.text)("status").notNull().default("Active"),
     description: (0, sqlite_core_1.text)("description"),
-    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
-    updatedAt: (0, sqlite_core_1.text)("updated_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`).$onUpdate(() => (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
+    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
+    updatedAt: (0, sqlite_core_1.text)("updated_at").notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`).$onUpdate(() => (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
 });

@@ -13,8 +13,8 @@ exports.debts = (0, sqlite_core_1.sqliteTable)("Debts", {
     type: (0, sqlite_core_1.text)("type").notNull(), // 'Payable' | 'Receivable'
     initialAmount: (0, sqlite_core_1.integer)("initial_amount").notNull().default(0),
     status: (0, sqlite_core_1.text)("status").notNull().default("Pending"), // 'Pending' | 'Settled'
-    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
-    updatedAt: (0, sqlite_core_1.text)("updated_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`).$onUpdate(() => (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
+    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
+    updatedAt: (0, sqlite_core_1.text)("updated_at").notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`).$onUpdate(() => (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
 });
 exports.debtMovements = (0, sqlite_core_1.sqliteTable)("DebtMovements", {
     id: (0, sqlite_core_1.text)("id").primaryKey(),
@@ -24,5 +24,5 @@ exports.debtMovements = (0, sqlite_core_1.sqliteTable)("DebtMovements", {
     description: (0, sqlite_core_1.text)("description").notNull(),
     date: (0, sqlite_core_1.text)("date").notNull(),
     transactionID: (0, sqlite_core_1.text)("id_transaction").references(() => transactions_schema_1.transactions.id, { onDelete: "set null" }),
-    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
+    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
 });

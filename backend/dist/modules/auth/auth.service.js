@@ -54,7 +54,7 @@ exports.authService = {
             userAgent,
             ipAddress,
             expiresAt,
-            createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         });
         return { accessToken, refreshToken };
     },

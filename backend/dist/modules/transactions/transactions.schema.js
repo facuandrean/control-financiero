@@ -30,11 +30,11 @@ exports.transactions = (0, sqlite_core_1.sqliteTable)("transactions", {
     description: (0, sqlite_core_1.text)("description"),
     createdAt: (0, sqlite_core_1.text)("created_at")
         .notNull()
-        .default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
+        .default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
     updatedAt: (0, sqlite_core_1.text)("updated_at")
         .notNull()
-        .default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`)
-        .$onUpdate(() => (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
+        .default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`)
+        .$onUpdate(() => (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
 }, (table) => [
     (0, sqlite_core_1.index)("idx_transactions_user_date").on(table.userID, table.date),
     (0, sqlite_core_1.index)("idx_transactions_account").on(table.accountID),

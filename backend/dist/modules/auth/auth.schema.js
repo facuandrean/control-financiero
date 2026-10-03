@@ -12,5 +12,5 @@ exports.sessions = (0, sqlite_core_2.sqliteTable)('sessions', {
     ipAddress: (0, sqlite_core_1.text)('ip_address'),
     userAgent: (0, sqlite_core_1.text)('user_agent'),
     expiresAt: (0, sqlite_core_1.text)('expires_at').notNull(),
-    createdAt: (0, sqlite_core_1.text)('created_at').notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`)
+    createdAt: (0, sqlite_core_1.text)('created_at').notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`)
 });

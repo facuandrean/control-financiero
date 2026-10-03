@@ -35,8 +35,8 @@ const seedDefaultCategories = async (userID, tx) => {
         name: cat.name,
         status: 'Active',
         description: cat.description,
-        createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-        updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+        createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
     }));
     await runner.insert(categories_schema_1.categories).values(categoriesToInsert);
 };

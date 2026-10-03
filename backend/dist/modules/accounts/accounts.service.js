@@ -30,8 +30,8 @@ exports.accountService = {
             userID: data.userID,
             id: crypto_1.default.randomUUID(),
             status: "Active",
-            createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         }).returning().get();
         if (!newAccount) {
             throw new AppError_1.AppError("No se pudo crear la cuenta", 500, "ACCOUNT_CREATION_FAILED");
@@ -53,7 +53,7 @@ exports.accountService = {
             .update(accounts_schema_1.accounts)
             .set({
             ...allowedData,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         })
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id), (0, drizzle_orm_1.eq)(accounts_schema_1.accounts.userID, userID)))
             .returning()
@@ -68,7 +68,7 @@ exports.accountService = {
             .update(accounts_schema_1.accounts)
             .set({
             status: "Inactive",
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         })
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, id), (0, drizzle_orm_1.eq)(accounts_schema_1.accounts.userID, userID)))
             .returning()

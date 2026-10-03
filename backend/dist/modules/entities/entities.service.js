@@ -30,8 +30,8 @@ exports.entityService = {
             userID: data.userID,
             id: crypto_1.default.randomUUID(),
             status: "Active",
-            createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         }).returning().get();
         if (!newEntity) {
             throw new AppError_1.AppError("No se pudo crear la entidad", 500, "ENTITY_CREATION_FAILED");
@@ -43,7 +43,7 @@ exports.entityService = {
             .update(entities_schema_1.entities)
             .set({
             ...data,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         })
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id), (0, drizzle_orm_1.eq)(entities_schema_1.entities.userID, userID)))
             .returning()
@@ -58,7 +58,7 @@ exports.entityService = {
             .update(entities_schema_1.entities)
             .set({
             status: "Inactive",
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         })
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, id), (0, drizzle_orm_1.eq)(entities_schema_1.entities.userID, userID)))
             .returning()

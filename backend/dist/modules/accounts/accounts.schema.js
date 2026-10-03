@@ -19,8 +19,8 @@ const drizzle_orm_1 = require("drizzle-orm");
  * closingDay: Closing day for credit card accounts.
  * dueDate: Due date for credit card accounts.
  * status: Status of the account. Default is "Active".
- * createdAt: Timestamp when the account was created. Default is CURRENT_TIMESTAMP.
- * updatedAt: Timestamp when the account was last updated. Default is CURRENT_TIMESTAMP and updates on every change.
+ * createdAt: Timestamp when the account was created. Default is datetime('now', '-3 hours').
+ * updatedAt: Timestamp when the account was last updated. Default is datetime('now', '-3 hours') and updates on every change.
  */
 exports.accounts = (0, sqlite_core_1.sqliteTable)("accounts", {
     id: (0, sqlite_core_1.text)("id").primaryKey(),
@@ -36,6 +36,6 @@ exports.accounts = (0, sqlite_core_1.sqliteTable)("accounts", {
     closingDay: (0, sqlite_core_1.integer)("closing_day"),
     dueDate: (0, sqlite_core_1.integer)("due_date"),
     status: (0, sqlite_core_1.text)("status").notNull().default("Active"),
-    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
-    updatedAt: (0, sqlite_core_1.text)("updated_at").notNull().default((0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`).$onUpdate(() => (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`),
+    createdAt: (0, sqlite_core_1.text)("created_at").notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
+    updatedAt: (0, sqlite_core_1.text)("updated_at").notNull().default((0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`).$onUpdate(() => (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`),
 });

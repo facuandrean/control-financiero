@@ -54,8 +54,8 @@ exports.debtService = {
             type: data.type,
             initialAmount: initialAmount,
             status: initialStatus,
-            createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         })
             .returning();
         if (!newDebt) {
@@ -170,11 +170,27 @@ exports.debtService = {
         if (!currentDebt) {
             throw new AppError_1.AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
         }
+        const effectiveInitialAmount = data.initialAmount !== undefined ? data.initialAmount : (currentDebt.initialAmount ?? 0);
+        const movements = await db_1.db
+            .select()
+            .from(debts_schema_1.debtMovements)
+            .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.debtID, id))
+            .all();
+        const totalCharges = movements
+            .filter((m) => m.type === "CHARGE")
+            .reduce((sum, m) => sum + m.amount, 0);
+        const totalPayments = movements
+            .filter((m) => m.type === "PAYMENT")
+            .reduce((sum, m) => sum + m.amount, 0);
+        const balance = effectiveInitialAmount + totalCharges - totalPayments;
+        const calculatedStatus = balance <= 0 ? "Settled" : "Pending";
+        const statusToSet = data.initialAmount !== undefined ? calculatedStatus : (data.status ?? calculatedStatus);
         const [updatedDebt] = await db_1.db
             .update(debts_schema_1.debts)
             .set({
             ...data,
-            updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+            status: statusToSet,
+            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
         })
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, id), (0, drizzle_orm_1.eq)(debts_schema_1.debts.userID, userID)))
             .returning();
@@ -239,8 +255,8 @@ exports.debtService = {
                     entityID: debt.entityID,
                     date: data.date,
                     description: txDescription,
-                    createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
-                    updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                    createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+                    updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 });
                 // Actualizar saldo de la cuenta
                 const newBalance = transactionType === "Expense"
@@ -248,7 +264,7 @@ exports.debtService = {
                     : (account.amount ?? 0) + data.amount;
                 await tx
                     .update(accounts_schema_1.accounts)
-                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                    .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                     .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, account.id));
             }
             // 2. Inserta el registro en DebtMovements
@@ -263,7 +279,7 @@ exports.debtService = {
                 description: data.description,
                 date: data.date,
                 transactionID: transactionID || null,
-                createdAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
             })
                 .returning();
             // 3. Recalcular el balance total de la deuda: initialAmount + SUM(cargos) - SUM(pagos)
@@ -284,7 +300,7 @@ exports.debtService = {
                 .update(debts_schema_1.debts)
                 .set({
                 status: newStatus,
-                updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
             })
                 .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
             return {
@@ -330,7 +346,7 @@ exports.debtService = {
                             : (acc.amount ?? 0) - txRecord.amount;
                         await tx
                             .update(accounts_schema_1.accounts)
-                            .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                            .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                             .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, acc.id));
                     }
                     await tx
@@ -358,7 +374,7 @@ exports.debtService = {
                 .update(debts_schema_1.debts)
                 .set({
                 status: newStatus,
-                updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
+                updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
             })
                 .where((0, drizzle_orm_1.eq)(debts_schema_1.debts.id, debt.id));
             return {
@@ -405,7 +421,7 @@ exports.debtService = {
                                 : (acc.amount ?? 0) - txRecord.amount;
                             await tx
                                 .update(accounts_schema_1.accounts)
-                                .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP` })
+                                .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
                                 .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, acc.id));
                         }
                         await tx
