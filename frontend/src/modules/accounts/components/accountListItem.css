@@ -1,8 +1,8 @@
 /* src/modules/accounts/components/account-list-item.css */
 
 .account-list-item {
-  background-color: var(--item-bg, transparent); 
-  border: 1px solid #e2e8f0; 
+  background-color: var(--item-bg, transparent);
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 16px;
   cursor: pointer;
@@ -10,6 +10,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
 }
 
 .account-list-item:hover {
@@ -27,17 +30,20 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .ali-icon-box {
   width: 40px;
   height: 40px;
-  background-color: transparent; /* Fondo transparente pedido por el user */
+  background-color: transparent;
+  /* Fondo transparente pedido por el user */
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
 .ali-title-box {
@@ -45,38 +51,55 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .ali-title-box h4 {
   margin: 0;
-  color: #111827; /* Oscuro */
+  color: #111827;
+  /* Oscuro */
   font-size: 1rem;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .ali-title-box span {
   margin: 0;
-  color: #4b5563; /* Gris oscuro */
+  color: #4b5563;
+  /* Gris oscuro */
   font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .ali-arrow {
   color: #4b5563;
   font-size: 1.5rem;
   font-weight: 300;
+  flex-shrink: 0;
 }
 
 /* Cuerpo del ítem (Saldos) */
 .ali-body {
-  padding-left: 52px; /* Alineado con el texto, saltando el icono */
+  padding-left: 52px;
+  /* Alineado con el texto, saltando el icono */
+  min-width: 0;
 }
 
 .balance-amount {
   margin: 0;
-  color: #111827; /* Oscuro */
+  color: #111827;
+  /* Oscuro */
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.5px;
+  word-break: break-word;
 }
 
 /* Específico para Tarjetas de Crédito */
@@ -84,16 +107,20 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .ali-amounts {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .debt-amount {
-  color: #b91c1c; /* Rojo oscuro para que se vea bien en fondo claro pastel */
+  color: #c46262;
+  /* Rojo oscuro para que se vea bien en fondo claro pastel */
   font-size: 1.15rem;
   font-weight: 700;
 }
@@ -113,7 +140,23 @@
 
 .progress-bar-fill {
   height: 100%;
-  background-color: #10b981; /* Verde */
+  background-color: #10b981;
+  /* Verde */
   border-radius: 2px;
   transition: width 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .account-list-item {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .ali-body {
+    padding-left: 0;
+  }
+
+  .balance-amount {
+    font-size: 1.15rem;
+  }
 }

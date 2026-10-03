@@ -30,11 +30,11 @@ export const transactions = sqliteTable(
     description: text("description"),
     createdAt: text("created_at")
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
+      .default(sql`datetime('now', '-3 hours')`),
     updatedAt: text("updated_at")
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+      .default(sql`datetime('now', '-3 hours')`)
+      .$onUpdate(() => sql`datetime('now', '-3 hours')`),
   },
   (table) => [
     index("idx_transactions_user_date").on(table.userID, table.date),

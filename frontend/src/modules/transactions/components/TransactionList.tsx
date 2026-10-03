@@ -12,12 +12,14 @@ interface TransactionListProps {
   transactions: Transaction[];
   onEdit: (tx: Transaction) => void;
   onDelete: (tx: Transaction) => void;
+  onViewDetails?: (tx: Transaction) => void;
 }
 
 export const TransactionList = ({
   transactions,
   onEdit,
   onDelete,
+  onViewDetails,
 }: TransactionListProps) => {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -116,16 +118,19 @@ export const TransactionList = ({
                 }
 
                 return (
-                  <div key={tx.id} className="transaction-item">
+                  <div
+                    key={tx.id}
+                    className="transaction-item"
+                    onClick={() => onViewDetails?.(tx)}
+                  >
                     <div className="transaction-item-left">
                       <div
-                        className={`transaction-icon-badge ${
-                          isIncome
+                        className={`transaction-icon-badge ${isIncome
                             ? 'badge-income'
                             : isExpense
-                            ? 'badge-expense'
-                            : 'badge-transfer'
-                        }`}
+                              ? 'badge-expense'
+                              : 'badge-transfer'
+                          }`}
                       >
                         {isIncome && <BsArrowDownLeft />}
                         {isExpense && <BsArrowUpRight />}
@@ -138,19 +143,18 @@ export const TransactionList = ({
                             {mainTitle}
                           </h4>
                           <span
-                            className={`transaction-type-pill ${
-                              isIncome
+                            className={`transaction-type-pill ${isIncome
                                 ? 'pill-income'
                                 : isExpense
-                                ? 'pill-expense'
-                                : 'pill-transfer'
-                            }`}
+                                  ? 'pill-expense'
+                                  : 'pill-transfer'
+                              }`}
                           >
                             {isIncome
                               ? 'Ingreso'
                               : isExpense
-                              ? 'Egreso'
-                              : 'Transferencia'}
+                                ? 'Egreso'
+                                : 'Transferencia'}
                           </span>
                         </div>
                         <p
@@ -164,15 +168,13 @@ export const TransactionList = ({
 
                     <div className="transaction-item-right">
                       <span
-                        className={`transaction-amount ${
-                          isIncome
+                        className={`transaction-amount ${isIncome
                             ? 'amount-income'
                             : isExpense
-                            ? 'amount-expense'
-                            : 'amount-transfer'
-                        }`}
+                              ? 'amount-expense'
+                              : 'amount-transfer'
+                          }`}
                       >
-                        {isIncome ? '+' : '-'}
                         {formatCurrency(tx.amount)}
                       </span>
 
@@ -180,7 +182,10 @@ export const TransactionList = ({
                         <button
                           type="button"
                           className="btn-tx-action btn-tx-edit"
-                          onClick={() => onEdit(tx)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(tx);
+                          }}
                           title="Editar transacción"
                         >
                           <BsPencil />
@@ -188,7 +193,10 @@ export const TransactionList = ({
                         <button
                           type="button"
                           className="btn-tx-action btn-tx-delete"
-                          onClick={() => onDelete(tx)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(tx);
+                          }}
                           title="Eliminar transacción"
                         >
                           <BsTrash />

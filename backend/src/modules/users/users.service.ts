@@ -26,8 +26,8 @@ export const userService = {
   createUser: async (data: NewUser): Promise<User> => {
     const newUser = await db.insert(users).values({
       ...data,
-      createdAt: sql`CURRENT_TIMESTAMP`,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
+      createdAt: sql`datetime('now', '-3 hours')`,
+      updatedAt: sql`datetime('now', '-3 hours')`,
       id: crypto.randomUUID(),
     }).returning().get();
 
@@ -44,7 +44,7 @@ export const userService = {
       .update(users)
       .set({ 
         ...data, 
-        updatedAt: sql`CURRENT_TIMESTAMP` 
+        updatedAt: sql`datetime('now', '-3 hours')` 
       }).where(eq(users.id, id)).returning().get();
 
     if (!updatedUser) {

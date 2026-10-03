@@ -40,8 +40,8 @@ export const seedDefaultCategories = async (
     name: cat.name,
     status: 'Active',
     description: cat.description,
-    createdAt: sql`CURRENT_TIMESTAMP`,
-    updatedAt: sql`CURRENT_TIMESTAMP`,
+    createdAt: sql`datetime('now', '-3 hours')`,
+    updatedAt: sql`datetime('now', '-3 hours')`,
   }));
 
   await runner.insert(categories).values(categoriesToInsert);

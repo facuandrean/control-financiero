@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Form, Input, Select, Textarea } from '../../../components/ui';
 import { useAccounts } from '../../accounts';
+import { getLocalDateString } from '../../../utils/date.utils';
 import type { Debt } from '../../../types/debt.types';
 
 interface PaymentFormProps {
@@ -57,12 +58,12 @@ export const PaymentForm = ({
     await onSubmit({
       amount: Number(data.amount),
       accountID: data.accountID,
-      date: data.date || new Date().toISOString().split('T')[0],
+      date: data.date || getLocalDateString(),
       notes: data.notes || '',
     });
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
 
   return (
     <Form

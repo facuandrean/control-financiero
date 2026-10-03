@@ -57,12 +57,12 @@ export const useAccounts = () => {
           payload.creditLimit = Number(data.creditLimit);
         }
 
-        if (data.closingDay !== undefined && data.closingDay !== null) {
-          payload.closingDay = Number(data.closingDay);
+        if (isValidNumber(data.closingDay)) {
+          payload.closingDay = Math.floor(Number(data.closingDay));
         }
 
-        if (data.dueDate !== undefined && data.dueDate !== null) {
-          payload.dueDate = Number(data.dueDate);
+        if (isValidNumber(data.dueDate)) {
+          payload.dueDate = Math.floor(Number(data.dueDate));
         }
       }
 
@@ -106,8 +106,8 @@ export const useAccounts = () => {
 
       if (data.type === 'Tarjeta de Crédito') {
         payload.creditLimit = isValidNumber(data.creditLimit) ? Number(data.creditLimit) : null;
-        payload.closingDay = isValidNumber(data.closingDay) ? Number(data.closingDay) : null;
-        payload.dueDate = isValidNumber(data.dueDate) ? Number(data.dueDate) : null;
+        payload.closingDay = isValidNumber(data.closingDay) ? Math.floor(Number(data.closingDay)) : null;
+        payload.dueDate = isValidNumber(data.dueDate) ? Math.floor(Number(data.dueDate)) : null;
       } else if (data.type && data.type !== 'Tarjeta de Crédito') {
         payload.creditLimit = null;
         payload.closingDay = null;

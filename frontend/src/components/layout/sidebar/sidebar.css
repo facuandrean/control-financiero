@@ -3,6 +3,7 @@
   top: 0;
   left: 0;
   height: 100vh;
+  height: 100dvh;
   width: 270px;
   min-width: 0;
   max-width: 270px;
@@ -30,6 +31,7 @@
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 
 .sidebar-user__icon {
@@ -76,6 +78,7 @@
   padding: 1rem;
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sidebar-nav__item {
@@ -130,15 +133,18 @@
   left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
   animation: fadeIn 0.3s ease;
 }
 
 .sidebar-footer {
-  padding: 1rem;
+  padding: 1rem 1rem 24px 1rem;
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
   border-top: 1px solid #e0e0e0;
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .sidebar-footer__button {

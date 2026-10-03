@@ -11,8 +11,8 @@ export const debts = sqliteTable("Debts", {
   type: text("type").notNull(), // 'Payable' | 'Receivable'
   initialAmount: integer("initial_amount").notNull().default(0),
   status: text("status").notNull().default("Pending"), // 'Pending' | 'Settled'
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`datetime('now', '-3 hours')`),
+  updatedAt: text("updated_at").notNull().default(sql`datetime('now', '-3 hours')`).$onUpdate(() => sql`datetime('now', '-3 hours')`),
 });
 
 export const debtMovements = sqliteTable("DebtMovements", {
@@ -23,5 +23,5 @@ export const debtMovements = sqliteTable("DebtMovements", {
   description: text("description").notNull(),
   date: text("date").notNull(),
   transactionID: text("id_transaction").references(() => transactions.id, { onDelete: "set null" }),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`datetime('now', '-3 hours')`),
 });

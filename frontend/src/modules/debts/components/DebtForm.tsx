@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Form, Input, Select, MessageInfo } from '../../../components/ui';
 import { useEntities } from '../../entities';
 import { useAccounts } from '../../accounts';
+import { getLocalDateString } from '../../../utils/date.utils';
 import type { Debt } from '../../../types/debt.types';
 
 interface DebtFormProps {
@@ -63,7 +64,7 @@ export const DebtForm = ({
       label: `${a.bank} - ${a.name} (${formatCurrency(a.amount ?? 0)})`,
     }));
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
 
   const handleFormSubmit = async (data: any) => {
     // Verificar si existe una deuda abierta para esta entidad

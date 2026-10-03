@@ -297,7 +297,7 @@ export const transactionService = {
 
         await tx
           .update(accounts)
-          .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .set({ amount: newBalance, updatedAt: sql`datetime('now', '-3 hours')` })
           .where(eq(accounts.id, sourceAccount.id));
 
         // Bulk insert de todas las cuotas generadas
@@ -322,7 +322,7 @@ export const transactionService = {
           : (sourceAccount.amount ?? 0) + data.amount;
         await tx
           .update(accounts)
-          .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .set({ amount: newBalance, updatedAt: sql`datetime('now', '-3 hours')` })
           .where(eq(accounts.id, sourceAccount.id));
       } else if (data.type === "Expense") {
         const newBalance = isCard
@@ -330,7 +330,7 @@ export const transactionService = {
           : (sourceAccount.amount ?? 0) - data.amount;
         await tx
           .update(accounts)
-          .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .set({ amount: newBalance, updatedAt: sql`datetime('now', '-3 hours')` })
           .where(eq(accounts.id, sourceAccount.id));
       } else if (data.type === "Transfer") {
         const isDestCard = destinationAccount ? isCreditCard(destinationAccount.type, destinationAccount.tag) : false;
@@ -343,12 +343,12 @@ export const transactionService = {
 
         await tx
           .update(accounts)
-          .set({ amount: newSourceBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .set({ amount: newSourceBalance, updatedAt: sql`datetime('now', '-3 hours')` })
           .where(eq(accounts.id, sourceAccount.id));
 
         await tx
           .update(accounts)
-          .set({ amount: newDestBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .set({ amount: newDestBalance, updatedAt: sql`datetime('now', '-3 hours')` })
           .where(eq(accounts.id, destinationAccount.id));
       }
 
@@ -364,8 +364,8 @@ export const transactionService = {
         entityID: finalEntityID,
         date: data.date,
         description: data.description,
-        createdAt: sql`CURRENT_TIMESTAMP`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        createdAt: sql`datetime('now', '-3 hours')`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       });
     });
 
@@ -466,7 +466,7 @@ export const transactionService = {
           .update(accounts)
           .set({
             amount: revertedBalance,
-            updatedAt: sql`CURRENT_TIMESTAMP`,
+            updatedAt: sql`datetime('now', '-3 hours')`,
           })
           .where(eq(accounts.id, oldTx.accountID));
       } else if (oldTx.type === "Expense") {
@@ -479,7 +479,7 @@ export const transactionService = {
           .update(accounts)
           .set({
             amount: revertedBalance,
-            updatedAt: sql`CURRENT_TIMESTAMP`,
+            updatedAt: sql`datetime('now', '-3 hours')`,
           })
           .where(eq(accounts.id, oldTx.accountID));
       } else if (oldTx.type === "Transfer" && oldTx.toAccountID) {
@@ -501,7 +501,7 @@ export const transactionService = {
           .update(accounts)
           .set({
             amount: revertedSource,
-            updatedAt: sql`CURRENT_TIMESTAMP`,
+            updatedAt: sql`datetime('now', '-3 hours')`,
           })
           .where(eq(accounts.id, oldTx.accountID));
 
@@ -514,7 +514,7 @@ export const transactionService = {
             .update(accounts)
             .set({
               amount: revertedDest,
-              updatedAt: sql`CURRENT_TIMESTAMP`,
+              updatedAt: sql`datetime('now', '-3 hours')`,
             })
             .where(eq(accounts.id, oldTx.toAccountID));
         }
@@ -599,7 +599,7 @@ export const transactionService = {
             entityID: targetEntityID,
             date: targetDate,
             description: `${baseDescription} (Cuota 1/${updateInstallmentsCount})`,
-            updatedAt: sql`CURRENT_TIMESTAMP`,
+            updatedAt: sql`datetime('now', '-3 hours')`,
           })
           .where(and(eq(transactions.id, id), eq(transactions.userID, userID)));
 
@@ -627,7 +627,7 @@ export const transactionService = {
         const newBalance = (newSourceAccount.amount ?? 0) + targetAmount;
         await tx
           .update(accounts)
-          .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .set({ amount: newBalance, updatedAt: sql`datetime('now', '-3 hours')` })
           .where(eq(accounts.id, newSourceAccount.id));
       } else {
         // Actualización normal (1 cuota)
@@ -642,7 +642,7 @@ export const transactionService = {
             entityID: targetEntityID,
             date: targetDate,
             description: targetDescription,
-            updatedAt: sql`CURRENT_TIMESTAMP`,
+            updatedAt: sql`datetime('now', '-3 hours')`,
           })
           .where(and(eq(transactions.id, id), eq(transactions.userID, userID)));
 
@@ -653,7 +653,7 @@ export const transactionService = {
 
           await tx
             .update(accounts)
-            .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+            .set({ amount: newBalance, updatedAt: sql`datetime('now', '-3 hours')` })
             .where(eq(accounts.id, newSourceAccount.id));
         } else if (targetType === "Expense") {
           const newBalance = isNewCreditCard
@@ -662,7 +662,7 @@ export const transactionService = {
 
           await tx
             .update(accounts)
-            .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+            .set({ amount: newBalance, updatedAt: sql`datetime('now', '-3 hours')` })
             .where(eq(accounts.id, newSourceAccount.id));
         } else if (targetType === "Transfer" && newDestAccount) {
           const isDestCreditCard = isCreditCard(newDestAccount.type, newDestAccount.tag);
@@ -675,12 +675,12 @@ export const transactionService = {
 
           await tx
             .update(accounts)
-            .set({ amount: newSourceBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+            .set({ amount: newSourceBalance, updatedAt: sql`datetime('now', '-3 hours')` })
             .where(eq(accounts.id, newSourceAccount.id));
 
           await tx
             .update(accounts)
-            .set({ amount: newDestBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+            .set({ amount: newDestBalance, updatedAt: sql`datetime('now', '-3 hours')` })
             .where(eq(accounts.id, newDestAccount.id));
         }
       }
@@ -729,7 +729,7 @@ export const transactionService = {
             .update(debts)
             .set({
               status: newStatus,
-              updatedAt: sql`CURRENT_TIMESTAMP`,
+              updatedAt: sql`datetime('now', '-3 hours')`,
             })
             .where(eq(debts.id, debt.id));
         }
@@ -762,7 +762,7 @@ export const transactionService = {
             .update(accounts)
             .set({
               amount: restoredBalance,
-              updatedAt: sql`CURRENT_TIMESTAMP`,
+              updatedAt: sql`datetime('now', '-3 hours')`,
             })
             .where(eq(accounts.id, sourceAccount.id));
         } else if (txToDelete.type === "Expense") {
@@ -774,7 +774,7 @@ export const transactionService = {
             .update(accounts)
             .set({
               amount: restoredBalance,
-              updatedAt: sql`CURRENT_TIMESTAMP`,
+              updatedAt: sql`datetime('now', '-3 hours')`,
             })
             .where(eq(accounts.id, sourceAccount.id));
         } else if (txToDelete.type === "Transfer" && txToDelete.toAccountID) {
@@ -796,7 +796,7 @@ export const transactionService = {
             .update(accounts)
             .set({
               amount: restoredSource,
-              updatedAt: sql`CURRENT_TIMESTAMP`,
+              updatedAt: sql`datetime('now', '-3 hours')`,
             })
             .where(eq(accounts.id, sourceAccount.id));
 
@@ -809,7 +809,7 @@ export const transactionService = {
               .update(accounts)
               .set({
                 amount: restoredDest,
-                updatedAt: sql`CURRENT_TIMESTAMP`,
+                updatedAt: sql`datetime('now', '-3 hours')`,
               })
               .where(eq(accounts.id, destAccount.id));
           }
@@ -856,7 +856,7 @@ export const transactionService = {
             .update(debts)
             .set({
               status: newStatus,
-              updatedAt: sql`CURRENT_TIMESTAMP`,
+              updatedAt: sql`datetime('now', '-3 hours')`,
             })
             .where(eq(debts.id, debt.id));
         }

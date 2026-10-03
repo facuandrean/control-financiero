@@ -11,6 +11,7 @@ export interface RecentTransactionItem {
   amount: number;
   description: string;
   type: string;
+  createdAt?: string;
   accountName?: string | null;
   categoryName?: string | null;
   entityName?: string | null;

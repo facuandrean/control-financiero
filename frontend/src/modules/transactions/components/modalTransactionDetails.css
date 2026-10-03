@@ -1,0 +1,44 @@
+/* ==========================================================================
+   MODAL TRANSACTION DETAILS - CONSISTENT STYLING
+   ========================================================================== */
+
+.modal-tx-details .modal-content {
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+}
+
+.modal-tx-details .modal-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1rem 1.25rem;
+}
+
+.modal-tx-details .modal-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.modal-tx-details .modal-body {
+  padding: 1.25rem;
+}
+
+.modal-tx-details .modal-footer {
+  border-top: 1px solid #f1f5f9;
+  padding: 0.85rem 1.25rem;
+}
+
+/* Botón Editar pastel coherente con btn-danger y btn-secondary de modal-delete.css */
+.modal-footer .btn-outline-primary {
+  background-color: rgba(14, 165, 233, 0.1);
+  color: #7a96b4;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.modal-footer .btn-outline-primary:hover {
+  background-color: rgba(14, 165, 233, 0.2);
+  color: #7a96b4;
+  border-color: rgba(14, 165, 233, 0.5);
+}

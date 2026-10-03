@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { api } from '../../../api/axios';
+import { getLocalDateString } from '../../../utils/date.utils';
 import type {
   Debt,
   DebtStatus,
@@ -186,7 +187,7 @@ export const useDebts = () => {
       type: 'PAYMENT',
       amount,
       description: notes || 'Pago registrado',
-      date: date || new Date().toISOString().split('T')[0],
+      date: date || getLocalDateString(),
       accountID: accountID || null,
     });
   };

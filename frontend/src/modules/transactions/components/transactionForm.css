@@ -35,7 +35,7 @@
 }
 
 .transaction-tab-btn.tab-expense.active {
-  color: #dc2626;
+  color: #c46262;
 }
 
 .transaction-tab-btn.tab-income.active {
@@ -43,7 +43,7 @@
 }
 
 .transaction-tab-btn.tab-transfer.active {
-  color: #0284c7;
+  color: #7a96b4;
 }
 
 .account-balance-preview {

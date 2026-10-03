@@ -18,8 +18,8 @@ import { sql } from "drizzle-orm";
  * closingDay: Closing day for credit card accounts.
  * dueDate: Due date for credit card accounts.
  * status: Status of the account. Default is "Active".
- * createdAt: Timestamp when the account was created. Default is CURRENT_TIMESTAMP.
- * updatedAt: Timestamp when the account was last updated. Default is CURRENT_TIMESTAMP and updates on every change.
+ * createdAt: Timestamp when the account was created. Default is datetime('now', '-3 hours').
+ * updatedAt: Timestamp when the account was last updated. Default is datetime('now', '-3 hours') and updates on every change.
  */
 export const accounts = sqliteTable("accounts", {
   id: text("id").primaryKey(),
@@ -37,7 +37,7 @@ export const accounts = sqliteTable("accounts", {
   closingDay: integer("closing_day"),
   dueDate: integer("due_date"),
   status: text("status").notNull().default("Active"),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`datetime('now', '-3 hours')`),
+  updatedAt: text("updated_at").notNull().default(sql`datetime('now', '-3 hours')`).$onUpdate(() => sql`datetime('now', '-3 hours')`),
 });
 

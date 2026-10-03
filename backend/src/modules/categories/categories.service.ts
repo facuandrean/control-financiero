@@ -28,8 +28,8 @@ export const categoryService = {
       userID: data.userID,
       id: crypto.randomUUID(),
       status: "Active",
-      createdAt: sql`CURRENT_TIMESTAMP`,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
+      createdAt: sql`datetime('now', '-3 hours')`,
+      updatedAt: sql`datetime('now', '-3 hours')`,
     }).returning().get();
 
     if (!newCategory) {
@@ -44,7 +44,7 @@ export const categoryService = {
       .update(categories)
       .set({
         ...data,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .where(and(eq(categories.id, id), eq(categories.userID, userID)))
       .returning()
@@ -62,7 +62,7 @@ export const categoryService = {
       .update(categories)
       .set({
         status: "Inactive",
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .where(and(eq(categories.id, id), eq(categories.userID, userID)))
       .returning()

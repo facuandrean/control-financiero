@@ -1,4 +1,4 @@
-import { BsTrash, BsPlusCircle, BsCashCoin, BsCalendar3 } from 'react-icons/bs';
+import { BsTrash, BsPlusCircle, BsCashCoin, BsCalendar3, BsPencil } from 'react-icons/bs';
 import type { Debt, DebtMovement } from '../../../types/debt.types';
 import './debtCard.css';
 
@@ -7,6 +7,7 @@ interface DebtTimelineProps {
   onRequestDeleteMovement: (movement: DebtMovement) => void;
   onOpenChargeModal: (debt: Debt) => void;
   onOpenPaymentModal: (debt: Debt) => void;
+  onEditInitialAmount?: (debt: Debt) => void;
 }
 
 export const DebtTimeline = ({
@@ -14,6 +15,7 @@ export const DebtTimeline = ({
   onRequestDeleteMovement,
   onOpenChargeModal,
   onOpenPaymentModal,
+  onEditInitialAmount,
 }: DebtTimelineProps) => {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -97,10 +99,10 @@ export const DebtTimeline = ({
             style={{
               fontSize: '1.25rem',
               color: isSettled
-                ? '#15803d'
+                ? '#4c9767'
                 : debt.type === 'Payable'
                   ? '#c46262'
-                  : '#15803d',
+                  : '#4c9767',
             }}
           >
             {formatCurrency(Math.max(0, balance))}
@@ -114,9 +116,21 @@ export const DebtTimeline = ({
         <div className="movement-timeline-card movement-initial">
           <div className="movement-card-header">
             <span className="movement-pill pill-initial">Punto de partida</span>
-            <span className="movement-card-date">
-              {formatDate(debt.createdAt)}
-            </span>
+            <div className="d-flex align-items-center gap-2">
+              <span className="movement-card-date">
+                {formatDate(debt.createdAt)}
+              </span>
+              {onEditInitialAmount && (
+                <button
+                  type="button"
+                  className="btn-edit-initial"
+                  onClick={() => onEditInitialAmount(debt)}
+                  title="Editar monto inicial"
+                >
+                  <BsPencil size={13} />
+                </button>
+              )}
+            </div>
           </div>
           <div className="movement-card-content">
             <div className="movement-card-desc">Deuda Inicial</div>
@@ -148,7 +162,7 @@ export const DebtTimeline = ({
 
             <div className="movement-card-content">
               <div className="movement-card-desc" title={m.description}>
-                {m.description}
+                Motivo: {m.description}
               </div>
               <div
                 className={`movement-card-amount ${m.type === 'CHARGE' ? 'amount-charge' : 'amount-payment'
@@ -161,7 +175,7 @@ export const DebtTimeline = ({
             <div className="movement-card-footer">
               {m.transactionID ? (
                 <span className="movement-tx-badge" title="Vinculado a transacción bancaria">
-                  🏦 Cuenta bancaria afectada
+                  Cuenta bancaria afectada
                 </span>
               ) : (
                 <span />

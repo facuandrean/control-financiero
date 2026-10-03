@@ -5,12 +5,20 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .debts-controls-box {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.debts-controls-box .body-content {
+  display: block;
+  width: 100%;
 }
 
 .debts-filters {
@@ -19,6 +27,8 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .debts-filter-buttons {
@@ -37,6 +47,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn-filter-tag:hover {
@@ -60,6 +71,7 @@
   font-size: 0.9rem;
   background-color: var(--color-surface, #ffffff);
   transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .debts-search-input:focus {
@@ -69,11 +81,12 @@
 
 .debts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 1.5rem;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .debts-empty-state,
@@ -91,6 +104,7 @@
   margin: 0 auto;
   color: #64748b;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .debts-empty-state p {
@@ -102,13 +116,28 @@
   .debts-filters {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .debts-filter-buttons {
+    width: 100%;
+  }
+
+  .debts-filter-buttons .btn-filter-tag {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
+    font-size: 0.8rem;
   }
 
   .debts-search-input {
     max-width: 100%;
+    min-width: 0;
+    width: 100%;
   }
 
   .debts-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }

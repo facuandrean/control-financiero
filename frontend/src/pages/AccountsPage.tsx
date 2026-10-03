@@ -148,7 +148,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         }}
       />
 
-      <BodyContent>
+      <BodyContent className="accounts-body-content">
         <div className="master-detail-container">
           <div className="master-list-container">
             <div className="master-list-controls">
@@ -257,22 +257,23 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
       </ModalPost>
 
       {/* MODAL ACTUALIZAR CUENTA */}
-      {selectedAccount && (
-        <ModalPost
-          title="Editar Cuenta"
-          id="account-update-modal"
-          formId="account-update-form"
-          loading={loading || isSuccessClosing}
-          clearError={clearError}
-          clearSuccess={clearSuccess}
-          buttonSubmit={{
-            label: "Actualizar",
-            labelLoading: "Actualizando...",
-            className: "btn-submit-post",
-            disabled: false,
-            onClick: () => {},
-          }}
-        >
+      <ModalPost
+        title="Editar Cuenta"
+        id="account-update-modal"
+        formId="account-update-form"
+        loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        onHidden={() => setSelectedAccountID(null)}
+        buttonSubmit={{
+          label: "Actualizar",
+          labelLoading: "Actualizando...",
+          className: "btn-submit-post",
+          disabled: false,
+          onClick: () => {},
+        }}
+      >
+        {selectedAccount && (
           <AccountForm
             key={selectedAccount.id} // Re-monta si cambia la cuenta para actualizar defaultValues
             onSubmit={handleUpdateAccount}
@@ -296,72 +297,75 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
             modalId="account-update-modal"
             formId="account-update-form"
           />
-        </ModalPost>
-      )}
+        )}
+      </ModalPost>
 
       {/* MODALES DE CONFIRMACIÓN */}
-      {selectedAccount && (
-        <>
-          <ModalConfirm
-            id="confirm-deactivate-modal"
-            title="Dar de baja cuenta"
-            loading={loading || isSuccessClosing}
-            isProcessing={loading}
-            errorMessage={error}
-            successMessage={success}
-            clearError={clearError}
-            clearSuccess={clearSuccess}
-            buttonLabel="Dar de baja"
-            buttonLabelLoading="Procesando..."
-            confirmButtonClass="btn btn-danger"
-            onConfirm={async () => {
-              const ok = await deactivateAccount(selectedAccount.id!);
-              if (ok) {
-                setIsSuccessClosing(true);
-                setTimeout(() => {
-                  setSelectedAccountID(null);
-                  closeModal({ idModal: 'confirm-deactivate-modal' });
-                  setIsSuccessClosing(false);
-                }, 3000);
-              }
-            }}
-          >
+      <ModalConfirm
+        id="confirm-deactivate-modal"
+        title="Dar de baja cuenta"
+        loading={loading || isSuccessClosing}
+        isProcessing={loading}
+        errorMessage={error}
+        successMessage={success}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        buttonLabel="Dar de baja"
+        buttonLabelLoading="Procesando..."
+        confirmButtonClass="btn btn-danger"
+        onConfirm={async () => {
+          if (!selectedAccount?.id) return;
+          const ok = await deactivateAccount(selectedAccount.id);
+          if (ok) {
+            setIsSuccessClosing(true);
+            setTimeout(() => {
+              setSelectedAccountID(null);
+              closeModal({ idModal: 'confirm-deactivate-modal' });
+              setIsSuccessClosing(false);
+            }, 3000);
+          }
+        }}
+      >
+        {selectedAccount && (
+          <>
             <p>¿Estás seguro de que querés dar de baja la cuenta <strong>{selectedAccount.name}</strong>?</p>
             <p className="text-muted mb-0 mt-1 d-flex align-items-center gap-3" style={{ fontSize: '0.9rem' }}>
               <BsInfoCircle size={16} />
               No podrás usarla en nuevas transacciones, pero mantendrá su historial.
             </p>
-          </ModalConfirm>
+          </>
+        )}
+      </ModalConfirm>
 
-          <ModalConfirm
-            id="confirm-reactivate-modal"
-            title="Reactivar cuenta"
-            loading={loading || isSuccessClosing}
-            isProcessing={loading}
-            errorMessage={error}
-            successMessage={success}
-            clearError={clearError}
-            clearSuccess={clearSuccess}
-            buttonLabel="Reactivar"
-            buttonLabelLoading="Procesando..."
-            confirmButtonClass="btn btn-success"
-            onConfirm={async () => {
-              const ok = await reactivateAccount(selectedAccount.id!);
-              if (ok) {
-                setIsSuccessClosing(true);
-                setTimeout(() => {
-                  setSelectedAccountID(null);
-                  closeModal({ idModal: 'confirm-reactivate-modal' });
-                  setIsSuccessClosing(false);
-                }, 3000);
-              }
-            }}
-          >
-            <p>¿Querés volver a activar la cuenta <strong>{selectedAccount.name}</strong> para usarla nuevamente en tus transacciones?</p>
-          </ModalConfirm>
-        </>
-      )}
-
+      <ModalConfirm
+        id="confirm-reactivate-modal"
+        title="Reactivar cuenta"
+        loading={loading || isSuccessClosing}
+        isProcessing={loading}
+        errorMessage={error}
+        successMessage={success}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        buttonLabel="Reactivar"
+        buttonLabelLoading="Procesando..."
+        confirmButtonClass="btn btn-success"
+        onConfirm={async () => {
+          if (!selectedAccount?.id) return;
+          const ok = await reactivateAccount(selectedAccount.id);
+          if (ok) {
+            setIsSuccessClosing(true);
+            setTimeout(() => {
+              setSelectedAccountID(null);
+              closeModal({ idModal: 'confirm-reactivate-modal' });
+              setIsSuccessClosing(false);
+            }, 3000);
+          }
+        }}
+      >
+        {selectedAccount && (
+          <p>¿Querés volver a activar la cuenta <strong>{selectedAccount.name}</strong> para usarla nuevamente en tus transacciones?</p>
+        )}
+      </ModalConfirm>
     </MainLayout>
   );
 };

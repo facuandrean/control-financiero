@@ -65,7 +65,7 @@
 
 .pill-receivable {
   background-color: #dcfce7;
-  color: #15803d;
+  color: #4c9767;
 }
 
 .debt-status-badge {
@@ -87,7 +87,7 @@
 
 .badge-settled {
   background-color: #dcfce7;
-  color: #15803d;
+  color: #4c9767;
 }
 
 .debt-card-body {
@@ -124,7 +124,7 @@
 }
 
 .debt-card-balance-value.value-settled {
-  color: #15803d;
+  color: #4c9767;
 }
 
 .debt-card-balance-value.value-payable {
@@ -132,7 +132,7 @@
 }
 
 .debt-card-balance-value.value-receivable {
-  color: #15803d;
+  color: #4c9767;
 }
 
 .debt-card-subinfo {
@@ -156,7 +156,7 @@
 .debt-card-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.5rem;
   padding-top: 0.85rem;
   border-top: 1px solid #f1f5f9;
@@ -198,6 +198,35 @@
 
 .btn-delete-debt:hover {
   background-color: #ffe4e6;
+}
+
+.btn-edit-debt {
+  color: #7a96b4;
+}
+
+.btn-edit-debt:hover {
+  background-color: #e0f2fe;
+}
+
+.btn-edit-initial {
+  background: none;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.35rem;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.btn-edit-initial:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 /* ========================================================
@@ -293,7 +322,7 @@
 
 .pill-payment {
   background-color: #dcfce7;
-  color: #15803d;
+  color: #4c9767;
 }
 
 .pill-initial {
@@ -334,7 +363,7 @@
 }
 
 .amount-payment {
-  color: #15803d;
+  color: #4c9767;
 }
 
 .amount-initial {
@@ -395,7 +424,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.7rem 1rem;
+  padding: 0.7rem .5rem;
   border-radius: 0.65rem;
   font-size: 0.9rem;
   font-weight: 700;
@@ -424,6 +453,6 @@
 
 .btn-timeline-payment:hover {
   background-color: #dcfce7;
-  color: #166534;
+  color: #4c9767;
   border-color: #86efac;
 }

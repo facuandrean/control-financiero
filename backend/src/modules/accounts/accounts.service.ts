@@ -28,8 +28,8 @@ export const accountService = {
       userID: data.userID,
       id: crypto.randomUUID(),
       status: "Active",
-      createdAt: sql`CURRENT_TIMESTAMP`,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
+      createdAt: sql`datetime('now', '-3 hours')`,
+      updatedAt: sql`datetime('now', '-3 hours')`,
     }).returning().get();
 
     if (!newAccount) {
@@ -59,7 +59,7 @@ export const accountService = {
       .update(accounts)
       .set({
         ...allowedData,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .where(and(eq(accounts.id, id), eq(accounts.userID, userID)))
       .returning()
@@ -77,7 +77,7 @@ export const accountService = {
       .update(accounts)
       .set({
         status: "Inactive",
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .where(and(eq(accounts.id, id), eq(accounts.userID, userID)))
       .returning()

@@ -10,6 +10,7 @@ import {
   TransactionMetrics,
   TransactionList,
   TransactionForm,
+  ModalTransactionDetails,
   useTransactions,
 } from '../modules/transactions';
 import { useAccounts } from '../modules/accounts';
@@ -73,6 +74,8 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+  const [detailTransaction, setDetailTransaction] =
     useState<Transaction | null>(null);
   const [isSuccessClosing, setIsSuccessClosing] = useState(false);
   const { fetchAccounts } = useAccounts();
@@ -282,6 +285,10 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
                 clearSuccess();
                 openModal({ idModal: 'transaction-delete-modal' });
               }}
+              onViewDetails={(tx) => {
+                setDetailTransaction(tx);
+                openModal({ idModal: 'transaction-details-modal' });
+              }}
             />
           )}
         </BodyContent>
@@ -391,6 +398,25 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
           </>
         )}
       </ModalConfirm>
+
+      {/* MODAL DETALLES DE TRANSACCIÓN */}
+      <ModalTransactionDetails
+        id="transaction-details-modal"
+        transaction={detailTransaction}
+        onClose={() => setDetailTransaction(null)}
+        onEdit={(tx) => {
+          setSelectedTransaction(tx as Transaction);
+          clearError();
+          clearSuccess();
+          openModal({ idModal: 'transaction-update-modal' });
+        }}
+        onDelete={(tx) => {
+          setSelectedTransaction(tx as Transaction);
+          clearError();
+          clearSuccess();
+          openModal({ idModal: 'transaction-delete-modal' });
+        }}
+      />
     </MainLayout>
   );
 };

@@ -5,6 +5,7 @@ import {
   BsArrowUpRight,
   BsArrowLeftRight,
   BsReceiptCutoff,
+  BsCreditCard,
   BsChevronLeft,
   BsChevronRight,
   BsWallet2,
@@ -23,7 +24,12 @@ import { useAuthStore } from '../store';
 import { openModal, closeModal } from '../utils/modal.utils';
 
 import { useDashboard } from '../modules/dashboard';
-import { TransactionForm, useTransactions } from '../modules/transactions';
+import {
+  TransactionForm,
+  ModalTransactionDetails,
+  useTransactions,
+  type TransactionDetailData,
+} from '../modules/transactions';
 import { DebtForm, useDebts } from '../modules/debts';
 import type {
   CreateTransactionDTO,
@@ -37,7 +43,7 @@ interface DashboardPageProps {
 }
 
 const CATEGORY_COLORS = [
-  '#ef4444',
+  '#7a96b4',
   '#f97316',
   '#3b82f6',
   '#8b5cf6',
@@ -81,6 +87,9 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
   } = useDebts();
 
   const [modalTxType, setModalTxType] = useState<TransactionType>('Income');
+  const [isCreditCardMode, setIsCreditCardMode] = useState(false);
+  const [selectedTxDetails, setSelectedTxDetails] =
+    useState<TransactionDetailData | null>(null);
   const [isTxSuccessClosing, setIsTxSuccessClosing] = useState(false);
   const [isDebtSuccessClosing, setIsDebtSuccessClosing] = useState(false);
 
@@ -153,7 +162,16 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
 
   // Quick action modal openers
   const handleOpenTxModal = (type: TransactionType) => {
+    setIsCreditCardMode(false);
     setModalTxType(type);
+    clearTxError();
+    clearTxSuccess();
+    openModal({ idModal: 'dashboard-transaction-modal' });
+  };
+
+  const handleOpenCreditCardModal = () => {
+    setIsCreditCardMode(true);
+    setModalTxType('Expense');
     clearTxError();
     clearTxSuccess();
     openModal({ idModal: 'dashboard-transaction-modal' });
@@ -207,8 +225,9 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     }
   };
 
-  const txModalTitle =
-    modalTxType === 'Income'
+  const txModalTitle = isCreditCardMode
+    ? 'Pago con Tarjeta'
+    : modalTxType === 'Income'
       ? 'Nuevo Ingreso'
       : modalTxType === 'Expense'
         ? 'Nuevo Egreso'
@@ -265,6 +284,21 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
             <div className="quick-action-text">
               <span className="quick-action-title">Nuevo Egreso</span>
               <span className="quick-action-subtitle">Gasto o pago diario</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className="quick-action-btn quick-action-credit-card"
+            onClick={handleOpenCreditCardModal}
+            aria-label="Registrar Pago con Tarjeta"
+          >
+            <div className="quick-action-icon-wrapper">
+              <BsCreditCard />
+            </div>
+            <div className="quick-action-text">
+              <span className="quick-action-title">Pago con Tarjeta</span>
+              <span className="quick-action-subtitle">Compras y cuotas</span>
             </div>
           </button>
 
@@ -487,7 +521,14 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
               summary.recentTransactions.length > 0 ? (
               <div className="recent-transactions-list">
                 {summary.recentTransactions.map((tx) => (
-                  <div className="recent-tx-item" key={tx.id}>
+                  <div
+                    className="recent-tx-item"
+                    key={tx.id}
+                    onClick={() => {
+                      setSelectedTxDetails(tx);
+                      openModal({ idModal: 'dashboard-tx-details-modal' });
+                    }}
+                  >
                     <div className="recent-tx-left">
                       <div
                         className={`recent-tx-icon ${tx.type === 'Income'
@@ -568,7 +609,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
         </div>
       </div>
 
-      {/* MODAL TRANSACCIÓN (INGRESO / EGRESO / TRANSFERENCIA) */}
+      {/* MODAL TRANSACCIÓN (INGRESO / EGRESO / TRANSFERENCIA / PAGO CON TARJETA) */}
       <ModalPost
         title={txModalTitle}
         id="dashboard-transaction-modal"
@@ -576,7 +617,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
         loading={txLoading || isTxSuccessClosing}
       >
         <TransactionForm
-          key={modalTxType}
+          key={`${modalTxType}-${isCreditCardMode}`}
           onSubmit={handleTransactionSubmit}
           loading={txLoading}
           errorMessage={txError}
@@ -586,6 +627,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
           defaultValues={{ type: modalTxType }}
           modalId="dashboard-transaction-modal"
           formId="dashboard-transaction-form"
+          creditCardMode={isCreditCardMode}
         />
       </ModalPost>
 
@@ -608,6 +650,13 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
           formId="dashboard-debt-form"
         />
       </ModalPost>
+
+      {/* MODAL DETALLES DE TRANSACCIÓN */}
+      <ModalTransactionDetails
+        id="dashboard-tx-details-modal"
+        transaction={selectedTxDetails}
+        onClose={() => setSelectedTxDetails(null)}
+      />
     </MainLayout>
   );
 };

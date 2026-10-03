@@ -48,23 +48,38 @@ export const AccountForm = ({
       formData.type === "Efectivo" ||
       formData.type === "Billetera virtual" ||
       formData.type === "Billetera Virtual";
+    const parsedData = { ...formData };
+    if (parsedData.closingDay !== undefined && parsedData.closingDay !== null && parsedData.closingDay !== '') {
+      parsedData.closingDay = Math.floor(Number(parsedData.closingDay));
+    } else {
+      parsedData.closingDay = null;
+    }
+    if (parsedData.dueDate !== undefined && parsedData.dueDate !== null && parsedData.dueDate !== '') {
+      parsedData.dueDate = Math.floor(Number(parsedData.dueDate));
+    } else {
+      parsedData.dueDate = null;
+    }
+    if (parsedData.creditLimit !== undefined && parsedData.creditLimit !== null && parsedData.creditLimit !== '') {
+      parsedData.creditLimit = Number(parsedData.creditLimit);
+    }
+
     if (isEditing) {
       if (canEditBalance) {
         await onSubmit({
-          ...formData,
-          amount: formData.amount !== undefined && formData.amount !== null && formData.amount !== ''
-            ? Number(formData.amount)
+          ...parsedData,
+          amount: parsedData.amount !== undefined && parsedData.amount !== null && parsedData.amount !== ''
+            ? Number(parsedData.amount)
             : 0
         });
       } else {
-        const { amount, ...rest } = formData;
+        const { amount, ...rest } = parsedData;
         await onSubmit(rest);
       }
     } else {
       await onSubmit({
-        ...formData,
-        amount: formData.amount !== undefined && formData.amount !== null && formData.amount !== ''
-          ? Number(formData.amount)
+        ...parsedData,
+        amount: parsedData.amount !== undefined && parsedData.amount !== null && parsedData.amount !== ''
+          ? Number(parsedData.amount)
           : 0
       });
     }
@@ -182,6 +197,7 @@ export const AccountForm = ({
                   rules={{ 
                     min: { value: 1, message: "Día entre 1 y 31" },
                     max: { value: 31, message: "Día entre 1 y 31" },
+                    valueAsNumber: true,
                   }}
                 />
 
@@ -196,6 +212,7 @@ export const AccountForm = ({
                   rules={{ 
                     min: { value: 1, message: "Día entre 1 y 31" },
                     max: { value: 31, message: "Día entre 1 y 31" },
+                    valueAsNumber: true,
                   }}
                 />
               </>

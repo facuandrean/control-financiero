@@ -3,12 +3,17 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .transaction-date-group {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .transaction-date-header {
@@ -20,6 +25,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .transaction-date-header::after {
@@ -35,6 +41,8 @@
   border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .transaction-item {
@@ -45,6 +53,9 @@
   gap: 1rem;
   transition: background-color 0.15s ease;
   border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .transaction-item:last-child {
@@ -61,6 +72,7 @@
   gap: 1rem;
   min-width: 0;
   flex: 1;
+  overflow: hidden;
 }
 
 .transaction-icon-badge {
@@ -81,12 +93,12 @@
 
 .badge-expense {
   background-color: #fee2e2;
-  color: #dc2626;
+  color: #c46262;
 }
 
 .badge-transfer {
   background-color: #e0f2fe;
-  color: #0284c7;
+  color: #7a96b4;
 }
 
 .transaction-info {
@@ -94,6 +106,7 @@
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -101,7 +114,9 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  min-width: 0;
   overflow: hidden;
+  width: 100%;
 }
 
 .transaction-title {
@@ -112,6 +127,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
 .transaction-type-pill {
@@ -125,17 +142,17 @@
 
 .pill-income {
   background-color: #dcfce7;
-  color: #15803d;
+  color: #4c9767;
 }
 
 .pill-expense {
   background-color: #fee2e2;
-  color: #b91c1c;
+  color: #c46262;
 }
 
 .pill-transfer {
   background-color: #e0f2fe;
-  color: #0369a1;
+  color: #7a96b4;
 }
 
 .transaction-subtitle {
@@ -145,6 +162,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  width: 100%;
 }
 
 .transaction-item-right {
@@ -192,7 +211,7 @@
 }
 
 .btn-tx-edit {
-  color: #0284c7;
+  color: #7a96b4;
 }
 
 .btn-tx-edit:hover {
@@ -200,7 +219,7 @@
 }
 
 .btn-tx-delete {
-  color: #dc2626;
+  color: #c46262;
 }
 
 .btn-tx-delete:hover {
@@ -215,6 +234,7 @@
   text-align: center;
   color: #64748b;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .transactions-empty p {
@@ -225,13 +245,46 @@
 @media (max-width: 640px) {
   .transaction-item {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .transaction-item-left {
+    width: 100%;
+    gap: 0.65rem;
+  }
+
+  .transaction-icon-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .transaction-title {
+    font-size: 0.9rem;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .transaction-subtitle {
+    font-size: 0.775rem;
+    width: auto;
+    max-width: 100%;
   }
 
   .transaction-item-right {
     width: 100%;
-    justify-content: space-between;
-    padding-left: 3.5rem;
+    justify-content: flex-end;
+    padding-left: 0;
+  }
+
+  .transaction-amount {
+    font-size: 0.95rem;
+  }
+
+  /* Liberar espacio visual en mobile: Editar y Eliminar están en el Modal de Detalles */
+  .transaction-actions {
+    display: none;
   }
 }

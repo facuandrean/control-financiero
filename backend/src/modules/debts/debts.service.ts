@@ -75,8 +75,8 @@ export const debtService = {
         type: data.type,
         initialAmount: initialAmount,
         status: initialStatus,
-        createdAt: sql`CURRENT_TIMESTAMP`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        createdAt: sql`datetime('now', '-3 hours')`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .returning();
 
@@ -215,11 +215,33 @@ export const debtService = {
       throw new AppError("Deuda no encontrada", 404, "DEBT_NOT_FOUND");
     }
 
+    const effectiveInitialAmount =
+      data.initialAmount !== undefined ? data.initialAmount : (currentDebt.initialAmount ?? 0);
+
+    const movements = await db
+      .select()
+      .from(debtMovements)
+      .where(eq(debtMovements.debtID, id))
+      .all();
+
+    const totalCharges = movements
+      .filter((m) => m.type === "CHARGE")
+      .reduce((sum, m) => sum + m.amount, 0);
+
+    const totalPayments = movements
+      .filter((m) => m.type === "PAYMENT")
+      .reduce((sum, m) => sum + m.amount, 0);
+
+    const balance = effectiveInitialAmount + totalCharges - totalPayments;
+    const calculatedStatus: "Pending" | "Settled" = balance <= 0 ? "Settled" : "Pending";
+    const statusToSet = data.initialAmount !== undefined ? calculatedStatus : (data.status ?? calculatedStatus);
+
     const [updatedDebt] = await db
       .update(debts)
       .set({
         ...data,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        status: statusToSet,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .where(and(eq(debts.id, id), eq(debts.userID, userID)))
       .returning();
@@ -304,8 +326,8 @@ export const debtService = {
           entityID: debt.entityID,
           date: data.date,
           description: txDescription,
-          createdAt: sql`CURRENT_TIMESTAMP`,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
+          createdAt: sql`datetime('now', '-3 hours')`,
+          updatedAt: sql`datetime('now', '-3 hours')`,
         });
 
         // Actualizar saldo de la cuenta
@@ -316,7 +338,7 @@ export const debtService = {
 
         await tx
           .update(accounts)
-          .set({ amount: newBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .set({ amount: newBalance, updatedAt: sql`datetime('now', '-3 hours')` })
           .where(eq(accounts.id, account.id));
       }
 
@@ -332,7 +354,7 @@ export const debtService = {
           description: data.description,
           date: data.date,
           transactionID: transactionID || null,
-          createdAt: sql`CURRENT_TIMESTAMP`,
+          createdAt: sql`datetime('now', '-3 hours')`,
         })
         .returning();
 
@@ -358,7 +380,7 @@ export const debtService = {
         .update(debts)
         .set({
           status: newStatus,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
+          updatedAt: sql`datetime('now', '-3 hours')`,
         })
         .where(eq(debts.id, debt.id));
 
@@ -421,7 +443,7 @@ export const debtService = {
 
             await tx
               .update(accounts)
-              .set({ amount: restoredBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+              .set({ amount: restoredBalance, updatedAt: sql`datetime('now', '-3 hours')` })
               .where(eq(accounts.id, acc.id));
           }
 
@@ -456,7 +478,7 @@ export const debtService = {
         .update(debts)
         .set({
           status: newStatus,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
+          updatedAt: sql`datetime('now', '-3 hours')`,
         })
         .where(eq(debts.id, debt.id));
 
@@ -512,7 +534,7 @@ export const debtService = {
 
               await tx
                 .update(accounts)
-                .set({ amount: restoredBalance, updatedAt: sql`CURRENT_TIMESTAMP` })
+                .set({ amount: restoredBalance, updatedAt: sql`datetime('now', '-3 hours')` })
                 .where(eq(accounts.id, acc.id));
             }
 

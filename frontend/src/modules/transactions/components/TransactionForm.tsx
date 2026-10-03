@@ -4,6 +4,7 @@ import { Form, Input, Select } from '../../../components/ui';
 import { useAccounts } from '../../accounts';
 import { useCategories } from '../../categories';
 import { useEntities } from '../../entities';
+import { getLocalDateString } from '../../../utils/date.utils';
 import type {
   CreateTransactionDTO,
   TransactionType,
@@ -20,6 +21,7 @@ interface TransactionFormProps {
   defaultValues?: any;
   modalId: string;
   formId: string;
+  creditCardMode?: boolean;
 }
 
 export const TransactionForm = ({
@@ -32,9 +34,10 @@ export const TransactionForm = ({
   defaultValues,
   modalId,
   formId,
+  creditCardMode = false,
 }: TransactionFormProps) => {
   const [currentType, setCurrentType] = useState<TransactionType>(
-    defaultValues?.type || 'Expense'
+    creditCardMode ? 'Expense' : defaultValues?.type || 'Expense'
   );
 
   const { accounts, fetchAccounts } = useAccounts();
@@ -47,7 +50,13 @@ export const TransactionForm = ({
     fetchEntities();
   }, [fetchAccounts, fetchCategories, fetchEntities]);
 
-  const today = new Date().toISOString().split('T')[0];
+  useEffect(() => {
+    if (creditCardMode) {
+      setCurrentType('Expense');
+    }
+  }, [creditCardMode]);
+
+  const today = getLocalDateString();
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -56,8 +65,25 @@ export const TransactionForm = ({
       minimumFractionDigits: 0,
     }).format(val);
 
+  const isAccountCreditCard = (accId?: string) => {
+    const acc = accounts.find((a) => a.id === accId);
+    return Boolean(
+      acc &&
+      (acc.type === 'Credit Card' ||
+        acc.type === 'Tarjeta de Crédito' ||
+        acc.tag === 'crédito' ||
+        acc.tag === 'T. Créd.' ||
+        acc.type?.toLowerCase().includes('crédit') ||
+        acc.type?.toLowerCase().includes('credit'))
+    );
+  };
+
   const accountOptions = accounts
     .filter((a) => a.status === 'Active' || a.id === defaultValues?.accountID)
+    .filter((a) => {
+      if (!creditCardMode) return true;
+      return isAccountCreditCard(a.id);
+    })
     .map((a) => ({
       value: a.id,
       label: `${a.bank} - ${a.name} (${formatCurrency(a.amount ?? 0)})`,
@@ -78,25 +104,14 @@ export const TransactionForm = ({
     }));
 
   const handleTabChange = (newType: TransactionType) => {
+    if (creditCardMode) return;
     setCurrentType(newType);
     clearError();
     clearSuccess();
   };
 
-  const isAccountCreditCard = (accId?: string) => {
-    const acc = accounts.find((a) => a.id === accId);
-    return Boolean(
-      acc &&
-        (acc.type === 'Credit Card' ||
-          acc.type === 'Tarjeta de Crédito' ||
-          acc.tag === 'crédito' ||
-          acc.type?.toLowerCase().includes('crédit') ||
-          acc.type?.toLowerCase().includes('credit'))
-    );
-  };
-
   const handleFormSubmit = async (data: any) => {
-    const isCreditCard = isAccountCreditCard(data.accountID);
+    const isCreditCard = creditCardMode || isAccountCreditCard(data.accountID);
 
     await onSubmit({
       type: currentType,
@@ -117,35 +132,45 @@ export const TransactionForm = ({
   return (
     <div>
       {/* Pestañas de tipo */}
-      <div className="transaction-tabs-nav">
-        <button
-          type="button"
-          className={`transaction-tab-btn tab-expense ${
-            currentType === 'Expense' ? 'active' : ''
-          }`}
-          onClick={() => handleTabChange('Expense')}
-        >
-          Egreso
-        </button>
-        <button
-          type="button"
-          className={`transaction-tab-btn tab-income ${
-            currentType === 'Income' ? 'active' : ''
-          }`}
-          onClick={() => handleTabChange('Income')}
-        >
-          Ingreso
-        </button>
-        <button
-          type="button"
-          className={`transaction-tab-btn tab-transfer ${
-            currentType === 'Transfer' ? 'active' : ''
-          }`}
-          onClick={() => handleTabChange('Transfer')}
-        >
-          Transferencia
-        </button>
-      </div>
+      {!creditCardMode ? (
+        <div className="transaction-tabs-nav">
+          <button
+            type="button"
+            className={`transaction-tab-btn tab-expense ${currentType === 'Expense' ? 'active' : ''
+              }`}
+            onClick={() => handleTabChange('Expense')}
+          >
+            Egreso
+          </button>
+          <button
+            type="button"
+            className={`transaction-tab-btn tab-income ${currentType === 'Income' ? 'active' : ''
+              }`}
+            onClick={() => handleTabChange('Income')}
+          >
+            Ingreso
+          </button>
+          <button
+            type="button"
+            className={`transaction-tab-btn tab-transfer ${currentType === 'Transfer' ? 'active' : ''
+              }`}
+            onClick={() => handleTabChange('Transfer')}
+          >
+            Transferencia
+          </button>
+        </div>
+      ) : (
+        <div className="transaction-tabs-nav">
+          <button
+            type="button"
+            className="transaction-tab-btn tab-expense active"
+            style={{ width: '100%', cursor: 'default' }}
+            disabled
+          >
+            Egreso
+          </button>
+        </div>
+      )}
 
       <Form
         key={`${formId}-${currentType}`}
@@ -178,10 +203,10 @@ export const TransactionForm = ({
               <Select
                 formID={formId}
                 name="accountID"
-                label={currentType === 'Transfer' ? 'Cuenta Origen' : 'Cuenta'}
-                placeholder="Seleccionar cuenta..."
+                label={currentType === 'Transfer' ? 'Cuenta Origen' : creditCardMode ? 'Tarjeta de Crédito' : 'Cuenta'}
+                placeholder={creditCardMode ? 'Seleccionar tarjeta...' : 'Seleccionar cuenta...'}
                 control={control}
-                rules={{ required: 'Debes seleccionar una cuenta' }}
+                rules={{ required: creditCardMode ? 'Debes seleccionar una tarjeta' : 'Debes seleccionar una cuenta' }}
                 errors={errors}
                 options={accountOptions}
               />
@@ -215,8 +240,8 @@ export const TransactionForm = ({
                 errors={errors}
               />
 
-              {/* Cantidad de Cuotas (solo para Egresos con Tarjeta de Crédito) */}
-              {currentType === 'Expense' && isCreditCard && (
+              {/* Cantidad de Cuotas (visible desde el primer momento en modo tarjeta o si la cuenta seleccionada es TC) */}
+              {(creditCardMode || (currentType === 'Expense' && isCreditCard)) && (
                 <Input
                   formID={formId}
                   name="installments"
@@ -234,61 +259,61 @@ export const TransactionForm = ({
 
               {/* Fecha */}
               <Input
-              formID={formId}
-              name="date"
-              label="Fecha"
-              type="date"
-              control={control}
-              rules={{ required: 'La fecha es obligatoria' }}
-              errors={errors}
-            />
-
-            {/* Categoría (solo para Ingresos y Egresos) */}
-            {currentType !== 'Transfer' && (
-              <Select
                 formID={formId}
-                name="categoryID"
-                label="Categoría (Opcional)"
-                placeholder="Seleccionar categoría..."
+                name="date"
+                label="Fecha"
+                type="date"
                 control={control}
+                rules={{ required: 'La fecha es obligatoria' }}
                 errors={errors}
-                options={categoryOptions}
               />
-            )}
 
-            {/* Entidad (solo para Ingresos y Egresos) */}
-            {currentType !== 'Transfer' && (
-              <Select
+              {/* Categoría (solo para Ingresos y Egresos) */}
+              {currentType !== 'Transfer' && (
+                <Select
+                  formID={formId}
+                  name="categoryID"
+                  label="Categoría (Opcional)"
+                  placeholder="Seleccionar categoría..."
+                  control={control}
+                  errors={errors}
+                  options={categoryOptions}
+                />
+              )}
+
+              {/* Entidad (solo para Ingresos y Egresos) */}
+              {currentType !== 'Transfer' && (
+                <Select
+                  formID={formId}
+                  name="entityID"
+                  label="Entidad / Comercio (Opcional)"
+                  placeholder="Seleccionar entidad..."
+                  control={control}
+                  errors={errors}
+                  options={entityOptions}
+                />
+              )}
+
+              {/* Descripción */}
+              <Input
                 formID={formId}
-                name="entityID"
-                label="Entidad / Comercio (Opcional)"
-                placeholder="Seleccionar entidad..."
+                name="description"
+                label="Descripción"
+                placeholder="Ej: Compra supermercado, Pago sueldo, etc."
+                type="text"
                 control={control}
+                rules={{
+                  required: 'La descripción es obligatoria',
+                  minLength: {
+                    value: 3,
+                    message: 'Debe tener al menos 3 caracteres',
+                  },
+                }}
                 errors={errors}
-                options={entityOptions}
               />
-            )}
-
-            {/* Descripción */}
-            <Input
-              formID={formId}
-              name="description"
-              label="Descripción"
-              placeholder="Ej: Compra supermercado, Pago sueldo, etc."
-              type="text"
-              control={control}
-              rules={{
-                required: 'La descripción es obligatoria',
-                minLength: {
-                  value: 3,
-                  message: 'Debe tener al menos 3 caracteres',
-                },
-              }}
-              errors={errors}
-            />
-          </>
-        );
-      }}
+            </>
+          );
+        }}
       </Form>
     </div>
   );

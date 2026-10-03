@@ -4,7 +4,7 @@ import { BodyContent, BodyHeader } from '../components/layout';
 import { MainLayout } from '../components/layout/mainLayout/MainLayout';
 import { ModalPost } from '../components/layout/modal/ModalPost';
 import { ModalConfirm } from '../components/layout/modal/ModalConfirm';
-import { Loading } from '../components/ui';
+import { Loading, Form, Input } from '../components/ui';
 import { useIsMobile } from '../hooks';
 import {
   DebtMetrics,
@@ -37,6 +37,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     success,
     fetchDebts,
     createDebt,
+    updateDebt,
     deleteDebt,
     addMovement,
     deleteMovement,
@@ -49,6 +50,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [movementModalType, setMovementModalType] = useState<'CHARGE' | 'PAYMENT'>('CHARGE');
   const [movementToDelete, setMovementToDelete] = useState<DebtMovement | null>(null);
+  const [editingInitialDebt, setEditingInitialDebt] = useState<Debt | null>(null);
 
   const [isSuccessClosing, setIsSuccessClosing] = useState(false);
   const [isMovementDeleteClosing, setIsMovementDeleteClosing] = useState(false);
@@ -221,6 +223,48 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     }
   };
 
+  const handleOpenEditInitialAmount = (debt: Debt) => {
+    setEditingInitialDebt(debt);
+    clearError();
+    clearSuccess();
+    closeModal({ idModal: 'debt-details-modal' });
+    setTimeout(() => {
+      openModal({ idModal: 'debt-edit-initial-modal' });
+    }, 200);
+  };
+
+  const handleUpdateInitialSubmit = async (formData: { initialAmount: any }) => {
+    if (!editingInitialDebt?.id) return;
+    const isOk = await updateDebt(editingInitialDebt.id, {
+      initialAmount: Number(formData.initialAmount),
+    });
+    if (isOk) {
+      setIsSuccessClosing(true);
+      await fetchDebts();
+      setTimeout(() => {
+        closeModal({ idModal: 'debt-edit-initial-modal' });
+        setIsSuccessClosing(false);
+        if (selectedDebt?.id === editingInitialDebt.id) {
+          setTimeout(() => {
+            openModal({ idModal: 'debt-details-modal' });
+          }, 200);
+        }
+        setEditingInitialDebt(null);
+      }, 3000);
+    }
+  };
+
+  const handleEditInitialModalHidden = () => {
+    if (!isSuccessClosing && selectedDebt && editingInitialDebt) {
+      setEditingInitialDebt(null);
+      setTimeout(() => {
+        openModal({ idModal: 'debt-details-modal' });
+      }, 150);
+    } else {
+      setEditingInitialDebt(null);
+    }
+  };
+
   return (
     <MainLayout
       section={section}
@@ -308,6 +352,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
                 key={debt.id}
                 debt={debt}
                 onSelectDebt={handleOpenDetails}
+                onEdit={handleOpenEditInitialAmount}
                 onDelete={(d) => {
                   setSelectedDebt(d);
                   clearError();
@@ -372,6 +417,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
             onRequestDeleteMovement={handleRequestDeleteMovement}
             onOpenChargeModal={handleOpenChargeModal}
             onOpenPaymentModal={handleOpenPaymentModal}
+            onEditInitialAmount={handleOpenEditInitialAmount}
           />
         )}
       </ModalPost>
@@ -483,6 +529,99 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
           </>
         )}
       </ModalConfirm>
+
+      {/* MODAL EDITAR MONTO INICIAL DE DEUDA */}
+      <ModalPost
+        title="Corregir Monto Inicial de Deuda"
+        id="debt-edit-initial-modal"
+        formId="debt-edit-initial-form"
+        loading={loading || isSuccessClosing}
+        clearError={clearError}
+        clearSuccess={clearSuccess}
+        onHidden={handleEditInitialModalHidden}
+        buttonSubmit={{
+          label: 'Guardar Monto',
+          labelLoading: 'Guardando...',
+          className: 'btn-submit-post',
+          disabled: false,
+          onClick: () => {},
+        }}
+      >
+        {editingInitialDebt && (
+          <Form
+            formId="debt-edit-initial-form"
+            onSubmit={handleUpdateInitialSubmit}
+            loading={loading}
+            errorMessage={error || undefined}
+            successMessage={success || undefined}
+            clearError={clearError}
+            clearSuccess={clearSuccess}
+            modalId="debt-edit-initial-modal"
+            defaultValues={{
+              initialAmount: editingInitialDebt.initialAmount ?? 0,
+            }}
+          >
+            {({ control, errors }) => (
+              <>
+                <div
+                  className="mb-3 p-3 rounded"
+                  style={{
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted">Entidad / Persona:</span>
+                    <strong className="text-dark">
+                      {editingInitialDebt.entity?.name || 'Entidad'}
+                    </strong>
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <span className="text-muted">Tipo de libreta:</span>
+                    <span
+                      className="fw-semibold"
+                      style={{
+                        color:
+                          editingInitialDebt.type === 'Payable'
+                            ? '#c46262'
+                            : '#4c9767',
+                      }}
+                    >
+                      {editingInitialDebt.type === 'Payable'
+                        ? 'Debo (Pago)'
+                        : 'Me deben (Cobro)'}
+                    </span>
+                  </div>
+                </div>
+
+                <Input
+                  formID="debt-edit-initial-form"
+                  name="initialAmount"
+                  label="Monto Inicial de la Deuda"
+                  placeholder="Ej: 50000"
+                  type="number"
+                  control={control}
+                  rules={{
+                    required: 'El monto es obligatorio',
+                    min: { value: 0, message: 'El monto debe ser 0 o mayor' },
+                    valueAsNumber: true,
+                  }}
+                  errors={errors}
+                />
+
+                <p
+                  className="text-muted mt-2 d-flex align-items-center gap-2"
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <BsInfoCircle size={15} className="flex-shrink-0" />
+                  Al actualizar el monto inicial, el saldo restante y el estado de la deuda se recalcularán automáticamente con todos sus movimientos existentes.
+                </p>
+              </>
+            )}
+          </Form>
+        )}
+      </ModalPost>
     </MainLayout>
   );
 };

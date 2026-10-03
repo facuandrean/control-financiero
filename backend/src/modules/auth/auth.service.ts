@@ -64,7 +64,7 @@ export const authService = {
       userAgent,
       ipAddress,
       expiresAt,
-      createdAt: sql`CURRENT_TIMESTAMP`,
+      createdAt: sql`datetime('now', '-3 hours')`,
     });
 
     return { accessToken, refreshToken };

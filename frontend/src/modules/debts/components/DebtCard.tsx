@@ -1,4 +1,4 @@
-import { BsTrash, BsJournalText } from 'react-icons/bs';
+import { BsTrash, BsJournalText, BsPencil } from 'react-icons/bs';
 import type { Debt } from '../../../types/debt.types';
 import './debtCard.css';
 
@@ -15,6 +15,7 @@ export const DebtCard = ({
   debt,
   onSelectDebt,
   onDelete,
+  onEdit,
 }: DebtCardProps) => {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -103,6 +104,20 @@ export const DebtCard = ({
           <BsJournalText />
           <span>Ver Libreta</span>
         </button>
+
+        {onEdit && (
+          <button
+            type="button"
+            className="btn-card-action btn-icon-only btn-edit-debt"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(debt);
+            }}
+            title="Editar monto inicial"
+          >
+            <BsPencil />
+          </button>
+        )}
 
         <button
           type="button"

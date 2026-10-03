@@ -1,6 +1,7 @@
 .header {
-  width: 100vw;
-  min-width: 375px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
   height: 65px;
   background-color: #FEFFFE;
   border-bottom: 1px solid #e0e0e0;

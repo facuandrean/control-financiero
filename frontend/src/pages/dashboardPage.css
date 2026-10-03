@@ -19,9 +19,10 @@
    -------------------------------------------------------------------------- */
 .dashboard-quick-actions {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 1rem;
   width: 100%;
+  padding-top: 1rem;
 }
 
 .quick-action-btn {
@@ -91,7 +92,7 @@
 
 .quick-action-income .quick-action-icon-wrapper {
   background-color: #dcfce7;
-  color: #15803d;
+  color: #4c9767;
 }
 
 .quick-action-expense:hover {
@@ -100,7 +101,16 @@
 
 .quick-action-expense .quick-action-icon-wrapper {
   background-color: #fee2e2;
-  color: #b91c1c;
+  color: #c46262;
+}
+
+.quick-action-credit-card:hover {
+  border-color: #f59e0b;
+}
+
+.quick-action-credit-card .quick-action-icon-wrapper {
+  background-color: #fef3c7;
+  color: #d97706;
 }
 
 .quick-action-transfer:hover {
@@ -109,7 +119,7 @@
 
 .quick-action-transfer .quick-action-icon-wrapper {
   background-color: #e0f2fe;
-  color: #0369a1;
+  color: #7a96b4;
 }
 
 .quick-action-debt:hover {
@@ -205,7 +215,7 @@
   padding: 0.35rem 0.85rem;
   font-size: 0.775rem;
   font-weight: 600;
-  color: #0284c7;
+  color: #7a96b4;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -214,7 +224,7 @@
 
 .dashboard-reset-month-btn:hover {
   background-color: #e0f2fe;
-  color: #0369a1;
+  color: #7a96b4;
   border-color: #7dd3fc;
   transform: translateY(-1px);
 }
@@ -227,12 +237,17 @@
   padding: 1rem 0rem !important;
   background-color: transparent !important;
   border: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .dashboard-metrics-wrapper .body-content {
   display: grid !important;
   grid-template-columns: repeat(4, 1fr) !important;
   gap: 1.25rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .dashboard-metric-card {
@@ -297,21 +312,21 @@
 }
 
 .metric-income-text {
-  color: #16a34a;
+  color: #4c9767;
 }
 
 .metric-expense .dashboard-metric-icon {
   background-color: #fee2e2;
-  color: #dc2626;
+  color: #c46262;
 }
 
 .metric-expense-text {
-  color: #dc2626;
+  color: #c46262;
 }
 
 .metric-balance .dashboard-metric-icon {
   background-color: #e0f2fe;
-  color: #0284c7;
+  color: #7a96b4;
 }
 
 .metric-networth .dashboard-metric-icon {
@@ -382,7 +397,7 @@
 }
 
 .dashboard-insight-icon {
-  color: #0284c7;
+  color: #7a96b4;
   font-size: 1.15rem;
   flex-shrink: 0;
 }
@@ -393,7 +408,7 @@
   gap: 0.25rem;
   font-size: 0.825rem;
   font-weight: 600;
-  color: #0284c7;
+  color: #7a96b4;
   text-decoration: none;
   transition: color 0.15s ease;
   white-space: nowrap;
@@ -401,7 +416,7 @@
 }
 
 .dashboard-view-all-link:hover {
-  color: #0369a1;
+  color: #7a96b4;
   text-decoration: underline;
 }
 
@@ -481,6 +496,7 @@
   height: 100%;
   border-radius: 9999px;
   transition: width 0.4s ease;
+
 }
 
 /* Últimos Movimientos */
@@ -507,6 +523,7 @@
   min-width: 0;
   box-sizing: border-box;
   gap: 0.5rem;
+  cursor: pointer;
 }
 
 .recent-tx-item:hover {
@@ -541,12 +558,12 @@
 
 .recent-tx-icon.expense {
   background-color: #fee2e2;
-  color: #dc2626;
+  color: #c46262;
 }
 
 .recent-tx-icon.transfer {
   background-color: #e0f2fe;
-  color: #0284c7;
+  color: #7a96b4;
 }
 
 .recent-tx-info {
@@ -610,11 +627,11 @@
 }
 
 .recent-tx-amount.expense {
-  color: #dc2626;
+  color: #c46262;
 }
 
 .recent-tx-amount.transfer {
-  color: #0284c7;
+  color: #7a96b4;
 }
 
 /* Empty State */

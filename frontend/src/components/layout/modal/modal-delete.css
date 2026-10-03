@@ -6,6 +6,7 @@
   font-weight: 600;
   transition: all 0.2s ease;
 }
+
 .modal-footer .btn-secondary:hover {
   background-color: #f1f5f9;
   color: #111827;
@@ -13,24 +14,25 @@
 
 .modal-footer .btn-danger {
   background-color: rgba(220, 38, 38, 0.15);
-  color: #dc2626;
+  color: #c46262;
   border: 1px solid rgba(220, 38, 38, 0.3);
   font-weight: 600;
   transition: all 0.2s ease;
 }
+
 .modal-footer .btn-danger:hover {
   background-color: rgba(220, 38, 38, 0.25);
-  color: #b91c1c;
+  color: #c46262;
 }
 
 .modal-footer .btn-success {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: transparent;
+  color: #4c9767;
+  border: 1px solid #dcfce7;
   font-weight: 600;
   transition: all 0.2s ease;
 }
+
 .modal-footer .btn-success:hover {
-  background-color: rgba(16, 185, 129, 0.25);
-  color: #047857;
+  background-color: rgba(16, 185, 129, 0.1);
 }

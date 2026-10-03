@@ -28,8 +28,8 @@ export const entityService = {
       userID: data.userID,
       id: crypto.randomUUID(),
       status: "Active",
-      createdAt: sql`CURRENT_TIMESTAMP`,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
+      createdAt: sql`datetime('now', '-3 hours')`,
+      updatedAt: sql`datetime('now', '-3 hours')`,
     }).returning().get();
 
     if (!newEntity) {
@@ -44,7 +44,7 @@ export const entityService = {
       .update(entities)
       .set({
         ...data,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .where(and(eq(entities.id, id), eq(entities.userID, userID)))
       .returning()
@@ -62,7 +62,7 @@ export const entityService = {
       .update(entities)
       .set({
         status: "Inactive",
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`datetime('now', '-3 hours')`,
       })
       .where(and(eq(entities.id, id), eq(entities.userID, userID)))
       .returning()

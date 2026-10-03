@@ -26,13 +26,13 @@ interface Props {
  */
 export const AccountDetails = ({ account, onEdit, onDeactivate, onReactivate }: Props) => {
   const isCredit = account.type === 'Tarjeta de Crédito';
-  
+
   /**
    * Formats a number into an Argentine Peso currency string.
    * @param {number} amount - The amount to format.
    * @returns {string} The formatted currency string.
    */
-  const formatMoney = (amount: number) => 
+  const formatMoney = (amount: number) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(amount);
 
   /**
@@ -40,7 +40,7 @@ export const AccountDetails = ({ account, onEdit, onDeactivate, onReactivate }: 
    * @returns {JSX.Element} The React Icon component.
    */
   const getIcon = () => {
-    switch(account.type) {
+    switch (account.type) {
       case 'Efectivo': return <BsCash />;
       case 'Tarjeta de Crédito': return <BsCreditCard />;
       case 'Billetera virtual': return <BsWallet2 />;
@@ -53,18 +53,18 @@ export const AccountDetails = ({ account, onEdit, onDeactivate, onReactivate }: 
    * Returns a solid pastel color for borders or icons based on the account tag.
    */
   const getSolidPastelColor = () => {
-    switch(account.tag) {
-      case 'efectivo': return '#059669'; 
-      case 'crédito': return '#dc2626'; 
-      case 'billetera': return '#2563eb'; 
-      case 'ahorro': return '#d97706'; 
-      default: return '#7c3aed'; 
+    switch (account.tag) {
+      case 'efectivo': return '#059669';
+      case 'crédito': return '#c46262';
+      case 'billetera': return '#2563eb';
+      case 'ahorro': return '#d97706';
+      default: return '#7c3aed';
     }
   };
 
   return (
     <div className="account-details-card">
-      
+
       {/* CABECERA */}
       <div className="ad-header">
         <div className="ad-icon-box" style={{ color: getSolidPastelColor() }}>

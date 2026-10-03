@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Form, Input, Select } from '../../../components/ui';
 import { useAccounts } from '../../accounts';
+import { getLocalDateString } from '../../../utils/date.utils';
 import type { Debt, CreateMovementDTO } from '../../../types/debt.types';
 
 interface MovementFormProps {
@@ -48,7 +49,7 @@ export const MovementForm = ({
       label: `${a.bank} - ${a.name} (${formatCurrency(a.amount ?? 0)})`,
     }));
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
 
   const handleFormSubmit = async (data: any) => {
     const payload: CreateMovementDTO = {
@@ -111,11 +112,10 @@ export const MovementForm = ({
               <div className="d-flex justify-content-between mb-1">
                 <span className="text-muted">Operación:</span>
                 <span
-                  className={
-                    type === 'CHARGE'
-                      ? 'text-secondary-emphasis fw-bold'
-                      : 'text-success fw-bold'
-                  }
+                  className="fw-bold"
+                  style={{
+                    color: type === 'CHARGE' ? '#c46262' : '#4c9767',
+                  }}
                 >
                   {type === 'CHARGE'
                     ? 'Añadir cargo'
@@ -124,16 +124,7 @@ export const MovementForm = ({
               </div>
               <div className="d-flex justify-content-between pt-1 border-top">
                 <span className="fw-semibold">Saldo Pendiente Actual:</span>
-                <strong
-                  style={{
-                    color:
-                      debt.status === 'Settled' || balance <= 0
-                        ? '#3b8a58ff'
-                        : debt.type === 'Payable'
-                          ? '#a14d4dff'
-                          : '#3b8a58ff',
-                  }}
-                >
+                <strong>
                   {formatCurrency(Math.max(0, balance))}
                 </strong>
               </div>

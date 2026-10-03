@@ -2,12 +2,16 @@
 
 .account-details-card {
   background-color: transparent;
-  border: 1px solid #e2e8f0; /* Light gray border for light themes */
+  border: 1px solid #e2e8f0;
+  /* Light gray border for light themes */
   border-radius: 16px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Placeholder cuando no hay cuenta seleccionada */
@@ -17,9 +21,12 @@
   justify-content: center;
   height: 100%;
   min-height: 300px;
-  color: #4b5563; /* Dark gray */
+  color: #4b5563;
+  /* Dark gray */
   border: 1px dashed #cbd5e1;
   border-radius: 16px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 /* Cabecera del detalle */
@@ -27,6 +34,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
 }
 
 .ad-icon-box {
@@ -34,24 +42,35 @@
   height: 56px;
   background-color: transparent;
   border-radius: 12px;
-  border: 1px solid #e2e8f0; /* Light gray border */
+  border: 1px solid #e2e8f0;
+  /* Light gray border */
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.ad-title {
+  min-width: 0;
+  flex: 1;
 }
 
 .ad-title h2 {
   margin: 0;
-  color: #111827; /* Dark */
+  color: #111827;
+  /* Dark */
   font-size: 1.25rem;
   font-weight: 700;
+  word-break: break-word;
 }
 
 .ad-title p {
   margin: 2px 0 8px 0;
-  color: #4b5563; /* Dark gray */
+  color: #4b5563;
+  /* Dark gray */
   font-size: 0.9rem;
+  word-break: break-word;
 }
 
 /* Insignia / Badge */
@@ -66,21 +85,43 @@
 }
 
 /* Color específico del badge */
-.badge-corriente { background-color: rgba(59, 130, 246, 0.15) !important; color: #2563eb !important; }
-.badge-ahorro { background-color: rgba(16, 185, 129, 0.15) !important; color: #059669 !important; }
-.badge-billetera { background-color: rgba(168, 85, 247, 0.15) !important; color: #7c3aed !important; }
-.badge-crédito { background-color: rgba(239, 68, 68, 0.15) !important; color: #dc2626 !important; }
-.badge-efectivo { background-color: rgba(234, 179, 8, 0.15) !important; color: #d97706 !important; }
+.badge-corriente {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #2563eb !important;
+}
+
+.badge-ahorro {
+  background-color: #dcfce7 !important;
+  color: #4c9767 !important;
+}
+
+.badge-billetera {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  color: #7c3aed !important;
+}
+
+.badge-crédito {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #c46262 !important;
+}
+
+.badge-efectivo {
+  background-color: #dcfce7 !important;
+  color: #4c9767 !important;
+}
 
 /* Caja principal de saldo */
 .ad-main-balance {
-  background-color: rgba(241, 245, 249, 0.5); /* Very light gray */
+  background-color: rgba(241, 245, 249, 0.5);
+  /* Very light gray */
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .ad-main-balance p {
@@ -98,12 +139,14 @@
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.5px;
+  word-break: break-word;
 }
 
 /* Lista de Atributos */
 .ad-attributes-list {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .ad-row {
@@ -112,6 +155,8 @@
   align-items: center;
   padding: 16px 0;
   border-bottom: 1px solid #e2e8f0;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
 .ad-row:last-child {
@@ -119,14 +164,19 @@
 }
 
 .ad-label {
-  color: #64748b; /* Medium gray */
+  color: #64748b;
+  /* Medium gray */
   font-size: 0.9rem;
+  flex-shrink: 0;
 }
 
 .ad-value {
-  color: #111827; /* Dark */
+  color: #111827;
+  /* Dark */
   font-size: 0.9rem;
   font-weight: 600;
+  text-align: right;
+  word-break: break-word;
 }
 
 .description-row {
@@ -139,6 +189,7 @@
   color: #4b5563;
   line-height: 1.5;
   font-weight: 400;
+  text-align: left;
 }
 
 /* Botonera de acciones */
@@ -146,13 +197,16 @@
   display: flex;
   gap: 12px;
   margin-top: 16px;
+  flex-wrap: wrap;
 }
 
 .btn-edit-account {
   flex: 1;
   background-color: transparent;
-  border: 1px solid #cbd5e1; /* Light gray border */
-  color: #4b5563; /* Dark gray */
+  border: 1px solid #cbd5e1;
+  /* Light gray border */
+  color: #4b5563;
+  /* Dark gray */
   padding: 12px;
   border-radius: 8px;
   font-weight: 600;
@@ -165,15 +219,19 @@
 }
 
 .btn-edit-account:hover {
-  background-color: #f1f5f9; /* Light gray background on hover */
-  color: #111827; /* Darker text */
+  background-color: #f1f5f9;
+  /* Light gray background on hover */
+  color: #111827;
+  /* Darker text */
 }
 
 .btn-delete-account {
   flex: 1;
   background-color: transparent;
-  border: 1px solid rgba(220, 38, 38, 0.3); /* Red border */
-  color: #dc2626; /* Red text */
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  /* Red border */
+  color: #c46262;
+  /* Red text */
   padding: 12px 16px;
   border-radius: 8px;
   font-weight: 600;
@@ -192,8 +250,10 @@
 .btn-reactivate-account {
   flex: 1;
   background-color: transparent;
-  border: 1px solid rgba(16, 185, 129, 0.3); /* Green border */
-  color: #059669; /* Green text */
+  border: 1px solid #dcfce7;
+  /* Green border */
+  color: #4c9767;
+  /* Green text */
   padding: 12px 16px;
   border-radius: 8px;
   font-weight: 600;
@@ -207,4 +267,46 @@
 
 .btn-reactivate-account:hover {
   background-color: rgba(16, 185, 129, 0.1);
+}
+
+@media (max-width: 768px) {
+  .account-details-card {
+    padding: 1rem;
+    gap: 16px;
+    border-radius: 12px;
+  }
+
+  .ad-header {
+    gap: 12px;
+  }
+
+  .ad-icon-box {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .ad-main-balance {
+    padding: 1rem;
+  }
+
+  .ad-main-balance h1 {
+    font-size: 1.5rem;
+  }
+
+  .ad-row {
+    padding: 12px 0;
+  }
+
+  .ad-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-edit-account,
+  .btn-delete-account,
+  .btn-reactivate-account {
+    width: 100%;
+    padding: 10px 14px;
+  }
 }

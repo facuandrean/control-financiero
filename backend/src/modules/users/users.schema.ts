@@ -7,6 +7,6 @@ export const users = sqliteTable('users', {
   lastName: text('last_name').notNull(),
   email: text('email').notNull().unique(),
   password: text('password').notNull(),
-  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+  createdAt: text('created_at').notNull().default(sql`datetime('now', '-3 hours')`),
+  updatedAt: text('updated_at').notNull().default(sql`datetime('now', '-3 hours')`).$onUpdate(() => sql`datetime('now', '-3 hours')`),
 });

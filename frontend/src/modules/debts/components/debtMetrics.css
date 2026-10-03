@@ -83,11 +83,11 @@
 
 .metric-net .debt-metric-icon {
   background-color: #e0f2fe;
-  color: #0284c7;
+  color: #7a96b4;
 }
 
 .metric-net .debt-metric-amount.is-positive {
-  color: #16a34a;
+  color: #4c9767;
 }
 
 .metric-net .debt-metric-amount.is-negative {

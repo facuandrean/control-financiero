@@ -9,8 +9,18 @@ export const openModal = ({ idModal }: OpenModalProps) => {
   if (modalEl) {
     const modal = Modal.getOrCreateInstance(modalEl);
     modal.show();
+    return;
   }
-}
+
+  // Fallback for cases where the modal DOM element is mounting in the current render cycle
+  setTimeout(() => {
+    const el = document.getElementById(idModal);
+    if (el) {
+      const modal = Modal.getOrCreateInstance(el);
+      modal.show();
+    }
+  }, 0);
+};
 
 export const onModalHidden = (modalId: string, callback: () => void): (() => void) => {
   const modalEl = document.getElementById(modalId);

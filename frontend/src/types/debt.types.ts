@@ -52,6 +52,7 @@ export interface CreateDebtDTO {
 
 export interface UpdateDebtDTO {
   status?: DebtStatus;
+  initialAmount?: number;
 }
 
 export interface CreateMovementDTO {

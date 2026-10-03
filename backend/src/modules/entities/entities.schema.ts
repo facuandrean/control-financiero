@@ -9,7 +9,7 @@ export const entities = sqliteTable("entities", {
   name: text("name").notNull(),
   status: text("status").notNull().default("Active"),
   description: text("description"),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`datetime('now', '-3 hours')`),
+  updatedAt: text("updated_at").notNull().default(sql`datetime('now', '-3 hours')`).$onUpdate(() => sql`datetime('now', '-3 hours')`),
 });
 

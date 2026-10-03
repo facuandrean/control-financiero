@@ -13,6 +13,11 @@ export const createDebtSchema = z.object({
 
 export const updateDebtSchema = z.object({
   status: z.enum(["Pending", "Settled"], { message: "Estado inválido" }).optional(),
+  initialAmount: z
+    .number({ message: "El monto debe ser un número" })
+    .min(0, "El monto inicial debe ser 0 o mayor")
+    .max(1000000000, "El monto no puede superar 1.000.000.000")
+    .optional(),
 });
 
 export const createMovementSchema = z.object({
