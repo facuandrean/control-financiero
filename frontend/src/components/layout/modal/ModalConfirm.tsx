@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Loading } from '../../ui/loading/Loading';
 import { MessageError } from '../../ui/messages/MessageError';
 import { MessageSuccess } from '../../ui/messages/MessageSuccess';
@@ -44,13 +44,18 @@ export const ModalConfirm = ({
   useClear({ message: errorMessage, clearMessage: clearError ?? (() => {}) });
   useClear({ message: successMessage, clearMessage: clearSuccess ?? (() => {}) });
 
+  const callbacksRef = useRef({ clearError, clearSuccess, onHidden });
+  useEffect(() => {
+    callbacksRef.current = { clearError, clearSuccess, onHidden };
+  });
+
   useEffect(() => {
     return onModalHidden(id, () => {
-      clearError?.();
-      clearSuccess?.();
-      onHidden?.();
+      callbacksRef.current.clearError?.();
+      callbacksRef.current.clearSuccess?.();
+      callbacksRef.current.onHidden?.();
     });
-  }, [id, clearError, clearSuccess, onHidden]);
+  }, [id]);
 
   return (
     <>

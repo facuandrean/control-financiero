@@ -3,9 +3,11 @@ import { transactions } from "../transactions/transactions.schema";
 import { accounts } from "../accounts/accounts.schema";
 import { categories } from "../categories/categories.schema";
 import { entities } from "../entities/entities.schema";
-import { and, desc, eq, like } from "drizzle-orm";
+import { and, desc, eq, like, aliasedTable } from "drizzle-orm";
 import { debtService } from "../debts/debts.service";
 import { DashboardSummary } from "./dashboard.types";
+
+const toAccounts = aliasedTable(accounts, "to_accounts");
 
 export const dashboardService = {
   getSummary: async (
@@ -98,13 +100,17 @@ export const dashboardService = {
         return sum + (acc.amount || 0);
       }, 0);
 
-    // Menos la suma del saldo pendiente (totalAmount - paidAmount) de todas las deudas activas tipo 'Payable'
+    // Menos la suma del saldo pendiente de deudas activas tipo 'Payable', más las deudas activas tipo 'Receivable'
     const allDebts = await debtService.getDebts(userID);
     const totalPendingPayableDebts = allDebts
       .filter((debt) => debt.type === "Payable" && debt.status !== "Settled")
       .reduce((sum, debt) => sum + (debt.remainingAmount || 0), 0);
 
-    const netWorth = totalAccountsBalance - totalPendingPayableDebts;
+    const totalPendingReceivableDebts = allDebts
+      .filter((debt) => debt.type === "Receivable" && debt.status !== "Settled")
+      .reduce((sum, debt) => sum + (debt.remainingAmount || 0), 0);
+
+    const netWorth = totalAccountsBalance - totalPendingPayableDebts + totalPendingReceivableDebts;
 
     // 5. Top Categories (3 o 4 categorías en las que más se gastó en el mes)
     const sortedCategories = Object.values(expenseByCategory).sort(
@@ -129,11 +135,13 @@ export const dashboardService = {
         type: transactions.type,
         createdAt: transactions.createdAt,
         accountName: accounts.name,
+        toAccountName: toAccounts.name,
         categoryName: categories.name,
         entityName: entities.name,
       })
       .from(transactions)
       .leftJoin(accounts, eq(transactions.accountID, accounts.id))
+      .leftJoin(toAccounts, eq(transactions.toAccountID, toAccounts.id))
       .leftJoin(categories, eq(transactions.categoryID, categories.id))
       .leftJoin(entities, eq(transactions.entityID, entities.id))
       .where(eq(transactions.userID, userID))
@@ -149,6 +157,7 @@ export const dashboardService = {
       type: tx.type,
       createdAt: tx.createdAt,
       accountName: tx.accountName || null,
+      toAccountName: tx.toAccountName || null,
       categoryName: tx.categoryName || null,
       entityName: tx.entityName || null,
     }));

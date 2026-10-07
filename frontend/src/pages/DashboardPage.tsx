@@ -115,7 +115,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     const parts = dateStr.split('T')[0].split('-');
     if (parts.length === 3) {
       const [year, month, day] = parts;
-      return `${day}-${month}-${year}`;
+      return `${day}/${month}/${year}`;
     }
     return dateStr;
   };
@@ -183,7 +183,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     openModal({ idModal: 'dashboard-debt-modal' });
   };
 
-  // Submission handlers with 3-second auto-close and real-time dashboard refresh
+  // Submission handlers with 1-second auto-close and real-time dashboard refresh
   const handleTransactionSubmit = async (formData: CreateTransactionDTO) => {
     const isOk = await createTransaction(formData);
     if (isOk) {
@@ -192,7 +192,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'dashboard-transaction-modal' });
         setIsTxSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -221,7 +221,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'dashboard-debt-modal' });
         setIsDebtSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -563,21 +563,32 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
                         </span>
                         <div className="recent-tx-meta">
                           <span>{formatDate(tx.date)}</span>
-                          {tx.accountName && (
+                          {tx.type === 'Transfer' ? (
                             <span
                               className="recent-tx-badge"
-                              title={tx.accountName}
+                              title={`${tx.accountName || 'Origen'} ➔ ${tx.toAccountName || 'Destino'}`}
                             >
-                              {tx.accountName}
+                              {tx.accountName || 'Origen'} ➔ {tx.toAccountName || 'Destino'}
                             </span>
-                          )}
-                          {tx.categoryName && (
-                            <span
-                              className="recent-tx-badge"
-                              title={tx.categoryName}
-                            >
-                              {tx.categoryName}
-                            </span>
+                          ) : (
+                            <>
+                              {tx.accountName && (
+                                <span
+                                  className="recent-tx-badge"
+                                  title={tx.accountName}
+                                >
+                                  {tx.accountName}
+                                </span>
+                              )}
+                              {tx.categoryName && (
+                                <span
+                                  className="recent-tx-badge"
+                                  title={tx.categoryName}
+                                >
+                                  {tx.categoryName}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

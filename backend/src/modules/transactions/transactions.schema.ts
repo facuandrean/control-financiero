@@ -26,6 +26,7 @@ export const transactions = sqliteTable(
     entityID: text("id_entity").references(() => entities.id, {
       onDelete: "set null",
     }),
+    installmentGroupId: text("installment_group_id"),
     date: text("date").notNull(),
     description: text("description"),
     createdAt: text("created_at")
@@ -39,5 +40,6 @@ export const transactions = sqliteTable(
   (table) => [
     index("idx_transactions_user_date").on(table.userID, table.date),
     index("idx_transactions_account").on(table.accountID),
+    index("idx_transactions_installment_group").on(table.installmentGroupId),
   ]
 );

@@ -44,7 +44,7 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
   }, [fetchCategories]);
 
   const filteredCategories = categories.filter((cat) => {
-    const matchesSearch = cat.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (cat.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = cat.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -56,7 +56,7 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'category-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -68,7 +68,7 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'category-update-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -208,6 +208,7 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedCategory(null)}
         buttonLabel="Dar de baja"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-danger"
@@ -220,7 +221,7 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
                 closeModal({ idModal: 'confirm-deactivate-category-modal' });
                 setSelectedCategory(null);
                 setIsSuccessClosing(false);
-              }, 3000);
+              }, 1000);
             }
           }
         }}
@@ -245,6 +246,7 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedCategory(null)}
         buttonLabel="Reactivar"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-success"
@@ -257,7 +259,7 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
                 closeModal({ idModal: 'confirm-reactivate-category-modal' });
                 setSelectedCategory(null);
                 setIsSuccessClosing(false);
-              }, 3000);
+              }, 1000);
             }
           }
         }}

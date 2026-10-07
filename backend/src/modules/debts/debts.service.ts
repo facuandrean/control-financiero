@@ -331,8 +331,12 @@ export const debtService = {
         });
 
         // Actualizar saldo de la cuenta
-        const newBalance =
-          transactionType === "Expense"
+        const isCard = isCreditCard(account.type, account.tag);
+        const newBalance = isCard
+          ? transactionType === "Expense"
+            ? (account.amount ?? 0) + data.amount
+            : (account.amount ?? 0) - data.amount
+          : transactionType === "Expense"
             ? (account.amount ?? 0) - data.amount
             : (account.amount ?? 0) + data.amount;
 
@@ -436,8 +440,12 @@ export const debtService = {
             .get();
 
           if (acc) {
-            const restoredBalance =
-              txRecord.type === "Expense"
+            const isCard = isCreditCard(acc.type, acc.tag);
+            const restoredBalance = isCard
+              ? txRecord.type === "Expense"
+                ? (acc.amount ?? 0) - txRecord.amount
+                : (acc.amount ?? 0) + txRecord.amount
+              : txRecord.type === "Expense"
                 ? (acc.amount ?? 0) + txRecord.amount
                 : (acc.amount ?? 0) - txRecord.amount;
 
@@ -527,8 +535,12 @@ export const debtService = {
               .get();
 
             if (acc) {
-              const restoredBalance =
-                txRecord.type === "Expense"
+              const isCard = isCreditCard(acc.type, acc.tag);
+              const restoredBalance = isCard
+                ? txRecord.type === "Expense"
+                  ? (acc.amount ?? 0) - txRecord.amount
+                  : (acc.amount ?? 0) + txRecord.amount
+                : txRecord.type === "Expense"
                   ? (acc.amount ?? 0) + txRecord.amount
                   : (acc.amount ?? 0) - txRecord.amount;
 

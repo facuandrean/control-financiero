@@ -259,9 +259,14 @@ exports.debtService = {
                     updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 });
                 // Actualizar saldo de la cuenta
-                const newBalance = transactionType === "Expense"
-                    ? (account.amount ?? 0) - data.amount
-                    : (account.amount ?? 0) + data.amount;
+                const isCard = isCreditCard(account.type, account.tag);
+                const newBalance = isCard
+                    ? transactionType === "Expense"
+                        ? (account.amount ?? 0) + data.amount
+                        : (account.amount ?? 0) - data.amount
+                    : transactionType === "Expense"
+                        ? (account.amount ?? 0) - data.amount
+                        : (account.amount ?? 0) + data.amount;
                 await tx
                     .update(accounts_schema_1.accounts)
                     .set({ amount: newBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
@@ -341,9 +346,14 @@ exports.debtService = {
                         .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, txRecord.accountID))
                         .get();
                     if (acc) {
-                        const restoredBalance = txRecord.type === "Expense"
-                            ? (acc.amount ?? 0) + txRecord.amount
-                            : (acc.amount ?? 0) - txRecord.amount;
+                        const isCard = isCreditCard(acc.type, acc.tag);
+                        const restoredBalance = isCard
+                            ? txRecord.type === "Expense"
+                                ? (acc.amount ?? 0) - txRecord.amount
+                                : (acc.amount ?? 0) + txRecord.amount
+                            : txRecord.type === "Expense"
+                                ? (acc.amount ?? 0) + txRecord.amount
+                                : (acc.amount ?? 0) - txRecord.amount;
                         await tx
                             .update(accounts_schema_1.accounts)
                             .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })
@@ -416,9 +426,14 @@ exports.debtService = {
                             .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, txRecord.accountID))
                             .get();
                         if (acc) {
-                            const restoredBalance = txRecord.type === "Expense"
-                                ? (acc.amount ?? 0) + txRecord.amount
-                                : (acc.amount ?? 0) - txRecord.amount;
+                            const isCard = isCreditCard(acc.type, acc.tag);
+                            const restoredBalance = isCard
+                                ? txRecord.type === "Expense"
+                                    ? (acc.amount ?? 0) - txRecord.amount
+                                    : (acc.amount ?? 0) + txRecord.amount
+                                : txRecord.type === "Expense"
+                                    ? (acc.amount ?? 0) + txRecord.amount
+                                    : (acc.amount ?? 0) - txRecord.amount;
                             await tx
                                 .update(accounts_schema_1.accounts)
                                 .set({ amount: restoredBalance, updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')` })

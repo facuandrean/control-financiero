@@ -210,13 +210,6 @@
   transition: all 0.15s ease;
 }
 
-.btn-tx-edit {
-  color: #7a96b4;
-}
-
-.btn-tx-edit:hover {
-  background-color: #e0f2fe;
-}
 
 .btn-tx-delete {
   color: #c46262;

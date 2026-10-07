@@ -112,7 +112,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'debt-create-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -159,7 +159,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         setTimeout(() => {
           openModal({ idModal: 'debt-details-modal' });
         }, 200);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -196,7 +196,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         setTimeout(() => {
           openModal({ idModal: 'debt-details-modal' });
         }, 200);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -219,7 +219,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         closeModal({ idModal: 'debt-details-modal' });
         setSelectedDebt(null);
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -250,7 +250,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
           }, 200);
         }
         setEditingInitialDebt(null);
-      }, 3000);
+      }, 1000);
     }
   };
 

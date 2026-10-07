@@ -44,10 +44,9 @@ export const AccountForm = ({
   isEditing = false
 }: AccountFormProps) => {
   const handleFormSubmit = async (formData: any) => {
-    const canEditBalance =
-      formData.type === "Efectivo" ||
-      formData.type === "Billetera virtual" ||
-      formData.type === "Billetera Virtual";
+    const typeStr = (formData.type || defaultValues?.type || "").toLowerCase();
+    const isCreditCardType = typeStr.includes("crédito") || typeStr.includes("credito");
+    const canEditBalance = !isCreditCardType;
     const parsedData = { ...formData };
     if (parsedData.closingDay !== undefined && parsedData.closingDay !== null && parsedData.closingDay !== '') {
       parsedData.closingDay = Math.floor(Number(parsedData.closingDay));
@@ -60,7 +59,7 @@ export const AccountForm = ({
       parsedData.dueDate = null;
     }
     if (parsedData.creditLimit !== undefined && parsedData.creditLimit !== null && parsedData.creditLimit !== '') {
-      parsedData.creditLimit = Number(parsedData.creditLimit);
+      parsedData.creditLimit = Math.round(Number(parsedData.creditLimit));
     }
 
     if (isEditing) {
@@ -68,7 +67,7 @@ export const AccountForm = ({
         await onSubmit({
           ...parsedData,
           amount: parsedData.amount !== undefined && parsedData.amount !== null && parsedData.amount !== ''
-            ? Number(parsedData.amount)
+            ? Math.round(Number(parsedData.amount))
             : 0
         });
       } else {
@@ -79,7 +78,7 @@ export const AccountForm = ({
       await onSubmit({
         ...parsedData,
         amount: parsedData.amount !== undefined && parsedData.amount !== null && parsedData.amount !== ''
-          ? Number(parsedData.amount)
+          ? Math.round(Number(parsedData.amount))
           : 0
       });
     }
@@ -101,12 +100,10 @@ export const AccountForm = ({
         // Watch the type field to dynamically show/hide inputs
         const type = useWatch({ control, name: "type" });
         
-        const isCreditCard = type === "Tarjeta de Crédito";
-        const isCash = type === "Efectivo";
-        const canEditBalance =
-          isCash ||
-          type === "Billetera virtual" ||
-          type === "Billetera Virtual";
+        const typeStr = (type || "").toLowerCase();
+        const isCreditCard = typeStr.includes("crédito") || typeStr.includes("credito");
+        const isCash = typeStr.includes("efectivo");
+        const canEditBalance = !isCreditCard;
         
         // Any account that isn't cash can optionally have last digits
         const canHaveLastDigits = !isCash && !!type; 

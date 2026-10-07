@@ -4,7 +4,6 @@ import { useClear } from '../../../hooks/useClear';
 import type {
   Transaction,
   CreateTransactionDTO,
-  UpdateTransactionDTO,
   TransactionFilters,
 } from '../../../types/transaction.types';
 
@@ -63,25 +62,6 @@ export const useTransactions = () => {
     }
   };
 
-  const updateTransaction = async (
-    id: string,
-    data: UpdateTransactionDTO
-  ): Promise<boolean> => {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      await api.patch(`/transactions/${id}`, data);
-      setSuccess('¡Transacción actualizada correctamente!');
-      return true;
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al actualizar la transacción';
-      setError(msg);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const deleteTransaction = async (id: string): Promise<boolean> => {
     setLoading(true);
@@ -107,7 +87,6 @@ export const useTransactions = () => {
     success,
     fetchTransactions,
     createTransaction,
-    updateTransaction,
     deleteTransaction,
     clearError,
     clearSuccess,

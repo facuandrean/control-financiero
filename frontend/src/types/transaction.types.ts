@@ -13,6 +13,7 @@ export interface Transaction {
   toAccountID?: string | null;
   categoryID?: string | null;
   entityID?: string | null;
+  installmentGroupId?: string | null;
   date: string;
   description: string;
   status?: string;
@@ -38,17 +39,6 @@ export interface CreateTransactionDTO {
   installments?: number;
 }
 
-export interface UpdateTransactionDTO {
-  type?: TransactionType;
-  amount?: number;
-  accountID?: string;
-  toAccountID?: string | null;
-  categoryID?: string | null;
-  entityID?: string | null;
-  date?: string;
-  description?: string;
-  installments?: number;
-}
 
 export interface TransactionFilters {
   month?: string | number;

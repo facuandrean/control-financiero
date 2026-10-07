@@ -8,6 +8,7 @@ const categories_schema_1 = require("../categories/categories.schema");
 const entities_schema_1 = require("../entities/entities.schema");
 const drizzle_orm_1 = require("drizzle-orm");
 const debts_service_1 = require("../debts/debts.service");
+const toAccounts = (0, drizzle_orm_1.aliasedTable)(accounts_schema_1.accounts, "to_accounts");
 exports.dashboardService = {
     getSummary: async (userID, month, year) => {
         const now = new Date();
@@ -79,12 +80,15 @@ exports.dashboardService = {
             }
             return sum + (acc.amount || 0);
         }, 0);
-        // Menos la suma del saldo pendiente (totalAmount - paidAmount) de todas las deudas activas tipo 'Payable'
+        // Menos la suma del saldo pendiente de deudas activas tipo 'Payable', más las deudas activas tipo 'Receivable'
         const allDebts = await debts_service_1.debtService.getDebts(userID);
         const totalPendingPayableDebts = allDebts
             .filter((debt) => debt.type === "Payable" && debt.status !== "Settled")
             .reduce((sum, debt) => sum + (debt.remainingAmount || 0), 0);
-        const netWorth = totalAccountsBalance - totalPendingPayableDebts;
+        const totalPendingReceivableDebts = allDebts
+            .filter((debt) => debt.type === "Receivable" && debt.status !== "Settled")
+            .reduce((sum, debt) => sum + (debt.remainingAmount || 0), 0);
+        const netWorth = totalAccountsBalance - totalPendingPayableDebts + totalPendingReceivableDebts;
         // 5. Top Categories (3 o 4 categorías en las que más se gastó en el mes)
         const sortedCategories = Object.values(expenseByCategory).sort((a, b) => b.totalAmount - a.totalAmount);
         const topCategories = sortedCategories.slice(0, 4).map((cat) => ({
@@ -103,11 +107,13 @@ exports.dashboardService = {
             type: transactions_schema_1.transactions.type,
             createdAt: transactions_schema_1.transactions.createdAt,
             accountName: accounts_schema_1.accounts.name,
+            toAccountName: toAccounts.name,
             categoryName: categories_schema_1.categories.name,
             entityName: entities_schema_1.entities.name,
         })
             .from(transactions_schema_1.transactions)
             .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
+            .leftJoin(toAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, toAccounts.id))
             .leftJoin(categories_schema_1.categories, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.categoryID, categories_schema_1.categories.id))
             .leftJoin(entities_schema_1.entities, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.entityID, entities_schema_1.entities.id))
             .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userID))
@@ -122,6 +128,7 @@ exports.dashboardService = {
             type: tx.type,
             createdAt: tx.createdAt,
             accountName: tx.accountName || null,
+            toAccountName: tx.toAccountName || null,
             categoryName: tx.categoryName || null,
             entityName: tx.entityName || null,
         }));

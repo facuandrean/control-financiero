@@ -26,6 +26,7 @@ exports.transactions = (0, sqlite_core_1.sqliteTable)("transactions", {
     entityID: (0, sqlite_core_1.text)("id_entity").references(() => entities_schema_1.entities.id, {
         onDelete: "set null",
     }),
+    installmentGroupId: (0, sqlite_core_1.text)("installment_group_id"),
     date: (0, sqlite_core_1.text)("date").notNull(),
     description: (0, sqlite_core_1.text)("description"),
     createdAt: (0, sqlite_core_1.text)("created_at")
@@ -38,4 +39,5 @@ exports.transactions = (0, sqlite_core_1.sqliteTable)("transactions", {
 }, (table) => [
     (0, sqlite_core_1.index)("idx_transactions_user_date").on(table.userID, table.date),
     (0, sqlite_core_1.index)("idx_transactions_account").on(table.accountID),
+    (0, sqlite_core_1.index)("idx_transactions_installment_group").on(table.installmentGroupId),
 ]);

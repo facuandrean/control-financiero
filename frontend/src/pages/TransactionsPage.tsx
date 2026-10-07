@@ -19,7 +19,6 @@ import { closeModal, openModal } from '../utils/modal.utils';
 import type {
   Transaction,
   CreateTransactionDTO,
-  UpdateTransactionDTO,
 } from '../types/transaction.types';
 
 import './transactionsPage.css';
@@ -57,7 +56,6 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
     success,
     fetchTransactions,
     createTransaction,
-    updateTransaction,
     deleteTransaction,
     clearError,
     clearSuccess,
@@ -126,24 +124,7 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'transaction-create-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
-    }
-  };
-
-  const handleUpdateSubmit = async (formData: any) => {
-    if (!selectedTransaction?.id) return;
-    const isOk = await updateTransaction(
-      selectedTransaction.id,
-      formData as UpdateTransactionDTO
-    );
-    if (isOk) {
-      setIsSuccessClosing(true);
-      await loadData();
-      setTimeout(() => {
-        closeModal({ idModal: 'transaction-update-modal' });
-        setSelectedTransaction(null);
-        setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -157,7 +138,7 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         closeModal({ idModal: 'transaction-delete-modal' });
         setSelectedTransaction(null);
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -273,12 +254,6 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
           ) : (
             <TransactionList
               transactions={filteredTransactions}
-              onEdit={(tx) => {
-                setSelectedTransaction(tx);
-                clearError();
-                clearSuccess();
-                openModal({ idModal: 'transaction-update-modal' });
-              }}
               onDelete={(tx) => {
                 setSelectedTransaction(tx);
                 clearError();
@@ -315,53 +290,6 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         />
       </ModalPost>
 
-      {/* MODAL EDITAR TRANSACCIÓN */}
-      <ModalPost
-        title="Editar Transacción"
-        id="transaction-update-modal"
-        formId="transaction-update-form"
-        loading={loading || isSuccessClosing}
-        clearError={clearError}
-        clearSuccess={clearSuccess}
-        onHidden={() => setSelectedTransaction(null)}
-        buttonSubmit={{
-          label: 'Actualizar',
-          labelLoading: 'Actualizando...',
-          className: 'btn-submit-post',
-          disabled: false,
-          onClick: () => { },
-        }}
-      >
-        {selectedTransaction && (
-          <TransactionForm
-            key={selectedTransaction.id}
-            onSubmit={handleUpdateSubmit}
-            loading={loading}
-            errorMessage={error}
-            successMessage={success}
-            clearError={clearError}
-            clearSuccess={clearSuccess}
-            defaultValues={{
-              type: selectedTransaction.type,
-              amount: selectedTransaction.amount,
-              accountID: selectedTransaction.accountID,
-              toAccountID: selectedTransaction.toAccountID || '',
-              categoryID: selectedTransaction.categoryID || '',
-              entityID: selectedTransaction.entityID || '',
-              date: selectedTransaction.date,
-              description: selectedTransaction.description
-                ? selectedTransaction.description.replace(/\s*\(Cuota \d+\/\d+\)\s*$/i, '')
-                : '',
-              installments: (() => {
-                const match = selectedTransaction.description?.match(/\(Cuota \d+\/(\d+)\)/);
-                return match ? Number(match[1]) : 1;
-              })(),
-            }}
-            modalId="transaction-update-modal"
-            formId="transaction-update-form"
-          />
-        )}
-      </ModalPost>
 
       {/* MODAL CONFIRMAR ELIMINACIÓN */}
       <ModalConfirm
@@ -404,12 +332,6 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         id="transaction-details-modal"
         transaction={detailTransaction}
         onClose={() => setDetailTransaction(null)}
-        onEdit={(tx) => {
-          setSelectedTransaction(tx as Transaction);
-          clearError();
-          clearSuccess();
-          openModal({ idModal: 'transaction-update-modal' });
-        }}
         onDelete={(tx) => {
           setSelectedTransaction(tx as Transaction);
           clearError();

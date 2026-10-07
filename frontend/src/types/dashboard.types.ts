@@ -13,6 +13,7 @@ export interface RecentTransactionItem {
   type: string;
   createdAt?: string;
   accountName?: string | null;
+  toAccountName?: string | null;
   categoryName?: string | null;
   entityName?: string | null;
 }

@@ -18,16 +18,15 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 const app: Application = express();
 
 const allowedOrigins = [
-  config.frontendUrl?.replace(/\/$/, ''),
+  'https://zykanapp.vercel.app',
   'http://localhost:5173',
-  'http://localhost:3000',
-].filter(Boolean) as string[];
+];
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const normalized = origin.replace(/\/$/, '');
-    if (allowedOrigins.includes(normalized) || normalized.endsWith('.vercel.app')) {
+    if (allowedOrigins.includes(normalized)) {
       return callback(null, true);
     }
     return callback(new Error(`CORS no permitido para el origen: ${origin}`));

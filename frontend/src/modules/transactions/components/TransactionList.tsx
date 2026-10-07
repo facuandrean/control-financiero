@@ -2,7 +2,6 @@ import {
   BsArrowDownLeft,
   BsArrowUpRight,
   BsArrowLeftRight,
-  BsPencil,
   BsTrash,
 } from 'react-icons/bs';
 import type { Transaction } from '../../../types/transaction.types';
@@ -10,14 +9,12 @@ import './transactionList.css';
 
 interface TransactionListProps {
   transactions: Transaction[];
-  onEdit: (tx: Transaction) => void;
   onDelete: (tx: Transaction) => void;
   onViewDetails?: (tx: Transaction) => void;
 }
 
 export const TransactionList = ({
   transactions,
-  onEdit,
   onDelete,
   onViewDetails,
 }: TransactionListProps) => {
@@ -126,10 +123,10 @@ export const TransactionList = ({
                     <div className="transaction-item-left">
                       <div
                         className={`transaction-icon-badge ${isIncome
-                            ? 'badge-income'
-                            : isExpense
-                              ? 'badge-expense'
-                              : 'badge-transfer'
+                          ? 'badge-income'
+                          : isExpense
+                            ? 'badge-expense'
+                            : 'badge-transfer'
                           }`}
                       >
                         {isIncome && <BsArrowDownLeft />}
@@ -144,10 +141,10 @@ export const TransactionList = ({
                           </h4>
                           <span
                             className={`transaction-type-pill ${isIncome
-                                ? 'pill-income'
-                                : isExpense
-                                  ? 'pill-expense'
-                                  : 'pill-transfer'
+                              ? 'pill-income'
+                              : isExpense
+                                ? 'pill-expense'
+                                : 'pill-transfer'
                               }`}
                           >
                             {isIncome
@@ -169,27 +166,16 @@ export const TransactionList = ({
                     <div className="transaction-item-right">
                       <span
                         className={`transaction-amount ${isIncome
-                            ? 'amount-income'
-                            : isExpense
-                              ? 'amount-expense'
-                              : 'amount-transfer'
+                          ? 'amount-income'
+                          : isExpense
+                            ? 'amount-expense'
+                            : 'amount-transfer'
                           }`}
                       >
                         {formatCurrency(tx.amount)}
                       </span>
 
                       <div className="transaction-actions">
-                        <button
-                          type="button"
-                          className="btn-tx-action btn-tx-edit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(tx);
-                          }}
-                          title="Editar transacción"
-                        >
-                          <BsPencil />
-                        </button>
                         <button
                           type="button"
                           className="btn-tx-action btn-tx-delete"

@@ -18,16 +18,15 @@ const debts_routes_1 = __importDefault(require("./modules/debts/debts.routes"));
 const dashboard_routes_1 = __importDefault(require("./modules/dashboard/dashboard.routes"));
 const app = (0, express_1.default)();
 const allowedOrigins = [
-    config_1.config.frontendUrl?.replace(/\/$/, ''),
+    'https://zykanapp.vercel.app',
     'http://localhost:5173',
-    'http://localhost:3000',
-].filter(Boolean);
+];
 app.use((0, cors_1.default)({
     origin: (origin, callback) => {
         if (!origin)
             return callback(null, true);
         const normalized = origin.replace(/\/$/, '');
-        if (allowedOrigins.includes(normalized) || normalized.endsWith('.vercel.app')) {
+        if (allowedOrigins.includes(normalized)) {
             return callback(null, true);
         }
         return callback(new Error(`CORS no permitido para el origen: ${origin}`));

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { onModalHidden } from '../../../utils/modal.utils';
 import './modal-post.css';
 
@@ -41,13 +41,18 @@ export const ModalPost = ({
     onClick: () => {},
   }
 }: ModalPostProps) => {
+  const callbacksRef = useRef({ clearError, clearSuccess, onHidden });
+  useEffect(() => {
+    callbacksRef.current = { clearError, clearSuccess, onHidden };
+  });
+
   useEffect(() => {
     return onModalHidden(id, () => {
-      clearError?.();
-      clearSuccess?.();
-      onHidden?.();
+      callbacksRef.current.clearError?.();
+      callbacksRef.current.clearSuccess?.();
+      callbacksRef.current.onHidden?.();
     });
-  }, [id, clearError, clearSuccess, onHidden]);
+  }, [id]);
   return (
     <>
       <div className="modal fade" id={id} aria-hidden="true" aria-labelledby={`${id}Label`} tabIndex={-1}>

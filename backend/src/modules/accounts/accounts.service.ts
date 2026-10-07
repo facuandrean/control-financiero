@@ -44,14 +44,18 @@ export const accountService = {
 
     const allowedData: any = { ...data };
 
-    // Se permite modificar el saldo directamente si la cuenta es de tipo 'Efectivo' o 'Billetera virtual'
-    const isDirectlyEditable =
-      existing.type === "Efectivo" ||
-      data.type === "Efectivo" ||
-      existing.type === "Billetera virtual" ||
-      data.type === "Billetera virtual";
+    // Bloquear la edición manual de saldo ÚNICAMENTE si la cuenta es de tipo "Tarjeta de Crédito"
+    const currentType = (data.type || existing.type || "").toLowerCase();
+    const currentTag = (data.tag || existing.tag || "").toLowerCase();
+    const isCreditCard =
+      currentType.includes("crédito") ||
+      currentType.includes("credito") ||
+      currentType.includes("credit") ||
+      currentTag.includes("crédito") ||
+      currentTag.includes("credito") ||
+      currentTag.includes("credit");
 
-    if (!isDirectlyEditable) {
+    if (isCreditCard) {
       delete allowedData.amount;
     }
 

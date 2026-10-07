@@ -2,12 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_middleware_1 = require("../../core/middlewares/auth.middleware");
+const validate_middleware_1 = require("../../core/middlewares/validate.middleware");
+const transactions_validators_1 = require("./transactions.validators");
 const transactions_controller_1 = require("./transactions.controller");
 const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authMiddleware);
 router.get("/", transactions_controller_1.transactionController.getAllTransactions);
 router.get("/:id", transactions_controller_1.transactionController.getTransactionById);
-router.post("/", transactions_controller_1.transactionController.createTransaction);
-router.patch("/:id", transactions_controller_1.transactionController.updateTransaction);
+router.post("/", (0, validate_middleware_1.validate)(transactions_validators_1.createTransactionSchema), transactions_controller_1.transactionController.createTransaction);
 router.delete("/:id", transactions_controller_1.transactionController.deleteTransaction);
 exports.default = router;

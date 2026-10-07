@@ -44,7 +44,7 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
   }, [fetchEntities]);
 
   const filteredEntities = entities.filter((ent) => {
-    const matchesSearch = ent.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (ent.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = ent.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -56,7 +56,7 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'entity-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -68,7 +68,7 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'entity-update-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -208,6 +208,7 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         successMessage={success || undefined}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedEntity(null)}
         buttonLabel="Dar de baja"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-danger"
@@ -220,7 +221,7 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
                 closeModal({ idModal: 'confirm-deactivate-entity-modal' });
                 setSelectedEntity(null);
                 setIsSuccessClosing(false);
-              }, 3000);
+              }, 1000);
             }
           }
         }}
@@ -245,6 +246,7 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         successMessage={success || undefined}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedEntity(null)}
         buttonLabel="Reactivar"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-success"
@@ -257,7 +259,7 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
                 closeModal({ idModal: 'confirm-reactivate-entity-modal' });
                 setSelectedEntity(null);
                 setIsSuccessClosing(false);
-              }, 3000);
+              }, 1000);
             }
           }
         }}

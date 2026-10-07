@@ -12,7 +12,7 @@ import {
   TransactionFilters,
   NewTransaction,
 } from "./transactions.types";
-import { and, desc, eq, like, or, sql, aliasedTable } from "drizzle-orm";
+import { and, desc, eq, inArray, like, or, sql, aliasedTable } from "drizzle-orm";
 import crypto from "crypto";
 import { accountService } from "../accounts/accounts.service";
 import { categoryService } from "../categories/categories.service";
@@ -266,6 +266,7 @@ export const transactionService = {
 
       const transactionsToInsert: NewTransaction[] = [];
       const firstTransactionId = crypto.randomUUID();
+      const installmentGroupId = crypto.randomUUID();
 
       for (let i = 1; i <= installmentsCount; i++) {
         const currentId = i === 1 ? firstTransactionId : crypto.randomUUID();
@@ -276,6 +277,7 @@ export const transactionService = {
 
         transactionsToInsert.push({
           id: currentId,
+          installmentGroupId,
           userID: data.userID,
           type: data.type,
           amount: currentAmount,
@@ -743,7 +745,109 @@ export const transactionService = {
     const txToDelete = await transactionService.getTransactionById(id, userID);
 
     await db.transaction(async (tx) => {
-      // Revertir impacto en cuentas
+      // Si la transacción pertenece a un grupo de cuotas, revertir y eliminar todo el grupo atómicamente
+      if (txToDelete.installmentGroupId) {
+        // 1. Busca TODAS las transacciones que compartan ese mismo installmentGroupId
+        const groupTransactions = await tx
+          .select()
+          .from(transactions)
+          .where(
+            and(
+              eq(transactions.installmentGroupId, txToDelete.installmentGroupId),
+              eq(transactions.userID, userID)
+            )
+          )
+          .all();
+
+        // 2. Suma el monto total de todas las cuotas del grupo
+        const totalGroupAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+        // 3. Revierte el saldo total en la tarjeta de crédito de una sola vez
+        const sourceAccount = await tx
+          .select()
+          .from(accounts)
+          .where(eq(accounts.id, txToDelete.accountID))
+          .get();
+
+        if (sourceAccount) {
+          const isSourceCreditCard = isCreditCard(sourceAccount.type, sourceAccount.tag);
+          // Las compras en cuotas son Expense. En TC, Expense aumenta deuda. Al revertir, se RESTA deuda.
+          const restoredBalance = isSourceCreditCard
+            ? (sourceAccount.amount ?? 0) - totalGroupAmount
+            : (sourceAccount.amount ?? 0) + totalGroupAmount;
+
+          await tx
+            .update(accounts)
+            .set({
+              amount: restoredBalance,
+              updatedAt: sql`datetime('now', '-3 hours')`,
+            })
+            .where(eq(accounts.id, sourceAccount.id));
+        }
+
+        // Revertir y eliminar movimientos de deuda vinculados si existieran
+        const groupTxIds = groupTransactions.map((t) => t.id);
+        if (groupTxIds.length > 0) {
+          const linkedMovements = await tx
+            .select()
+            .from(debtMovements)
+            .where(inArray(debtMovements.transactionID, groupTxIds))
+            .all();
+
+          for (const linked of linkedMovements) {
+            await tx
+              .delete(debtMovements)
+              .where(eq(debtMovements.id, linked.id));
+
+            const debt = await tx
+              .select()
+              .from(debts)
+              .where(eq(debts.id, linked.debtID))
+              .get();
+
+            if (debt) {
+              const allMovements = await tx
+                .select()
+                .from(debtMovements)
+                .where(eq(debtMovements.debtID, debt.id))
+                .all();
+
+              const totalCharges = allMovements
+                .filter((m) => m.type === "CHARGE")
+                .reduce((sum, m) => sum + m.amount, 0);
+
+              const totalPayments = allMovements
+                .filter((m) => m.type === "PAYMENT")
+                .reduce((sum, m) => sum + m.amount, 0);
+
+              const currentBalance = (debt.initialAmount ?? 0) + totalCharges - totalPayments;
+              const newStatus: "Pending" | "Settled" = currentBalance <= 0 ? "Settled" : "Pending";
+
+              await tx
+                .update(debts)
+                .set({
+                  status: newStatus,
+                  updatedAt: sql`datetime('now', '-3 hours')`,
+                })
+                .where(eq(debts.id, debt.id));
+            }
+          }
+        }
+
+        // 4. Elimina todas las transacciones del grupo dentro del mismo bloque db.transaction()
+        await tx
+          .delete(transactions)
+          .where(
+            and(
+              eq(transactions.installmentGroupId, txToDelete.installmentGroupId),
+              eq(transactions.userID, userID)
+            )
+          );
+
+        return;
+      }
+
+      // Revertir impacto en cuentas (transacción individual)
       const sourceAccount = await tx
         .select()
         .from(accounts)

@@ -6,6 +6,7 @@ interface MessageInfoProps {
 }
 
 export const MessageInfo = ({ message, className = "" }: MessageInfoProps) => {
+  if (!message || typeof message !== 'string') return null;
   const messages = message.split('. ');
   return (
     <div className={`message-info ${className}`}>

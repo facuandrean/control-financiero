@@ -91,7 +91,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'account-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -109,7 +109,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'account-update-modal' });
         setIsSuccessClosing(false);
-      }, 3000);
+      }, 1000);
     }
   };
 
@@ -118,7 +118,9 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
    * and the search term entered by the user.
    */
   const filteredAccounts = accounts.filter(acc => {
-    const matchesSearch = acc.name.toLowerCase().includes(searchTerm.toLowerCase()) || acc.bank.toLowerCase().includes(searchTerm.toLowerCase());
+    const nameMatches = (acc.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    const bankMatches = (acc.bank?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    const matchesSearch = nameMatches || bankMatches;
     const matchesStatus = acc.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -310,6 +312,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedAccountID(null)}
         buttonLabel="Dar de baja"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-danger"
@@ -322,7 +325,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
               setSelectedAccountID(null);
               closeModal({ idModal: 'confirm-deactivate-modal' });
               setIsSuccessClosing(false);
-            }, 3000);
+            }, 1000);
           }
         }}
       >
@@ -346,6 +349,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => setSelectedAccountID(null)}
         buttonLabel="Reactivar"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-success"
@@ -358,7 +362,7 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
               setSelectedAccountID(null);
               closeModal({ idModal: 'confirm-reactivate-modal' });
               setIsSuccessClosing(false);
-            }, 3000);
+            }, 1000);
           }
         }}
       >

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { BsPencil, BsTrash } from 'react-icons/bs';
+import { BsTrash } from 'react-icons/bs';
 import type { Transaction } from '../../../types/transaction.types';
 import type { RecentTransactionItem } from '../../../types/dashboard.types';
 import { closeModal, onModalHidden } from '../../../utils/modal.utils';
@@ -10,7 +10,6 @@ export type TransactionDetailData = Transaction | RecentTransactionItem;
 interface ModalTransactionDetailsProps {
   id?: string;
   transaction: TransactionDetailData | null;
-  onEdit?: (tx: TransactionDetailData) => void;
   onDelete?: (tx: TransactionDetailData) => void;
   onClose?: () => void;
 }
@@ -18,7 +17,6 @@ interface ModalTransactionDetailsProps {
 export const ModalTransactionDetails = ({
   id = 'modal-transaction-details',
   transaction,
-  onEdit,
   onDelete,
   onClose,
 }: ModalTransactionDetailsProps) => {
@@ -109,17 +107,10 @@ export const ModalTransactionDetails = ({
     txRecord.accountName ||
     (isTransfer ? 'Cuenta origen' : 'Cuenta no especificada');
 
-  const toAccountName = txRecord.toAccount?.name || null;
+  const toAccountName = txRecord.toAccount?.name || txRecord.toAccountName || null;
   const categoryName = txRecord.category?.name || txRecord.categoryName || null;
   const entityName = txRecord.entity?.name || txRecord.entityName || null;
   const installments = txRecord.installments || null;
-
-  const handleEditClick = () => {
-    closeModal({ idModal: id });
-    if (onEdit && transaction) {
-      setTimeout(() => onEdit(transaction), 150);
-    }
-  };
 
   const handleDeleteClick = () => {
     closeModal({ idModal: id });
@@ -251,26 +242,14 @@ export const ModalTransactionDetails = ({
                   </button>
                 )}
 
-                <div className="d-flex gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    data-bs-dismiss="modal"
-                    onClick={onClose}
-                  >
-                    Cerrar
-                  </button>
-
-                  {onEdit && (
-                    <button
-                      type="button"
-                      className="btn btn-submit-post"
-                      onClick={handleEditClick}
-                    >
-                      <BsPencil className="me-1" /> Editar
-                    </button>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                  onClick={onClose}
+                >
+                  Cerrar
+                </button>
               </div>
             </>
           ) : null}
