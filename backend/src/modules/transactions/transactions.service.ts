@@ -19,6 +19,7 @@ import { categoryService } from "../categories/categories.service";
 import { entityService } from "../entities/entities.service";
 
 const toAccounts = aliasedTable(accounts, "to_accounts");
+const payingAccounts = aliasedTable(accounts, "paying_accounts");
 
 const isCreditCard = (accountType?: string | null, accountTag?: string | null): boolean => {
   if (accountType === "Credit Card") return true;
@@ -63,6 +64,16 @@ const addMonthsToDate = (baseDateStr: string, monthsToAdd: number): string => {
   return `${y}-${m}-${d}`;
 };
 
+const getTodayDateStr = (): string => {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const argDate = new Date(utc - 3 * 3600000);
+  const y = argDate.getFullYear();
+  const m = String(argDate.getMonth() + 1).padStart(2, "0");
+  const d = String(argDate.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
 export const transactionService = {
   getAllTransactions: async (
     userID: string,
@@ -74,7 +85,8 @@ export const transactionService = {
       conditions.push(
         or(
           eq(transactions.accountID, filters.accountID),
-          eq(transactions.toAccountID, filters.accountID)
+          eq(transactions.toAccountID, filters.accountID),
+          eq(transactions.payingAccountID, filters.accountID)
         )!
       );
     }
@@ -100,12 +112,14 @@ export const transactionService = {
         transaction: transactions,
         account: accounts,
         toAccount: toAccounts,
+        payingAccount: payingAccounts,
         category: categories,
         entity: entities,
       })
       .from(transactions)
       .leftJoin(accounts, eq(transactions.accountID, accounts.id))
       .leftJoin(toAccounts, eq(transactions.toAccountID, toAccounts.id))
+      .leftJoin(payingAccounts, eq(transactions.payingAccountID, payingAccounts.id))
       .leftJoin(categories, eq(transactions.categoryID, categories.id))
       .leftJoin(entities, eq(transactions.entityID, entities.id))
       .where(and(...conditions))
@@ -124,6 +138,7 @@ export const transactionService = {
       ...r.transaction,
       account: r.account?.id ? r.account : null,
       toAccount: r.toAccount?.id ? r.toAccount : null,
+      payingAccount: r.payingAccount?.id ? r.payingAccount : null,
       category: r.category?.id ? r.category : null,
       entity: r.entity?.id ? r.entity : null,
     }));
@@ -138,12 +153,14 @@ export const transactionService = {
         transaction: transactions,
         account: accounts,
         toAccount: toAccounts,
+        payingAccount: payingAccounts,
         category: categories,
         entity: entities,
       })
       .from(transactions)
       .leftJoin(accounts, eq(transactions.accountID, accounts.id))
       .leftJoin(toAccounts, eq(transactions.toAccountID, toAccounts.id))
+      .leftJoin(payingAccounts, eq(transactions.payingAccountID, payingAccounts.id))
       .leftJoin(categories, eq(transactions.categoryID, categories.id))
       .leftJoin(entities, eq(transactions.entityID, entities.id))
       .where(and(eq(transactions.id, id), eq(transactions.userID, userID)))
@@ -157,6 +174,7 @@ export const transactionService = {
       ...row.transaction,
       account: row.account?.id ? row.account : null,
       toAccount: row.toAccount?.id ? row.toAccount : null,
+      payingAccount: row.payingAccount?.id ? row.payingAccount : null,
       category: row.category?.id ? row.category : null,
       entity: row.entity?.id ? row.entity : null,
     };
@@ -287,6 +305,7 @@ export const transactionService = {
           entityID: finalEntityID,
           date: currentDate,
           description: currentDescription,
+          status: "pending",
         });
       }
 
@@ -366,6 +385,7 @@ export const transactionService = {
         entityID: finalEntityID,
         date: data.date,
         description: data.description,
+        status: data.status || "completed",
         createdAt: sql`datetime('now', '-3 hours')`,
         updatedAt: sql`datetime('now', '-3 hours')`,
       });
@@ -762,7 +782,40 @@ export const transactionService = {
         // 2. Suma el monto total de todas las cuotas del grupo
         const totalGroupAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-        // 3. Revierte el saldo total en la tarjeta de crédito de una sola vez
+        // 3. Itera sobre las cuotas del grupo que tengan status === 'paid' y posean payingAccountID
+        const paidInstallments = groupTransactions.filter(
+          (t) => t.status === "paid" && t.payingAccountID
+        );
+        let totalPaidAmount = 0;
+
+        for (const paidInst of paidInstallments) {
+          totalPaidAmount += paidInst.amount;
+
+          const payingAccount = await tx
+            .select()
+            .from(accounts)
+            .where(eq(accounts.id, paidInst.payingAccountID!))
+            .get();
+
+          if (payingAccount) {
+            const isPayingCC = isCreditCard(payingAccount.type, payingAccount.tag);
+            const restoredPayingBalance = isPayingCC
+              ? (payingAccount.amount ?? 0) - paidInst.amount
+              : (payingAccount.amount ?? 0) + paidInst.amount;
+
+            await tx
+              .update(accounts)
+              .set({
+                amount: restoredPayingBalance,
+                updatedAt: sql`datetime('now', '-3 hours')`,
+              })
+              .where(eq(accounts.id, payingAccount.id));
+          }
+        }
+
+        // 4. Revierte el saldo total en la tarjeta de crédito
+        // En TC: La compra original aumentó deuda en totalGroupAmount, y cada cuota pagada redujo deuda en paidInst.amount.
+        // Al revertir: restaurar los pagos (+ totalPaidAmount deuda) y restar la compra original (- totalGroupAmount deuda).
         const sourceAccount = await tx
           .select()
           .from(accounts)
@@ -771,10 +824,9 @@ export const transactionService = {
 
         if (sourceAccount) {
           const isSourceCreditCard = isCreditCard(sourceAccount.type, sourceAccount.tag);
-          // Las compras en cuotas son Expense. En TC, Expense aumenta deuda. Al revertir, se RESTA deuda.
           const restoredBalance = isSourceCreditCard
-            ? (sourceAccount.amount ?? 0) - totalGroupAmount
-            : (sourceAccount.amount ?? 0) + totalGroupAmount;
+            ? (sourceAccount.amount ?? 0) + totalPaidAmount - totalGroupAmount
+            : (sourceAccount.amount ?? 0) - totalPaidAmount + totalGroupAmount;
 
           await tx
             .update(accounts)
@@ -970,5 +1022,287 @@ export const transactionService = {
         .delete(transactions)
         .where(and(eq(transactions.id, id), eq(transactions.userID, userID)));
     });
+  },
+
+  payInstallment: async (
+    transactionId: string,
+    accountId: string,
+    userId: string
+  ): Promise<TransactionWithDetails> => {
+    return await db.transaction(async (tx) => {
+      // 1. Busca la cuota por ID y valida que exista, pertenezca al usuario y status === 'pending'
+      const installment = await tx
+        .select()
+        .from(transactions)
+        .where(and(eq(transactions.id, transactionId), eq(transactions.userID, userId)))
+        .get();
+
+      if (!installment) {
+        throw new AppError("Cuota no encontrada", 404, "TRANSACTION_NOT_FOUND");
+      }
+
+      if (installment.status !== "pending") {
+        throw new AppError("La cuota no se encuentra pendiente de pago", 400, "INVALID_INSTALLMENT_STATUS");
+      }
+
+      // 2. Busca la cuenta de pago (accountId). Valida existencia, activo y pertenencia
+      const payingAccount = await tx
+        .select()
+        .from(accounts)
+        .where(and(eq(accounts.id, accountId), eq(accounts.userID, userId)))
+        .get();
+
+      if (!payingAccount) {
+        throw new AppError("Cuenta de pago no encontrada", 404, "ACCOUNT_NOT_FOUND");
+      }
+
+      if (payingAccount.status !== "Active") {
+        throw new AppError("No se pueden registrar pagos con una cuenta inactiva", 400, "INACTIVE_ACCOUNT");
+      }
+
+      if (payingAccount.id === installment.accountID) {
+        throw new AppError("No puedes pagar la cuota utilizando la misma tarjeta de crédito", 400, "SAME_ACCOUNT_PAYMENT");
+      }
+
+      // 3. Valida saldo suficiente en la cuenta de pago
+      const isPayingCard = isCreditCard(payingAccount.type, payingAccount.tag);
+      if (!isPayingCard && (payingAccount.amount ?? 0) < installment.amount) {
+        throw new AppError("Saldo insuficiente en la cuenta de pago", 400, "INSUFFICIENT_FUNDS");
+      }
+
+      // 4. Buscar tarjeta de crédito asociada a la cuota
+      const ccAccount = await tx
+        .select()
+        .from(accounts)
+        .where(eq(accounts.id, installment.accountID))
+        .get();
+
+      if (!ccAccount) {
+        throw new AppError("Tarjeta de crédito asociada a la cuota no encontrada", 404, "ACCOUNT_NOT_FOUND");
+      }
+
+      // 5. Resta el monto de la cuota al saldo de la cuenta de pago
+      const newPayingBalance = isPayingCard
+        ? (payingAccount.amount ?? 0) + installment.amount
+        : (payingAccount.amount ?? 0) - installment.amount;
+
+      await tx
+        .update(accounts)
+        .set({
+          amount: newPayingBalance,
+          updatedAt: sql`datetime('now', '-3 hours')`,
+        })
+        .where(eq(accounts.id, payingAccount.id));
+
+      // 6. Resta el monto de la cuota a la deuda de la tarjeta de crédito (liberando límite disponible)
+      const newCcBalance = (ccAccount.amount ?? 0) - installment.amount;
+
+      await tx
+        .update(accounts)
+        .set({
+          amount: newCcBalance,
+          updatedAt: sql`datetime('now', '-3 hours')`,
+        })
+        .where(eq(accounts.id, ccAccount.id));
+
+      // 7. Actualiza la cuota original: la cuota original ES la única transacción
+      await tx
+        .update(transactions)
+        .set({
+          status: "paid",
+          payingAccountID: payingAccount.id,
+          updatedAt: sql`datetime('now', '-3 hours')`,
+        })
+        .where(eq(transactions.id, installment.id));
+
+      // 8. Retorna la cuota original actualizada
+      const updatedRow = await tx
+        .select({
+          transaction: transactions,
+          account: accounts,
+          toAccount: toAccounts,
+          payingAccount: payingAccounts,
+          category: categories,
+          entity: entities,
+        })
+        .from(transactions)
+        .leftJoin(accounts, eq(transactions.accountID, accounts.id))
+        .leftJoin(toAccounts, eq(transactions.toAccountID, toAccounts.id))
+        .leftJoin(payingAccounts, eq(transactions.payingAccountID, payingAccounts.id))
+        .leftJoin(categories, eq(transactions.categoryID, categories.id))
+        .leftJoin(entities, eq(transactions.entityID, entities.id))
+        .where(eq(transactions.id, installment.id))
+        .get();
+
+      if (!updatedRow) {
+        throw new AppError("Error al recuperar la cuota actualizada", 500, "INSTALLMENT_UPDATE_FAILED");
+      }
+
+      return {
+        ...updatedRow.transaction,
+        account: updatedRow.account?.id ? updatedRow.account : null,
+        toAccount: updatedRow.toAccount?.id ? updatedRow.toAccount : null,
+        payingAccount: updatedRow.payingAccount?.id ? updatedRow.payingAccount : null,
+        category: updatedRow.category?.id ? updatedRow.category : null,
+        entity: updatedRow.entity?.id ? updatedRow.entity : null,
+      };
+    });
+  },
+
+  unpayInstallment: async (
+    transactionId: string,
+    userId: string
+  ): Promise<TransactionWithDetails> => {
+    return await db.transaction(async (tx) => {
+      // 1. Busca la transacción por transactionId y userId. Valida que exista y que su estado sea estrictamente status === 'paid'.
+      const installment = await tx
+        .select()
+        .from(transactions)
+        .where(and(eq(transactions.id, transactionId), eq(transactions.userID, userId)))
+        .get();
+
+      if (!installment) {
+        throw new AppError("Cuota no encontrada", 404, "TRANSACTION_NOT_FOUND");
+      }
+
+      if (installment.status !== "paid") {
+        throw new AppError("La cuota no se encuentra en estado pagada", 400, "INVALID_INSTALLMENT_STATUS");
+      }
+
+      // 2. Si tiene una cuenta pagadora asociada (payingAccountID):
+      // Busca la cuenta pagadora y le devuelve el dinero.
+      if (installment.payingAccountID) {
+        const payingAccount = await tx
+          .select()
+          .from(accounts)
+          .where(and(eq(accounts.id, installment.payingAccountID), eq(accounts.userID, userId)))
+          .get();
+
+        if (payingAccount) {
+          const isPayingCard = isCreditCard(payingAccount.type, payingAccount.tag);
+          const restoredPayingBalance = isPayingCard
+            ? (payingAccount.amount ?? 0) - installment.amount
+            : (payingAccount.amount ?? 0) + installment.amount;
+
+          await tx
+            .update(accounts)
+            .set({
+              amount: restoredPayingBalance,
+              updatedAt: sql`datetime('now', '-3 hours')`,
+            })
+            .where(eq(accounts.id, payingAccount.id));
+        }
+      }
+
+      // 3. Busca la tarjeta de crédito de la compra (installment.accountID).
+      // Vuelve a cargar la deuda a la tarjeta de crédito (vuelve a ocupar el cupo/límite).
+      const ccAccount = await tx
+        .select()
+        .from(accounts)
+        .where(eq(accounts.id, installment.accountID))
+        .get();
+
+      if (ccAccount) {
+        const isCc = isCreditCard(ccAccount.type, ccAccount.tag);
+        const newCcBalance = isCc
+          ? (ccAccount.amount ?? 0) + installment.amount
+          : (ccAccount.amount ?? 0) - installment.amount;
+
+        await tx
+          .update(accounts)
+          .set({
+            amount: newCcBalance,
+            updatedAt: sql`datetime('now', '-3 hours')`,
+          })
+          .where(eq(accounts.id, ccAccount.id));
+      }
+
+      // 4. Actualiza la transacción: status: 'pending', payingAccountID: null
+      await tx
+        .update(transactions)
+        .set({
+          status: "pending",
+          payingAccountID: null,
+          updatedAt: sql`datetime('now', '-3 hours')`,
+        })
+        .where(eq(transactions.id, installment.id));
+
+      // 5. Retorna la transacción actualizada
+      const updatedRow = await tx
+        .select({
+          transaction: transactions,
+          account: accounts,
+          toAccount: toAccounts,
+          payingAccount: payingAccounts,
+          category: categories,
+          entity: entities,
+        })
+        .from(transactions)
+        .leftJoin(accounts, eq(transactions.accountID, accounts.id))
+        .leftJoin(toAccounts, eq(transactions.toAccountID, toAccounts.id))
+        .leftJoin(payingAccounts, eq(transactions.payingAccountID, payingAccounts.id))
+        .leftJoin(categories, eq(transactions.categoryID, categories.id))
+        .leftJoin(entities, eq(transactions.entityID, entities.id))
+        .where(eq(transactions.id, installment.id))
+        .get();
+
+      if (!updatedRow) {
+        throw new AppError("Error al recuperar la cuota actualizada", 500, "INSTALLMENT_UPDATE_FAILED");
+      }
+
+      return {
+        ...updatedRow.transaction,
+        account: updatedRow.account?.id ? updatedRow.account : null,
+        toAccount: updatedRow.toAccount?.id ? updatedRow.toAccount : null,
+        payingAccount: updatedRow.payingAccount?.id ? updatedRow.payingAccount : null,
+        category: updatedRow.category?.id ? updatedRow.category : null,
+        entity: updatedRow.entity?.id ? updatedRow.entity : null,
+      };
+    });
+  },
+
+  getPendingInstallments: async (
+    userId: string,
+    month?: string | number,
+    year?: string | number
+  ): Promise<TransactionWithDetails[]> => {
+    const conditions = [
+      eq(transactions.userID, userId),
+      eq(transactions.status, "pending"),
+    ];
+
+    if (year && month) {
+      const formattedMonth = String(month).padStart(2, "0");
+      conditions.push(like(transactions.date, `${year}-${formattedMonth}%`));
+    } else if (year) {
+      conditions.push(like(transactions.date, `${year}-%`));
+    }
+
+    const rows = await db
+      .select({
+        transaction: transactions,
+        account: accounts,
+        toAccount: toAccounts,
+        payingAccount: payingAccounts,
+        category: categories,
+        entity: entities,
+      })
+      .from(transactions)
+      .leftJoin(accounts, eq(transactions.accountID, accounts.id))
+      .leftJoin(toAccounts, eq(transactions.toAccountID, toAccounts.id))
+      .leftJoin(payingAccounts, eq(transactions.payingAccountID, payingAccounts.id))
+      .leftJoin(categories, eq(transactions.categoryID, categories.id))
+      .leftJoin(entities, eq(transactions.entityID, entities.id))
+      .where(and(...conditions))
+      .orderBy(transactions.date, transactions.createdAt);
+
+    return rows.map((r) => ({
+      ...r.transaction,
+      account: r.account?.id ? r.account : null,
+      toAccount: r.toAccount?.id ? r.toAccount : null,
+      payingAccount: r.payingAccount?.id ? r.payingAccount : null,
+      category: r.category?.id ? r.category : null,
+      entity: r.entity?.id ? r.entity : null,
+    }));
   },
 };

@@ -17,6 +17,7 @@ const accounts_service_1 = require("../accounts/accounts.service");
 const categories_service_1 = require("../categories/categories.service");
 const entities_service_1 = require("../entities/entities.service");
 const toAccounts = (0, drizzle_orm_1.aliasedTable)(accounts_schema_1.accounts, "to_accounts");
+const payingAccounts = (0, drizzle_orm_1.aliasedTable)(accounts_schema_1.accounts, "paying_accounts");
 const isCreditCard = (accountType, accountTag) => {
     if (accountType === "Credit Card")
         return true;
@@ -54,11 +55,20 @@ const addMonthsToDate = (baseDateStr, monthsToAdd) => {
     const d = String(targetDate.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
 };
+const getTodayDateStr = () => {
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const argDate = new Date(utc - 3 * 3600000);
+    const y = argDate.getFullYear();
+    const m = String(argDate.getMonth() + 1).padStart(2, "0");
+    const d = String(argDate.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+};
 exports.transactionService = {
     getAllTransactions: async (userID, filters) => {
         const conditions = [(0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userID)];
         if (filters?.accountID) {
-            conditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, filters.accountID), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, filters.accountID)));
+            conditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, filters.accountID), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, filters.accountID), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.payingAccountID, filters.accountID)));
         }
         if (filters?.type) {
             conditions.push((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.type, filters.type));
@@ -77,12 +87,14 @@ exports.transactionService = {
             transaction: transactions_schema_1.transactions,
             account: accounts_schema_1.accounts,
             toAccount: toAccounts,
+            payingAccount: payingAccounts,
             category: categories_schema_1.categories,
             entity: entities_schema_1.entities,
         })
             .from(transactions_schema_1.transactions)
             .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
             .leftJoin(toAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, toAccounts.id))
+            .leftJoin(payingAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.payingAccountID, payingAccounts.id))
             .leftJoin(categories_schema_1.categories, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.categoryID, categories_schema_1.categories.id))
             .leftJoin(entities_schema_1.entities, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.entityID, entities_schema_1.entities.id))
             .where((0, drizzle_orm_1.and)(...conditions))
@@ -101,6 +113,7 @@ exports.transactionService = {
             ...r.transaction,
             account: r.account?.id ? r.account : null,
             toAccount: r.toAccount?.id ? r.toAccount : null,
+            payingAccount: r.payingAccount?.id ? r.payingAccount : null,
             category: r.category?.id ? r.category : null,
             entity: r.entity?.id ? r.entity : null,
         }));
@@ -111,12 +124,14 @@ exports.transactionService = {
             transaction: transactions_schema_1.transactions,
             account: accounts_schema_1.accounts,
             toAccount: toAccounts,
+            payingAccount: payingAccounts,
             category: categories_schema_1.categories,
             entity: entities_schema_1.entities,
         })
             .from(transactions_schema_1.transactions)
             .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
             .leftJoin(toAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, toAccounts.id))
+            .leftJoin(payingAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.payingAccountID, payingAccounts.id))
             .leftJoin(categories_schema_1.categories, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.categoryID, categories_schema_1.categories.id))
             .leftJoin(entities_schema_1.entities, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.entityID, entities_schema_1.entities.id))
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, id), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userID)))
@@ -128,6 +143,7 @@ exports.transactionService = {
             ...row.transaction,
             account: row.account?.id ? row.account : null,
             toAccount: row.toAccount?.id ? row.toAccount : null,
+            payingAccount: row.payingAccount?.id ? row.payingAccount : null,
             category: row.category?.id ? row.category : null,
             entity: row.entity?.id ? row.entity : null,
         };
@@ -212,6 +228,7 @@ exports.transactionService = {
                     entityID: finalEntityID,
                     date: currentDate,
                     description: currentDescription,
+                    status: "pending",
                 });
             }
             await db_1.db.transaction(async (tx) => {
@@ -281,6 +298,7 @@ exports.transactionService = {
                 entityID: finalEntityID,
                 date: data.date,
                 description: data.description,
+                status: data.status || "completed",
                 createdAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
                 updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
             });
@@ -596,7 +614,33 @@ exports.transactionService = {
                     .all();
                 // 2. Suma el monto total de todas las cuotas del grupo
                 const totalGroupAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
-                // 3. Revierte el saldo total en la tarjeta de crédito de una sola vez
+                // 3. Itera sobre las cuotas del grupo que tengan status === 'paid' y posean payingAccountID
+                const paidInstallments = groupTransactions.filter((t) => t.status === "paid" && t.payingAccountID);
+                let totalPaidAmount = 0;
+                for (const paidInst of paidInstallments) {
+                    totalPaidAmount += paidInst.amount;
+                    const payingAccount = await tx
+                        .select()
+                        .from(accounts_schema_1.accounts)
+                        .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, paidInst.payingAccountID))
+                        .get();
+                    if (payingAccount) {
+                        const isPayingCC = isCreditCard(payingAccount.type, payingAccount.tag);
+                        const restoredPayingBalance = isPayingCC
+                            ? (payingAccount.amount ?? 0) - paidInst.amount
+                            : (payingAccount.amount ?? 0) + paidInst.amount;
+                        await tx
+                            .update(accounts_schema_1.accounts)
+                            .set({
+                            amount: restoredPayingBalance,
+                            updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+                        })
+                            .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, payingAccount.id));
+                    }
+                }
+                // 4. Revierte el saldo total en la tarjeta de crédito
+                // En TC: La compra original aumentó deuda en totalGroupAmount, y cada cuota pagada redujo deuda en paidInst.amount.
+                // Al revertir: restaurar los pagos (+ totalPaidAmount deuda) y restar la compra original (- totalGroupAmount deuda).
                 const sourceAccount = await tx
                     .select()
                     .from(accounts_schema_1.accounts)
@@ -604,10 +648,9 @@ exports.transactionService = {
                     .get();
                 if (sourceAccount) {
                     const isSourceCreditCard = isCreditCard(sourceAccount.type, sourceAccount.tag);
-                    // Las compras en cuotas son Expense. En TC, Expense aumenta deuda. Al revertir, se RESTA deuda.
                     const restoredBalance = isSourceCreditCard
-                        ? (sourceAccount.amount ?? 0) - totalGroupAmount
-                        : (sourceAccount.amount ?? 0) + totalGroupAmount;
+                        ? (sourceAccount.amount ?? 0) + totalPaidAmount - totalGroupAmount
+                        : (sourceAccount.amount ?? 0) - totalPaidAmount + totalGroupAmount;
                     await tx
                         .update(accounts_schema_1.accounts)
                         .set({
@@ -770,5 +813,242 @@ exports.transactionService = {
                 .delete(transactions_schema_1.transactions)
                 .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, id), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userID)));
         });
+    },
+    payInstallment: async (transactionId, accountId, userId) => {
+        return await db_1.db.transaction(async (tx) => {
+            // 1. Busca la cuota por ID y valida que exista, pertenezca al usuario y status === 'pending'
+            const installment = await tx
+                .select()
+                .from(transactions_schema_1.transactions)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, transactionId), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userId)))
+                .get();
+            if (!installment) {
+                throw new AppError_1.AppError("Cuota no encontrada", 404, "TRANSACTION_NOT_FOUND");
+            }
+            if (installment.status !== "pending") {
+                throw new AppError_1.AppError("La cuota no se encuentra pendiente de pago", 400, "INVALID_INSTALLMENT_STATUS");
+            }
+            // 2. Busca la cuenta de pago (accountId). Valida existencia, activo y pertenencia
+            const payingAccount = await tx
+                .select()
+                .from(accounts_schema_1.accounts)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, accountId), (0, drizzle_orm_1.eq)(accounts_schema_1.accounts.userID, userId)))
+                .get();
+            if (!payingAccount) {
+                throw new AppError_1.AppError("Cuenta de pago no encontrada", 404, "ACCOUNT_NOT_FOUND");
+            }
+            if (payingAccount.status !== "Active") {
+                throw new AppError_1.AppError("No se pueden registrar pagos con una cuenta inactiva", 400, "INACTIVE_ACCOUNT");
+            }
+            if (payingAccount.id === installment.accountID) {
+                throw new AppError_1.AppError("No puedes pagar la cuota utilizando la misma tarjeta de crédito", 400, "SAME_ACCOUNT_PAYMENT");
+            }
+            // 3. Valida saldo suficiente en la cuenta de pago
+            const isPayingCard = isCreditCard(payingAccount.type, payingAccount.tag);
+            if (!isPayingCard && (payingAccount.amount ?? 0) < installment.amount) {
+                throw new AppError_1.AppError("Saldo insuficiente en la cuenta de pago", 400, "INSUFFICIENT_FUNDS");
+            }
+            // 4. Buscar tarjeta de crédito asociada a la cuota
+            const ccAccount = await tx
+                .select()
+                .from(accounts_schema_1.accounts)
+                .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, installment.accountID))
+                .get();
+            if (!ccAccount) {
+                throw new AppError_1.AppError("Tarjeta de crédito asociada a la cuota no encontrada", 404, "ACCOUNT_NOT_FOUND");
+            }
+            // 5. Resta el monto de la cuota al saldo de la cuenta de pago
+            const newPayingBalance = isPayingCard
+                ? (payingAccount.amount ?? 0) + installment.amount
+                : (payingAccount.amount ?? 0) - installment.amount;
+            await tx
+                .update(accounts_schema_1.accounts)
+                .set({
+                amount: newPayingBalance,
+                updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            })
+                .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, payingAccount.id));
+            // 6. Resta el monto de la cuota a la deuda de la tarjeta de crédito (liberando límite disponible)
+            const newCcBalance = (ccAccount.amount ?? 0) - installment.amount;
+            await tx
+                .update(accounts_schema_1.accounts)
+                .set({
+                amount: newCcBalance,
+                updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            })
+                .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, ccAccount.id));
+            // 7. Actualiza la cuota original: la cuota original ES la única transacción
+            await tx
+                .update(transactions_schema_1.transactions)
+                .set({
+                status: "paid",
+                payingAccountID: payingAccount.id,
+                updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            })
+                .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, installment.id));
+            // 8. Retorna la cuota original actualizada
+            const updatedRow = await tx
+                .select({
+                transaction: transactions_schema_1.transactions,
+                account: accounts_schema_1.accounts,
+                toAccount: toAccounts,
+                payingAccount: payingAccounts,
+                category: categories_schema_1.categories,
+                entity: entities_schema_1.entities,
+            })
+                .from(transactions_schema_1.transactions)
+                .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
+                .leftJoin(toAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, toAccounts.id))
+                .leftJoin(payingAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.payingAccountID, payingAccounts.id))
+                .leftJoin(categories_schema_1.categories, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.categoryID, categories_schema_1.categories.id))
+                .leftJoin(entities_schema_1.entities, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.entityID, entities_schema_1.entities.id))
+                .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, installment.id))
+                .get();
+            if (!updatedRow) {
+                throw new AppError_1.AppError("Error al recuperar la cuota actualizada", 500, "INSTALLMENT_UPDATE_FAILED");
+            }
+            return {
+                ...updatedRow.transaction,
+                account: updatedRow.account?.id ? updatedRow.account : null,
+                toAccount: updatedRow.toAccount?.id ? updatedRow.toAccount : null,
+                payingAccount: updatedRow.payingAccount?.id ? updatedRow.payingAccount : null,
+                category: updatedRow.category?.id ? updatedRow.category : null,
+                entity: updatedRow.entity?.id ? updatedRow.entity : null,
+            };
+        });
+    },
+    unpayInstallment: async (transactionId, userId) => {
+        return await db_1.db.transaction(async (tx) => {
+            // 1. Busca la transacción por transactionId y userId. Valida que exista y que su estado sea estrictamente status === 'paid'.
+            const installment = await tx
+                .select()
+                .from(transactions_schema_1.transactions)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, transactionId), (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userId)))
+                .get();
+            if (!installment) {
+                throw new AppError_1.AppError("Cuota no encontrada", 404, "TRANSACTION_NOT_FOUND");
+            }
+            if (installment.status !== "paid") {
+                throw new AppError_1.AppError("La cuota no se encuentra en estado pagada", 400, "INVALID_INSTALLMENT_STATUS");
+            }
+            // 2. Si tiene una cuenta pagadora asociada (payingAccountID):
+            // Busca la cuenta pagadora y le devuelve el dinero.
+            if (installment.payingAccountID) {
+                const payingAccount = await tx
+                    .select()
+                    .from(accounts_schema_1.accounts)
+                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, installment.payingAccountID), (0, drizzle_orm_1.eq)(accounts_schema_1.accounts.userID, userId)))
+                    .get();
+                if (payingAccount) {
+                    const isPayingCard = isCreditCard(payingAccount.type, payingAccount.tag);
+                    const restoredPayingBalance = isPayingCard
+                        ? (payingAccount.amount ?? 0) - installment.amount
+                        : (payingAccount.amount ?? 0) + installment.amount;
+                    await tx
+                        .update(accounts_schema_1.accounts)
+                        .set({
+                        amount: restoredPayingBalance,
+                        updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+                    })
+                        .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, payingAccount.id));
+                }
+            }
+            // 3. Busca la tarjeta de crédito de la compra (installment.accountID).
+            // Vuelve a cargar la deuda a la tarjeta de crédito (vuelve a ocupar el cupo/límite).
+            const ccAccount = await tx
+                .select()
+                .from(accounts_schema_1.accounts)
+                .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, installment.accountID))
+                .get();
+            if (ccAccount) {
+                const isCc = isCreditCard(ccAccount.type, ccAccount.tag);
+                const newCcBalance = isCc
+                    ? (ccAccount.amount ?? 0) + installment.amount
+                    : (ccAccount.amount ?? 0) - installment.amount;
+                await tx
+                    .update(accounts_schema_1.accounts)
+                    .set({
+                    amount: newCcBalance,
+                    updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+                })
+                    .where((0, drizzle_orm_1.eq)(accounts_schema_1.accounts.id, ccAccount.id));
+            }
+            // 4. Actualiza la transacción: status: 'pending', payingAccountID: null
+            await tx
+                .update(transactions_schema_1.transactions)
+                .set({
+                status: "pending",
+                payingAccountID: null,
+                updatedAt: (0, drizzle_orm_1.sql) `datetime('now', '-3 hours')`,
+            })
+                .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, installment.id));
+            // 5. Retorna la transacción actualizada
+            const updatedRow = await tx
+                .select({
+                transaction: transactions_schema_1.transactions,
+                account: accounts_schema_1.accounts,
+                toAccount: toAccounts,
+                payingAccount: payingAccounts,
+                category: categories_schema_1.categories,
+                entity: entities_schema_1.entities,
+            })
+                .from(transactions_schema_1.transactions)
+                .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
+                .leftJoin(toAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, toAccounts.id))
+                .leftJoin(payingAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.payingAccountID, payingAccounts.id))
+                .leftJoin(categories_schema_1.categories, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.categoryID, categories_schema_1.categories.id))
+                .leftJoin(entities_schema_1.entities, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.entityID, entities_schema_1.entities.id))
+                .where((0, drizzle_orm_1.eq)(transactions_schema_1.transactions.id, installment.id))
+                .get();
+            if (!updatedRow) {
+                throw new AppError_1.AppError("Error al recuperar la cuota actualizada", 500, "INSTALLMENT_UPDATE_FAILED");
+            }
+            return {
+                ...updatedRow.transaction,
+                account: updatedRow.account?.id ? updatedRow.account : null,
+                toAccount: updatedRow.toAccount?.id ? updatedRow.toAccount : null,
+                payingAccount: updatedRow.payingAccount?.id ? updatedRow.payingAccount : null,
+                category: updatedRow.category?.id ? updatedRow.category : null,
+                entity: updatedRow.entity?.id ? updatedRow.entity : null,
+            };
+        });
+    },
+    getPendingInstallments: async (userId, month, year) => {
+        const conditions = [
+            (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.userID, userId),
+            (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.status, "pending"),
+        ];
+        if (year && month) {
+            const formattedMonth = String(month).padStart(2, "0");
+            conditions.push((0, drizzle_orm_1.like)(transactions_schema_1.transactions.date, `${year}-${formattedMonth}%`));
+        }
+        else if (year) {
+            conditions.push((0, drizzle_orm_1.like)(transactions_schema_1.transactions.date, `${year}-%`));
+        }
+        const rows = await db_1.db
+            .select({
+            transaction: transactions_schema_1.transactions,
+            account: accounts_schema_1.accounts,
+            toAccount: toAccounts,
+            payingAccount: payingAccounts,
+            category: categories_schema_1.categories,
+            entity: entities_schema_1.entities,
+        })
+            .from(transactions_schema_1.transactions)
+            .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
+            .leftJoin(toAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.toAccountID, toAccounts.id))
+            .leftJoin(payingAccounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.payingAccountID, payingAccounts.id))
+            .leftJoin(categories_schema_1.categories, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.categoryID, categories_schema_1.categories.id))
+            .leftJoin(entities_schema_1.entities, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.entityID, entities_schema_1.entities.id))
+            .where((0, drizzle_orm_1.and)(...conditions))
+            .orderBy(transactions_schema_1.transactions.date, transactions_schema_1.transactions.createdAt);
+        return rows.map((r) => ({
+            ...r.transaction,
+            account: r.account?.id ? r.account : null,
+            toAccount: r.toAccount?.id ? r.toAccount : null,
+            payingAccount: r.payingAccount?.id ? r.payingAccount : null,
+            category: r.category?.id ? r.category : null,
+            entity: r.entity?.id ? r.entity : null,
+        }));
     },
 };

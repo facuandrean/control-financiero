@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTransactionSchema = exports.createTransactionSchema = void 0;
+exports.updateTransactionSchema = exports.payInstallmentSchema = exports.createTransactionSchema = void 0;
 const zod_1 = __importDefault(require("zod"));
 const optionalUuid = zod_1.default
     .string()
@@ -27,6 +27,16 @@ exports.createTransactionSchema = zod_1.default.object({
         .regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha debe tener formato YYYY-MM-DD"),
     description: zod_1.default.string().min(1, "La descripción es obligatoria").max(255, "Máximo 255 caracteres"),
     installments: zod_1.default.number().int().min(1).max(72).optional().default(1),
+    status: zod_1.default.enum(["completed", "pending"]).optional().default("completed"),
+});
+exports.payInstallmentSchema = zod_1.default
+    .object({
+    accountID: zod_1.default.string().min(1, "ID de cuenta inválido").optional(),
+    accountId: zod_1.default.string().min(1, "ID de cuenta inválido").optional(),
+})
+    .refine((data) => Boolean(data.accountID || data.accountId), {
+    message: "La cuenta de pago es obligatoria",
+    path: ["accountID"],
 });
 exports.updateTransactionSchema = zod_1.default.object({
     type: zod_1.default.enum(["Income", "Expense", "Transfer"]).optional(),

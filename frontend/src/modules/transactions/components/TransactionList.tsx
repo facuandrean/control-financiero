@@ -95,24 +95,12 @@ export const TransactionList = ({
                 const isTransfer = tx.type === 'Transfer';
 
                 const mainTitle = isTransfer
-                  ? `${tx.account?.name || 'Origen'} ➔ ${tx.toAccount?.name || 'Destino'}`
-                  : tx.entity?.name || tx.category?.name || tx.description || 'Transacción';
-
-                const subParts: string[] = [];
-                if (isTransfer) {
-                  subParts.push('Transferencia entre cuentas');
-                  if (tx.description) subParts.push(tx.description);
-                } else {
-                  if (tx.account?.name) {
-                    subParts.push(`Cuenta: ${tx.account.name}`);
-                  }
-                  if (tx.category?.name && tx.entity?.name) {
-                    subParts.push(tx.category.name);
-                  }
-                  if (tx.description && tx.description !== tx.entity?.name) {
-                    subParts.push(tx.description);
-                  }
-                }
+                  ? tx.description && tx.description.trim() !== ''
+                    ? tx.description
+                    : 'Transferencia entre cuentas'
+                  : tx.description && tx.description.trim() !== ''
+                    ? tx.description
+                    : tx.entity?.name || tx.category?.name || 'Transacción';
 
                 return (
                   <div
@@ -135,44 +123,60 @@ export const TransactionList = ({
                       </div>
 
                       <div className="transaction-info">
-                        <div className="transaction-primary-row">
-                          <h4 className="transaction-title" title={mainTitle}>
-                            {mainTitle}
-                          </h4>
-                          <span
-                            className={`transaction-type-pill ${isIncome
-                              ? 'pill-income'
-                              : isExpense
-                                ? 'pill-expense'
-                                : 'pill-transfer'
-                              }`}
-                          >
-                            {isIncome
-                              ? 'Ingreso'
-                              : isExpense
-                                ? 'Egreso'
-                                : 'Transferencia'}
-                          </span>
+                        <h4 className="transaction-title" title={mainTitle}>
+                          {mainTitle}
+                        </h4>
+                        <div className="transaction-meta">
+                          {isTransfer ? (
+                            <span
+                              className="tx-badge"
+                              title={`${tx.account?.name || 'Origen'} ➔ ${tx.toAccount?.name || 'Destino'}`}
+                            >
+                              {tx.account?.name || 'Origen'} ➔ {tx.toAccount?.name || 'Destino'}
+                            </span>
+                          ) : (
+                            <>
+                              {tx.account?.name && (
+                                <span className="tx-badge" title={tx.account.name}>
+                                  {tx.account.name}
+                                </span>
+                              )}
+                              {tx.category?.name && (
+                                <span className="tx-badge" title={tx.category.name}>
+                                  {tx.category.name}
+                                </span>
+                              )}
+                              {tx.entity?.name && (
+                                <span className="tx-badge" title={tx.entity.name}>
+                                  {tx.entity.name}
+                                </span>
+                              )}
+                            </>
+                          )}
                         </div>
-                        <p
-                          className="transaction-subtitle"
-                          title={subParts.join(' • ')}
-                        >
-                          {subParts.join(' • ')}
-                        </p>
                       </div>
                     </div>
 
                     <div className="transaction-item-right">
+                      {tx.status === 'pending' && (
+                        <span className="transaction-status-badge badge-pending">
+                          Pendiente
+                        </span>
+                      )}
                       <span
-                        className={`transaction-amount ${isIncome
-                          ? 'amount-income'
-                          : isExpense
-                            ? 'amount-expense'
-                            : 'amount-transfer'
-                          }`}
+                        className={`transaction-amount ${
+                          isIncome
+                            ? 'amount-income'
+                            : isExpense
+                              ? 'amount-expense'
+                              : 'amount-transfer'
+                        }`}
                       >
-                        {formatCurrency(tx.amount)}
+                        {isIncome
+                          ? `+${formatCurrency(tx.amount)}`
+                          : isExpense
+                            ? `-${formatCurrency(tx.amount)}`
+                            : formatCurrency(tx.amount)}
                       </span>
 
                       <div className="transaction-actions">

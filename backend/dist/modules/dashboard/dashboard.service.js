@@ -8,6 +8,7 @@ const categories_schema_1 = require("../categories/categories.schema");
 const entities_schema_1 = require("../entities/entities.schema");
 const drizzle_orm_1 = require("drizzle-orm");
 const debts_service_1 = require("../debts/debts.service");
+const transactions_service_1 = require("../transactions/transactions.service");
 const toAccounts = (0, drizzle_orm_1.aliasedTable)(accounts_schema_1.accounts, "to_accounts");
 exports.dashboardService = {
     getSummary: async (userID, month, year) => {
@@ -110,6 +111,9 @@ exports.dashboardService = {
             toAccountName: toAccounts.name,
             categoryName: categories_schema_1.categories.name,
             entityName: entities_schema_1.entities.name,
+            status: transactions_schema_1.transactions.status,
+            installmentGroupId: transactions_schema_1.transactions.installmentGroupId,
+            payingAccountID: transactions_schema_1.transactions.payingAccountID,
         })
             .from(transactions_schema_1.transactions)
             .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
@@ -127,10 +131,25 @@ exports.dashboardService = {
             description: tx.description || "",
             type: tx.type,
             createdAt: tx.createdAt,
+            status: tx.status,
+            installmentGroupId: tx.installmentGroupId || null,
+            payingAccountID: tx.payingAccountID || null,
             accountName: tx.accountName || null,
             toAccountName: tx.toAccountName || null,
             categoryName: tx.categoryName || null,
             entityName: tx.entityName || null,
+        }));
+        // 7. Cuotas pendientes del mes
+        const pendingInstallmentsRaw = await transactions_service_1.transactionService.getPendingInstallments(userID, currentMonth, currentYear);
+        const pendingInstallments = pendingInstallmentsRaw.map((tx) => ({
+            id: tx.id,
+            description: tx.description || "",
+            amount: tx.amount,
+            date: tx.date,
+            cardName: tx.account?.name || "Tarjeta de Crédito",
+            accountID: tx.accountID,
+            status: tx.status,
+            installmentGroupId: tx.installmentGroupId,
         }));
         return {
             monthlyIncome,
@@ -139,6 +158,7 @@ exports.dashboardService = {
             netWorth,
             topCategories,
             recentTransactions,
+            pendingInstallments,
         };
     },
 };

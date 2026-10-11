@@ -27,6 +27,10 @@ exports.transactions = (0, sqlite_core_1.sqliteTable)("transactions", {
         onDelete: "set null",
     }),
     installmentGroupId: (0, sqlite_core_1.text)("installment_group_id"),
+    status: (0, sqlite_core_1.text)("status").notNull().default("completed"),
+    payingAccountID: (0, sqlite_core_1.text)("paying_account_id").references(() => accounts_schema_1.accounts.id, {
+        onDelete: "set null",
+    }),
     date: (0, sqlite_core_1.text)("date").notNull(),
     description: (0, sqlite_core_1.text)("description"),
     createdAt: (0, sqlite_core_1.text)("created_at")

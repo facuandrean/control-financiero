@@ -57,6 +57,7 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
     fetchTransactions,
     createTransaction,
     deleteTransaction,
+    unpayInstallment,
     clearError,
     clearSuccess,
   } = useTransactions();
@@ -316,13 +317,26 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
               </strong>
               ?
             </p>
-            <p
-              className="text-muted mb-0 mt-1 d-flex align-items-center gap-3"
-              style={{ fontSize: '0.9rem' }}
-            >
-              <BsInfoCircle size={16} />
-              Esta acción revertirá automáticamente el saldo de las cuentas involucradas.
-            </p>
+            {selectedTransaction.installmentGroupId ||
+              (selectedTransaction.installments && selectedTransaction.installments > 1) ? (
+              <div
+                className="alert alert-warning d-flex align-items-start gap-2 mb-0 mt-2 p-2"
+                style={{ fontSize: '0.875rem' }}
+              >
+                <span>
+                  <BsInfoCircle size={16} style={{ paddingRight: '0.25rem' }} />
+                  Esta cuota forma parte de una compra en cuotas. Al eliminarla, se cancelará la compra completa, se eliminarán todas las cuotas del grupo y se reembolsará cualquier pago que ya hayas realizado a tus cuentas.
+                </span>
+              </div>
+            ) : (
+              <p
+                className="text-muted mb-0 mt-1 d-flex align-items-center gap-3"
+                style={{ fontSize: '0.9rem' }}
+              >
+                <BsInfoCircle size={16} />
+                Esta acción revertirá automáticamente el saldo de las cuentas involucradas.
+              </p>
+            )}
           </>
         )}
       </ModalConfirm>
@@ -332,6 +346,14 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         id="transaction-details-modal"
         transaction={detailTransaction}
         onClose={() => setDetailTransaction(null)}
+        onUnpay={async (tx) => {
+          const isOk = await unpayInstallment(tx.id);
+          if (isOk) {
+            await loadData();
+          } else {
+            throw new Error(error || 'Error al deshacer el pago');
+          }
+        }}
         onDelete={(tx) => {
           setSelectedTransaction(tx as Transaction);
           clearError();

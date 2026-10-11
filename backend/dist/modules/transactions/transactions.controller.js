@@ -71,4 +71,38 @@ exports.transactionController = {
             next(error);
         }
     },
+    payInstallment: async (req, res, next) => {
+        try {
+            const id = req.params.id;
+            const userID = req.user.id;
+            const accountId = (req.body.accountID || req.body.accountId);
+            const result = await transactions_service_1.transactionService.payInstallment(id, accountId, userID);
+            return (0, responses_1.sendSuccess)(res, result, "Cuota pagada exitosamente", 200);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    unpayInstallment: async (req, res, next) => {
+        try {
+            const id = req.params.id;
+            const userID = req.user.id;
+            const result = await transactions_service_1.transactionService.unpayInstallment(id, userID);
+            return (0, responses_1.sendSuccess)(res, result, "Pago de cuota deshecho exitosamente", 200);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    getPendingInstallments: async (req, res, next) => {
+        try {
+            const userID = req.user.id;
+            const { month, year } = req.query;
+            const pendingInstallments = await transactions_service_1.transactionService.getPendingInstallments(userID, month ? String(month) : undefined, year ? String(year) : undefined);
+            return (0, responses_1.sendSuccess)(res, pendingInstallments);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
 };

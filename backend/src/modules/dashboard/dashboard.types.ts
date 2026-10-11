@@ -12,10 +12,25 @@ export interface RecentTransactionItem {
   description: string;
   type: string;
   createdAt?: string;
+  status?: string;
+  installments?: number | null;
+  installmentGroupId?: string | null;
+  payingAccountID?: string | null;
   accountName?: string | null;
   toAccountName?: string | null;
   categoryName?: string | null;
   entityName?: string | null;
+}
+
+export interface PendingInstallmentItem {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  cardName: string;
+  accountID: string;
+  status: string;
+  installmentGroupId?: string | null;
 }
 
 export interface DashboardSummary {
@@ -25,4 +40,5 @@ export interface DashboardSummary {
   netWorth: number;
   topCategories: TopCategoryItem[];
   recentTransactions: RecentTransactionItem[];
+  pendingInstallments: PendingInstallmentItem[];
 }

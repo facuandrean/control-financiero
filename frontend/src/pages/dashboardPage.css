@@ -234,7 +234,7 @@
    -------------------------------------------------------------------------- */
 .dashboard-metrics-wrapper {
   margin-top: 0 !important;
-  padding: 1rem 0rem !important;
+  padding: 0rem !important;
   background-color: transparent !important;
   border: none !important;
   width: 100% !important;
@@ -814,4 +814,246 @@
   .dashboard-insight-card {
     padding: 0.85rem;
   }
+}
+
+/* --------------------------------------------------------------------------
+   E. CUOTAS PENDIENTES ESTE MES
+   -------------------------------------------------------------------------- */
+.dashboard-pending-installments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.dashboard-pending-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0.25rem;
+}
+
+.dashboard-pending-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-pending-title-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: #fef3c7;
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.dashboard-pending-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.dashboard-pending-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  display: block;
+}
+
+.dashboard-pending-count-badge {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-size: 0.775rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.dashboard-pending-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.pending-installment-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #f59e0b;
+  border-radius: 1rem;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pending-installment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.pending-installment-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.pending-installment-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fef3c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.pending-installment-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.pending-installment-desc {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.35rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pending-installment-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.pending-installment-card-name {
+  font-weight: 600;
+  color: #475569;
+}
+
+.pending-installment-separator {
+  color: #cbd5e1;
+}
+
+.pending-installment-date {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.pending-installment-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #f1f5f9;
+  gap: 0.75rem;
+}
+
+.pending-installment-amount-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.pending-installment-amount-label {
+  font-size: 0.725rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.pending-installment-amount {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.btn-pay-installment {
+  background: #fffbeb;
+  color: #d97706;
+  border: none;
+  border-radius: 0.65rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-pay-installment:hover {
+  background: #ffead2;
+}
+
+/* Modal resumen pago cuota */
+.pay-installment-summary-card {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pay-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.pay-summary-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pay-summary-value {
+  color: #1e293b;
+  font-weight: 600;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80%;
+}
+
+.pay-summary-total {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.pay-summary-amount {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
 }

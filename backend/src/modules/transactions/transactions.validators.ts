@@ -23,7 +23,18 @@ export const createTransactionSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha debe tener formato YYYY-MM-DD"),
   description: z.string().min(1, "La descripción es obligatoria").max(255, "Máximo 255 caracteres"),
   installments: z.number().int().min(1).max(72).optional().default(1),
+  status: z.enum(["completed", "pending"]).optional().default("completed"),
 });
+
+export const payInstallmentSchema = z
+  .object({
+    accountID: z.string().min(1, "ID de cuenta inválido").optional(),
+    accountId: z.string().min(1, "ID de cuenta inválido").optional(),
+  })
+  .refine((data) => Boolean(data.accountID || data.accountId), {
+    message: "La cuenta de pago es obligatoria",
+    path: ["accountID"],
+  });
 
 export const updateTransactionSchema = z.object({
   type: z.enum(["Income", "Expense", "Transfer"]).optional(),

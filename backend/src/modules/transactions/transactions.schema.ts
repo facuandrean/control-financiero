@@ -27,6 +27,10 @@ export const transactions = sqliteTable(
       onDelete: "set null",
     }),
     installmentGroupId: text("installment_group_id"),
+    status: text("status").notNull().default("completed"),
+    payingAccountID: text("paying_account_id").references(() => accounts.id, {
+      onDelete: "set null",
+    }),
     date: text("date").notNull(),
     description: text("description"),
     createdAt: text("created_at")

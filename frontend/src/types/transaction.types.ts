@@ -11,9 +11,11 @@ export interface Transaction {
   amount: number;
   accountID: string;
   toAccountID?: string | null;
+  payingAccountID?: string | null;
   categoryID?: string | null;
   entityID?: string | null;
   installmentGroupId?: string | null;
+  installments?: number | null;
   date: string;
   description: string;
   status?: string;
@@ -23,6 +25,7 @@ export interface Transaction {
   // Populated fields
   account?: Account | null;
   toAccount?: Account | null;
+  payingAccount?: Account | null;
   category?: Category | null;
   entity?: Entity | null;
 }

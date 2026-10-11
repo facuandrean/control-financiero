@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { api } from '../../../api/axios';
 import { useClear } from '../../../hooks/useClear';
 import type {
@@ -12,6 +12,7 @@ export const useTransactions = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const lastFiltersRef = useRef<TransactionFilters | undefined>(undefined);
 
   const clearError = useCallback(() => setError(null), []);
   const clearSuccess = useCallback(() => setSuccess(null), []);
@@ -20,6 +21,7 @@ export const useTransactions = () => {
   useClear({ message: success, clearMessage: clearSuccess, time: 4000 });
 
   const fetchTransactions = useCallback(async (filters?: TransactionFilters) => {
+    lastFiltersRef.current = filters;
     setLoading(true);
     try {
       const params: Record<string, any> = {};
@@ -80,6 +82,48 @@ export const useTransactions = () => {
     }
   };
 
+  const payInstallment = async (
+    transactionId: string,
+    accountID: string
+  ): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.post(`/transactions/${transactionId}/pay`, {
+        accountID,
+        accountId: accountID,
+      });
+      setSuccess('¡Cuota pagada exitosamente!');
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al pagar la cuota';
+      setError(msg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const unpayInstallment = async (id: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.post(`/transactions/${id}/unpay`);
+      setSuccess('¡Pago de cuota deshecho exitosamente!');
+      await fetchTransactions(lastFiltersRef.current);
+      return true;
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message || 'Error al deshacer el pago de la cuota';
+      setError(msg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     transactions,
     loading,
@@ -88,6 +132,8 @@ export const useTransactions = () => {
     fetchTransactions,
     createTransaction,
     deleteTransaction,
+    payInstallment,
+    unpayInstallment,
     clearError,
     clearSuccess,
   };

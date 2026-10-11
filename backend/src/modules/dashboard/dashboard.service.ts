@@ -5,6 +5,7 @@ import { categories } from "../categories/categories.schema";
 import { entities } from "../entities/entities.schema";
 import { and, desc, eq, like, aliasedTable } from "drizzle-orm";
 import { debtService } from "../debts/debts.service";
+import { transactionService } from "../transactions/transactions.service";
 import { DashboardSummary } from "./dashboard.types";
 
 const toAccounts = aliasedTable(accounts, "to_accounts");
@@ -138,6 +139,9 @@ export const dashboardService = {
         toAccountName: toAccounts.name,
         categoryName: categories.name,
         entityName: entities.name,
+        status: transactions.status,
+        installmentGroupId: transactions.installmentGroupId,
+        payingAccountID: transactions.payingAccountID,
       })
       .from(transactions)
       .leftJoin(accounts, eq(transactions.accountID, accounts.id))
@@ -156,10 +160,31 @@ export const dashboardService = {
       description: tx.description || "",
       type: tx.type,
       createdAt: tx.createdAt,
+      status: tx.status,
+      installmentGroupId: tx.installmentGroupId || null,
+      payingAccountID: tx.payingAccountID || null,
       accountName: tx.accountName || null,
       toAccountName: tx.toAccountName || null,
       categoryName: tx.categoryName || null,
       entityName: tx.entityName || null,
+    }));
+
+    // 7. Cuotas pendientes del mes
+    const pendingInstallmentsRaw = await transactionService.getPendingInstallments(
+      userID,
+      currentMonth,
+      currentYear
+    );
+
+    const pendingInstallments = pendingInstallmentsRaw.map((tx) => ({
+      id: tx.id,
+      description: tx.description || "",
+      amount: tx.amount,
+      date: tx.date,
+      cardName: tx.account?.name || "Tarjeta de Crédito",
+      accountID: tx.accountID,
+      status: tx.status,
+      installmentGroupId: tx.installmentGroupId,
     }));
 
     return {
@@ -169,6 +194,7 @@ export const dashboardService = {
       netWorth,
       topCategories,
       recentTransactions,
+      pendingInstallments,
     };
   },
 };

@@ -18,12 +18,14 @@ import {
 import { MainLayout } from '../components/layout/mainLayout/MainLayout';
 import { BodyHeader, BodyContent } from '../components/layout';
 import { ModalPost } from '../components/layout/modal/ModalPost';
-import { Loading } from '../components/ui';
+import { Loading, MessageError, MessageSuccess } from '../components/ui';
 import { useIsMobile } from '../hooks';
 import { useAuthStore } from '../store';
 import { openModal, closeModal } from '../utils/modal.utils';
+import { api } from '../api/axios';
 
 import { useDashboard } from '../modules/dashboard';
+import { useAccounts } from '../modules/accounts';
 import {
   TransactionForm,
   ModalTransactionDetails,
@@ -35,6 +37,7 @@ import type {
   CreateTransactionDTO,
   TransactionType,
 } from '../types/transaction.types';
+import type { PendingInstallmentItem } from '../types/dashboard.types';
 
 import './dashboardPage.css';
 
@@ -86,6 +89,9 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     clearSuccess: clearDebtSuccess,
   } = useDebts();
 
+  // Accounts module integration
+  const { accounts, fetchAccounts } = useAccounts();
+
   const [modalTxType, setModalTxType] = useState<TransactionType>('Income');
   const [isCreditCardMode, setIsCreditCardMode] = useState(false);
   const [selectedTxDetails, setSelectedTxDetails] =
@@ -93,9 +99,22 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
   const [isTxSuccessClosing, setIsTxSuccessClosing] = useState(false);
   const [isDebtSuccessClosing, setIsDebtSuccessClosing] = useState(false);
 
+  // Installment payment state
+  const [selectedInstallmentToPay, setSelectedInstallmentToPay] =
+    useState<PendingInstallmentItem | null>(null);
+  const [payAccountId, setPayAccountId] = useState<string>('');
+  const [payLoading, setPayLoading] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [paySuccess, setPaySuccess] = useState<string | null>(null);
+  const [isPaySuccessClosing, setIsPaySuccessClosing] = useState(false);
+
+  const clearPayError = () => setPayError(null);
+  const clearPaySuccess = () => setPaySuccess(null);
+
   const loadData = useCallback(() => {
     fetchSummary(selectedMonth, selectedYear);
-  }, [fetchSummary, selectedMonth, selectedYear]);
+    fetchAccounts();
+  }, [fetchSummary, fetchAccounts, selectedMonth, selectedYear]);
 
   useEffect(() => {
     loadData();
@@ -225,6 +244,53 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     }
   };
 
+  const handleOpenPayModal = (installment: PendingInstallmentItem) => {
+    setSelectedInstallmentToPay(installment);
+    clearPayError();
+    clearPaySuccess();
+    const eligible = accounts.filter(
+      (acc) => acc.status === 'Active' && acc.id !== installment.accountID
+    );
+    setPayAccountId(eligible.length > 0 ? eligible[0].id : '');
+    openModal({ idModal: 'pay-installment-modal' });
+  };
+
+  const handlePayInstallmentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedInstallmentToPay || !payAccountId) {
+      setPayError('Por favor selecciona una cuenta para realizar el pago');
+      return;
+    }
+
+    setPayLoading(true);
+    setPayError(null);
+    setPaySuccess(null);
+    try {
+      await api.post(`/transactions/${selectedInstallmentToPay.id}/pay`, {
+        accountID: payAccountId,
+        accountId: payAccountId,
+      });
+      setPaySuccess('¡Cuota pagada correctamente!');
+      setIsPaySuccessClosing(true);
+      setTimeout(async () => {
+        closeModal({ idModal: 'pay-installment-modal' });
+        setIsPaySuccessClosing(false);
+        setSelectedInstallmentToPay(null);
+        setPayAccountId('');
+        clearPaySuccess();
+        clearPayError();
+        await fetchSummary(selectedMonth, selectedYear);
+        await fetchAccounts();
+      }, 1000);
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message || 'Error al procesar el pago de la cuota';
+      setPayError(msg);
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
   const txModalTitle = isCreditCardMode
     ? 'Pago con Tarjeta'
     : modalTxType === 'Income'
@@ -255,6 +321,72 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
       />
 
       <div className="dashboard-page-container">
+
+        {/* SECCIÓN CONDICIONAL: CUOTAS PENDIENTES ESTE MES */}
+        {summary?.pendingInstallments && summary.pendingInstallments.length > 0 && (
+          <div className="dashboard-pending-installments-section">
+            <div className="dashboard-pending-header">
+              <div className="dashboard-pending-title-wrapper">
+                <div>
+                  <h2 className="dashboard-pending-title">Cuotas pendientes este mes</h2>
+                </div>
+              </div>
+              <span className="dashboard-pending-count-badge">
+                {summary.pendingInstallments.length}{' '}
+                {summary.pendingInstallments.length === 1 ? 'cuota' : 'cuotas'}
+              </span>
+            </div>
+
+            <div className="dashboard-pending-grid">
+              {summary.pendingInstallments.map((inst) => (
+                <div key={inst.id} className="pending-installment-card">
+                  <div className="pending-installment-main">
+                    <div className="pending-installment-icon-box">
+                      <BsCreditCard />
+                    </div>
+                    <div className="pending-installment-details">
+                      <h4
+                        className="pending-installment-desc"
+                        title={inst.description}
+                      >
+                        {inst.description}
+                      </h4>
+                      <div className="pending-installment-meta">
+                        <span className="pending-installment-card-name">
+                          {inst.cardName}
+                        </span>
+                        <span className="pending-installment-separator">•</span>
+                        <span className="pending-installment-date">
+                          Vence: {formatDate(inst.date)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pending-installment-right">
+                    <div className="pending-installment-amount-box">
+                      <span className="pending-installment-amount-label">
+                        Monto cuota
+                      </span>
+                      <span className="pending-installment-amount">
+                        {formatCurrency(inst.amount)}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn-pay-installment"
+                      onClick={() => handleOpenPayModal(inst)}
+                    >
+                      Pagar cuota
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* A. ATAJOS RÁPIDOS */}
         <div className="dashboard-quick-actions">
           <button
@@ -662,11 +794,118 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
         />
       </ModalPost>
 
+      {/* MODAL PAGO DE CUOTA */}
+      <ModalPost
+        title="Pagar Cuota"
+        id="pay-installment-modal"
+        formId="pay-installment-form"
+        loading={payLoading || isPaySuccessClosing}
+        clearError={clearPayError}
+        clearSuccess={clearPaySuccess}
+        onHidden={() => {
+          setSelectedInstallmentToPay(null);
+          setPayAccountId('');
+          clearPayError();
+          clearPaySuccess();
+        }}
+        buttonSubmit={{
+          label: 'Confirmar pago',
+          labelLoading: 'Pagando...',
+          className: 'btn-submit-post',
+          disabled: !payAccountId || payLoading || isPaySuccessClosing,
+          onClick: () => { },
+        }}
+      >
+        {selectedInstallmentToPay && (
+          <form id="pay-installment-form" onSubmit={handlePayInstallmentSubmit}>
+            <div className="pay-installment-summary-card">
+              <div className="pay-summary-row">
+                <span className="pay-summary-label">Concepto</span>
+                <span className="pay-summary-value text-dark fw-bold">
+                  {selectedInstallmentToPay.description}
+                </span>
+              </div>
+              <div className="pay-summary-row">
+                <span className="pay-summary-label">Tarjeta a pagar</span>
+                <span className="pay-summary-value">
+                  {selectedInstallmentToPay.cardName}
+                </span>
+              </div>
+              <div className="pay-summary-row">
+                <span className="pay-summary-label">Fecha de vencimiento</span>
+                <span className="pay-summary-value">
+                  {formatDate(selectedInstallmentToPay.date)}
+                </span>
+              </div>
+              <div className="pay-summary-row pay-summary-total">
+                <span className="pay-summary-label">Monto de la cuota</span>
+                <span className="pay-summary-amount">
+                  {formatCurrency(selectedInstallmentToPay.amount)}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label
+                htmlFor="pay-account-select"
+                className="form-label fw-bold"
+                style={{ fontSize: '0.875rem' }}
+              >
+                Cuenta de origen (desde dónde se paga)
+              </label>
+              <select
+                id="pay-account-select"
+                className="form-select"
+                value={payAccountId}
+                onChange={(e) => {
+                  setPayAccountId(e.target.value);
+                  clearPayError();
+                }}
+                disabled={payLoading || isPaySuccessClosing}
+                required
+              >
+                <option value="">Selecciona una cuenta...</option>
+                {accounts
+                  .filter(
+                    (acc) =>
+                      acc.status === 'Active' &&
+                      acc.id !== selectedInstallmentToPay.accountID
+                  )
+                  .map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} ({acc.bank || acc.type}) - Saldo: {formatCurrency(acc.amount ?? 0)}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {payLoading && (
+              <div className="d-flex justify-content-center mt-3">
+                <Loading />
+              </div>
+            )}
+
+            {paySuccess && !payLoading && (
+              <MessageSuccess message={paySuccess} className="mt-3" />
+            )}
+
+            {payError && !payLoading && (
+              <MessageError message={payError} className="mt-3" />
+            )}
+          </form>
+        )}
+      </ModalPost>
+
       {/* MODAL DETALLES DE TRANSACCIÓN */}
       <ModalTransactionDetails
         id="dashboard-tx-details-modal"
         transaction={selectedTxDetails}
         onClose={() => setSelectedTxDetails(null)}
+        onUnpay={async (tx) => {
+          await api.post(`/transactions/${tx.id}/unpay`);
+          await fetchSummary(selectedMonth, selectedYear);
+          await fetchAccounts();
+        }}
       />
     </MainLayout>
   );

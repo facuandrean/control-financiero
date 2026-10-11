@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { BsTrash } from 'react-icons/bs';
+import { useEffect, useRef, useState } from 'react';
+import { Loading, MessageError, MessageSuccess } from '../../../components/ui';
+import { api } from '../../../api/axios';
 import type { Transaction } from '../../../types/transaction.types';
 import type { RecentTransactionItem } from '../../../types/dashboard.types';
 import { closeModal, onModalHidden } from '../../../utils/modal.utils';
@@ -11,6 +12,7 @@ interface ModalTransactionDetailsProps {
   id?: string;
   transaction: TransactionDetailData | null;
   onDelete?: (tx: TransactionDetailData) => void;
+  onUnpay?: (tx: TransactionDetailData) => Promise<boolean | void> | void;
   onClose?: () => void;
 }
 
@@ -18,8 +20,13 @@ export const ModalTransactionDetails = ({
   id = 'modal-transaction-details',
   transaction,
   onDelete,
+  onUnpay,
   onClose,
 }: ModalTransactionDetailsProps) => {
+  const [unpayLoading, setUnpayLoading] = useState(false);
+  const [unpaySuccess, setUnpaySuccess] = useState<string | null>(null);
+  const [unpayError, setUnpayError] = useState<string | null>(null);
+
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -27,6 +34,9 @@ export const ModalTransactionDetails = ({
 
   useEffect(() => {
     return onModalHidden(id, () => {
+      setUnpayError(null);
+      setUnpaySuccess(null);
+      setUnpayLoading(false);
       onCloseRef.current?.();
     });
   }, [id]);
@@ -112,6 +122,39 @@ export const ModalTransactionDetails = ({
   const entityName = txRecord.entity?.name || txRecord.entityName || null;
   const installments = txRecord.installments || null;
 
+  const isInstallmentPurchase = Boolean(
+    (txRecord.installments && txRecord.installments > 1) ||
+    txRecord.installmentGroupId ||
+    txRecord.payingAccountID
+  );
+  const canUnpay = txRecord.status === 'paid' && isInstallmentPurchase;
+
+  const handleUnpayClick = async () => {
+    if (!transaction) return;
+    setUnpayLoading(true);
+    setUnpayError(null);
+    setUnpaySuccess(null);
+    try {
+      if (onUnpay) {
+        await onUnpay(transaction);
+      } else {
+        await api.post(`/transactions/${transaction.id}/unpay`);
+      }
+      setUnpaySuccess('Pago deshecho correctamente');
+      setTimeout(() => {
+        closeModal({ idModal: id });
+        setUnpaySuccess(null);
+        onCloseRef.current?.();
+      }, 1000);
+    } catch (err: any) {
+      setUnpayError(
+        err.response?.data?.message || err.message || 'Error al deshacer el pago'
+      );
+    } finally {
+      setUnpayLoading(false);
+    }
+  };
+
   const handleDeleteClick = () => {
     closeModal({ idModal: id });
     if (onDelete && transaction) {
@@ -143,6 +186,7 @@ export const ModalTransactionDetails = ({
               data-bs-dismiss="modal"
               aria-label="Cerrar"
               onClick={onClose}
+              disabled={unpayLoading}
             />
           </div>
 
@@ -208,6 +252,15 @@ export const ModalTransactionDetails = ({
                     </div>
                   )}
 
+                  {txRecord.status && (
+                    <div className="d-flex justify-content-between py-1 border-bottom align-items-center">
+                      <span className="text-muted">Estado:</span>
+                      <span className={`badge ${txRecord.status === 'pending' ? 'badge-pending' : 'badge-settled'}`} style={{ fontSize: '.8rem' }}>
+                        {txRecord.status === 'pending' ? 'Pendiente de pago' : txRecord.status === 'paid' ? 'Pagada' : 'Completada'}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="pt-2">
                     <span className="text-muted d-block mb-1" style={{ fontSize: '0.85rem' }}>
                       Descripción Completa:
@@ -226,30 +279,45 @@ export const ModalTransactionDetails = ({
                         : 'Sin descripción registrada'}
                     </p>
                   </div>
+
+                  {unpayLoading && (
+                    <div className="d-flex justify-content-center mt-3">
+                      <Loading />
+                    </div>
+                  )}
+
+                  {unpaySuccess && !unpayLoading && (
+                    <MessageSuccess message={unpaySuccess} className="mt-3" />
+                  )}
+
+                  {unpayError && !unpayLoading && (
+                    <MessageError message={unpayError} className="mt-3" />
+                  )}
                 </div>
               </div>
 
-              <div
-                className={`modal-footer ${onDelete ? 'd-flex justify-content-between' : 'd-flex justify-content-end'}`}
-              >
+              <div className="modal-footer d-flex justify-content-end gap-2">
+                {canUnpay && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleUnpayClick}
+                    disabled={unpayLoading}
+                  >
+                    Deshacer Pago
+                  </button>
+                )}
+
                 {onDelete && (
                   <button
                     type="button"
                     className="btn btn-danger"
                     onClick={handleDeleteClick}
+                    disabled={unpayLoading}
                   >
-                    <BsTrash className="me-1" /> Eliminar
+                    Eliminar transacción
                   </button>
                 )}
-
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                  onClick={onClose}
-                >
-                  Cerrar
-                </button>
               </div>
             </>
           ) : null}

@@ -108,4 +108,65 @@ export const transactionController = {
       next(error);
     }
   },
+
+  payInstallment: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id = req.params.id as string;
+      const userID = req.user.id;
+      const accountId = (req.body.accountID || req.body.accountId) as string;
+
+      const result = await transactionService.payInstallment(
+        id,
+        accountId,
+        userID
+      );
+
+      return sendSuccess(res, result, "Cuota pagada exitosamente", 200);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  unpayInstallment: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id = req.params.id as string;
+      const userID = req.user.id;
+
+      const result = await transactionService.unpayInstallment(id, userID);
+
+      return sendSuccess(res, result, "Pago de cuota deshecho exitosamente", 200);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getPendingInstallments: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userID = req.user.id;
+      const { month, year } = req.query;
+
+      const pendingInstallments =
+        await transactionService.getPendingInstallments(
+          userID,
+          month ? String(month) : undefined,
+          year ? String(year) : undefined
+        );
+
+      return sendSuccess(res, pendingInstallments);
+    } catch (error) {
+      next(error);
+    }
+  },
 };
