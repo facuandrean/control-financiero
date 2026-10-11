@@ -119,7 +119,7 @@
 }
 
 .debt-amount {
-  color: #c46262;
+  color: #d97706;
   /* Rojo oscuro para que se vea bien en fondo claro pastel */
   font-size: 1.15rem;
   font-weight: 700;
@@ -140,7 +140,7 @@
 
 .progress-bar-fill {
   height: 100%;
-  background-color: #10b981;
+  background-color: #d97706;
   /* Verde */
   border-radius: 2px;
   transition: width 0.3s ease;

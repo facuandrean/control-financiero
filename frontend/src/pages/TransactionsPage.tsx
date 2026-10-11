@@ -137,7 +137,6 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
       await loadData();
       setTimeout(() => {
         closeModal({ idModal: 'transaction-delete-modal' });
-        setSelectedTransaction(null);
         setIsSuccessClosing(false);
       }, 1000);
     }
@@ -278,6 +277,10 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => {
+          clearError();
+          clearSuccess();
+        }}
       >
         <TransactionForm
           onSubmit={handleCreateSubmit}
@@ -302,7 +305,11 @@ export const TransactionsPage = ({ section }: TransactionsPageProps) => {
         successMessage={success || undefined}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedTransaction(null)}
+        onHidden={() => {
+          setSelectedTransaction(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Eliminar"
         buttonLabelLoading="Eliminando..."
         confirmButtonClass="btn btn-danger"

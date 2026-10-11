@@ -27,6 +27,18 @@ export const ModalTransactionDetails = ({
   const [unpaySuccess, setUnpaySuccess] = useState<string | null>(null);
   const [unpayError, setUnpayError] = useState<string | null>(null);
 
+  // Mantenemos los datos en caché para que durante la animación de cierre (fade-out de 300ms)
+  // el modal conserve todo su cuerpo visible y no se desmonte antes de tiempo.
+  const [cachedTransaction, setCachedTransaction] = useState<TransactionDetailData | null>(transaction);
+
+  useEffect(() => {
+    if (transaction) {
+      setCachedTransaction(transaction);
+    }
+  }, [transaction]);
+
+  const activeTransaction = transaction || cachedTransaction;
+
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -37,13 +49,14 @@ export const ModalTransactionDetails = ({
       setUnpayError(null);
       setUnpaySuccess(null);
       setUnpayLoading(false);
+      setCachedTransaction(null);
       onCloseRef.current?.();
     });
   }, [id]);
 
-  const isIncome = transaction?.type === 'Income';
-  const isExpense = transaction?.type === 'Expense';
-  const isTransfer = transaction?.type === 'Transfer';
+  const isIncome = activeTransaction?.type === 'Income';
+  const isExpense = activeTransaction?.type === 'Expense';
+  const isTransfer = activeTransaction?.type === 'Transfer';
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -98,13 +111,13 @@ export const ModalTransactionDetails = ({
       createdAt?: string;
     };
 
-  const txRecord = (transaction || {}) as ExtendedTransactionDetails;
+  const txRecord = (activeTransaction || {}) as ExtendedTransactionDetails;
 
   const recordTime = (() => {
-    if (transaction?.date && transaction.date.includes('T')) {
-      const timePart = transaction.date.split('T')[1];
+    if (activeTransaction?.date && activeTransaction.date.includes('T')) {
+      const timePart = activeTransaction.date.split('T')[1];
       if (timePart && !timePart.startsWith('00:00:00')) {
-        return formatTime(transaction.date);
+        return formatTime(activeTransaction.date);
       }
     }
     if (txRecord.createdAt) {
@@ -130,21 +143,19 @@ export const ModalTransactionDetails = ({
   const canUnpay = txRecord.status === 'paid' && isInstallmentPurchase;
 
   const handleUnpayClick = async () => {
-    if (!transaction) return;
+    if (!activeTransaction) return;
     setUnpayLoading(true);
     setUnpayError(null);
     setUnpaySuccess(null);
     try {
       if (onUnpay) {
-        await onUnpay(transaction);
+        await onUnpay(activeTransaction);
       } else {
-        await api.post(`/transactions/${transaction.id}/unpay`);
+        await api.post(`/transactions/${activeTransaction.id}/unpay`);
       }
       setUnpaySuccess('Pago deshecho correctamente');
       setTimeout(() => {
         closeModal({ idModal: id });
-        setUnpaySuccess(null);
-        onCloseRef.current?.();
       }, 1000);
     } catch (err: any) {
       setUnpayError(
@@ -157,8 +168,8 @@ export const ModalTransactionDetails = ({
 
   const handleDeleteClick = () => {
     closeModal({ idModal: id });
-    if (onDelete && transaction) {
-      setTimeout(() => onDelete(transaction), 150);
+    if (onDelete && activeTransaction) {
+      setTimeout(() => onDelete(activeTransaction), 150);
     }
   };
 
@@ -185,12 +196,11 @@ export const ModalTransactionDetails = ({
               className="btn-close"
               data-bs-dismiss="modal"
               aria-label="Cerrar"
-              onClick={onClose}
               disabled={unpayLoading}
             />
           </div>
 
-          {transaction ? (
+          {activeTransaction ? (
             <>
               <div className="modal-body">
                 {/* Monto principal */}
@@ -206,7 +216,7 @@ export const ModalTransactionDetails = ({
                     }}
                   >
                     {isIncome ? '+' : isExpense ? '-' : ''}
-                    {formatCurrency(transaction.amount)}
+                    {formatCurrency(activeTransaction.amount)}
                   </h2>
                 </div>
 
@@ -214,7 +224,7 @@ export const ModalTransactionDetails = ({
                 <div className="d-flex flex-column gap-2 mb-3" style={{ fontSize: '0.9rem' }}>
                   <div className="d-flex justify-content-between py-1 border-bottom">
                     <span className="text-muted">Fecha:</span>
-                    <strong className="text-dark">{formatDate(transaction.date)}</strong>
+                    <strong className="text-dark">{formatDate(activeTransaction.date)}</strong>
                   </div>
 
                   {recordTime && (
@@ -274,8 +284,8 @@ export const ModalTransactionDetails = ({
                         minHeight: '40px',
                       }}
                     >
-                      {transaction.description && transaction.description.trim() !== ''
-                        ? transaction.description
+                      {activeTransaction.description && activeTransaction.description.trim() !== ''
+                        ? activeTransaction.description
                         : 'Sin descripción registrada'}
                     </p>
                   </div>
@@ -296,29 +306,31 @@ export const ModalTransactionDetails = ({
                 </div>
               </div>
 
-              <div className="modal-footer d-flex justify-content-end gap-2">
-                {canUnpay && (
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={handleUnpayClick}
-                    disabled={unpayLoading}
-                  >
-                    Deshacer Pago
-                  </button>
-                )}
+              {(canUnpay || onDelete) && (
+                <div className="modal-footer d-flex justify-content-end gap-2">
+                  {canUnpay && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleUnpayClick}
+                      disabled={unpayLoading}
+                    >
+                      Deshacer Pago
+                    </button>
+                  )}
 
-                {onDelete && (
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={handleDeleteClick}
-                    disabled={unpayLoading}
-                  >
-                    Eliminar transacción
-                  </button>
-                )}
-              </div>
+                  {onDelete && (
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={handleDeleteClick}
+                      disabled={unpayLoading}
+                    >
+                      Eliminar transacción
+                    </button>
+                  )}
+                </div>
+              )}
             </>
           ) : null}
         </div>

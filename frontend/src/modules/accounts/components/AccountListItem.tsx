@@ -70,9 +70,9 @@ export const AccountListItem = ({ account, isSelected, onClick }: AccountListIte
   const getSolidPastelColor = () => {
     switch (account.tag) {
       case 'efectivo': return '#059669'; // emerald-600
-      case 'crédito': return '#c46262'; // red-600
+      case 'crédito': return '#d97706'; // red-600
       case 'billetera': return '#2563eb'; // blue-600
-      case 'ahorro': return '#d97706'; // amber-600
+      case 'ahorro': return '#06d9a4ff'; // amber-600
       default: return '#7c3aed'; // violet-600
     }
   };

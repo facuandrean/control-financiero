@@ -33,10 +33,7 @@ import {
   type TransactionDetailData,
 } from '../modules/transactions';
 import { DebtForm, useDebts } from '../modules/debts';
-import type {
-  CreateTransactionDTO,
-  TransactionType,
-} from '../types/transaction.types';
+import type { CreateTransactionDTO } from '../types/transaction.types';
 import type { PendingInstallmentItem } from '../types/dashboard.types';
 
 import './dashboardPage.css';
@@ -92,8 +89,6 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
   // Accounts module integration
   const { accounts, fetchAccounts } = useAccounts();
 
-  const [modalTxType, setModalTxType] = useState<TransactionType>('Income');
-  const [isCreditCardMode, setIsCreditCardMode] = useState(false);
   const [selectedTxDetails, setSelectedTxDetails] =
     useState<TransactionDetailData | null>(null);
   const [isTxSuccessClosing, setIsTxSuccessClosing] = useState(false);
@@ -180,20 +175,28 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
     Number(selectedYear) === now.getFullYear();
 
   // Quick action modal openers
-  const handleOpenTxModal = (type: TransactionType) => {
-    setIsCreditCardMode(false);
-    setModalTxType(type);
+  const handleOpenIncomeModal = () => {
     clearTxError();
     clearTxSuccess();
-    openModal({ idModal: 'dashboard-transaction-modal' });
+    openModal({ idModal: 'dashboard-income-modal' });
   };
 
-  const handleOpenCreditCardModal = () => {
-    setIsCreditCardMode(true);
-    setModalTxType('Expense');
+  const handleOpenExpenseModal = () => {
     clearTxError();
     clearTxSuccess();
-    openModal({ idModal: 'dashboard-transaction-modal' });
+    openModal({ idModal: 'dashboard-expense-modal' });
+  };
+
+  const handleOpenCardModal = () => {
+    clearTxError();
+    clearTxSuccess();
+    openModal({ idModal: 'dashboard-card-modal' });
+  };
+
+  const handleOpenTransferModal = () => {
+    clearTxError();
+    clearTxSuccess();
+    openModal({ idModal: 'dashboard-transfer-modal' });
   };
 
   const handleOpenDebtModal = () => {
@@ -203,13 +206,17 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
   };
 
   // Submission handlers with 1-second auto-close and real-time dashboard refresh
-  const handleTransactionSubmit = async (formData: CreateTransactionDTO) => {
+  const handleTransactionSubmit = async (
+    formData: CreateTransactionDTO,
+    modalId: string
+  ) => {
     const isOk = await createTransaction(formData);
     if (isOk) {
       setIsTxSuccessClosing(true);
       await fetchSummary(selectedMonth, selectedYear);
+      await fetchAccounts();
       setTimeout(() => {
-        closeModal({ idModal: 'dashboard-transaction-modal' });
+        closeModal({ idModal: modalId });
         setIsTxSuccessClosing(false);
       }, 1000);
     }
@@ -272,15 +279,11 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
       });
       setPaySuccess('¡Cuota pagada correctamente!');
       setIsPaySuccessClosing(true);
-      setTimeout(async () => {
+      await fetchSummary(selectedMonth, selectedYear);
+      await fetchAccounts();
+      setTimeout(() => {
         closeModal({ idModal: 'pay-installment-modal' });
         setIsPaySuccessClosing(false);
-        setSelectedInstallmentToPay(null);
-        setPayAccountId('');
-        clearPaySuccess();
-        clearPayError();
-        await fetchSummary(selectedMonth, selectedYear);
-        await fetchAccounts();
       }, 1000);
     } catch (err: any) {
       const msg =
@@ -290,14 +293,6 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
       setPayLoading(false);
     }
   };
-
-  const txModalTitle = isCreditCardMode
-    ? 'Pago con Tarjeta'
-    : modalTxType === 'Income'
-      ? 'Nuevo Ingreso'
-      : modalTxType === 'Expense'
-        ? 'Nuevo Egreso'
-        : 'Nueva Transferencia';
 
   const monthlyBalance = summary?.monthlyBalance ?? 0;
 
@@ -392,7 +387,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
           <button
             type="button"
             className="quick-action-btn quick-action-income"
-            onClick={() => handleOpenTxModal('Income')}
+            onClick={handleOpenIncomeModal}
             aria-label="Registrar Nuevo Ingreso"
           >
             <div className="quick-action-icon-wrapper">
@@ -407,7 +402,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
           <button
             type="button"
             className="quick-action-btn quick-action-expense"
-            onClick={() => handleOpenTxModal('Expense')}
+            onClick={handleOpenExpenseModal}
             aria-label="Registrar Nuevo Egreso"
           >
             <div className="quick-action-icon-wrapper">
@@ -422,7 +417,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
           <button
             type="button"
             className="quick-action-btn quick-action-credit-card"
-            onClick={handleOpenCreditCardModal}
+            onClick={handleOpenCardModal}
             aria-label="Registrar Pago con Tarjeta"
           >
             <div className="quick-action-icon-wrapper">
@@ -437,7 +432,7 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
           <button
             type="button"
             className="quick-action-btn quick-action-transfer"
-            onClick={() => handleOpenTxModal('Transfer')}
+            onClick={handleOpenTransferModal}
             aria-label="Realizar Transferencia"
           >
             <div className="quick-action-icon-wrapper">
@@ -752,25 +747,108 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
         </div>
       </div>
 
-      {/* MODAL TRANSACCIÓN (INGRESO / EGRESO / TRANSFERENCIA / PAGO CON TARJETA) */}
+      {/* 1. MODAL NUEVO INGRESO */}
       <ModalPost
-        title={txModalTitle}
-        id="dashboard-transaction-modal"
-        formId="dashboard-transaction-form"
+        title="Nuevo Ingreso"
+        id="dashboard-income-modal"
+        formId="dashboard-income-form"
         loading={txLoading || isTxSuccessClosing}
+        onHidden={() => {
+          clearTxError();
+          clearTxSuccess();
+        }}
       >
         <TransactionForm
-          key={`${modalTxType}-${isCreditCardMode}`}
-          onSubmit={handleTransactionSubmit}
+          onSubmit={(data) =>
+            handleTransactionSubmit(data, 'dashboard-income-modal')
+          }
           loading={txLoading}
           errorMessage={txError}
           successMessage={txSuccess}
           clearError={clearTxError}
           clearSuccess={clearTxSuccess}
-          defaultValues={{ type: modalTxType }}
-          modalId="dashboard-transaction-modal"
-          formId="dashboard-transaction-form"
-          creditCardMode={isCreditCardMode}
+          defaultValues={{ type: 'Income' }}
+          modalId="dashboard-income-modal"
+          formId="dashboard-income-form"
+        />
+      </ModalPost>
+
+      {/* 2. MODAL NUEVO EGRESO */}
+      <ModalPost
+        title="Nuevo Egreso"
+        id="dashboard-expense-modal"
+        formId="dashboard-expense-form"
+        loading={txLoading || isTxSuccessClosing}
+        onHidden={() => {
+          clearTxError();
+          clearTxSuccess();
+        }}
+      >
+        <TransactionForm
+          onSubmit={(data) =>
+            handleTransactionSubmit(data, 'dashboard-expense-modal')
+          }
+          loading={txLoading}
+          errorMessage={txError}
+          successMessage={txSuccess}
+          clearError={clearTxError}
+          clearSuccess={clearTxSuccess}
+          defaultValues={{ type: 'Expense' }}
+          modalId="dashboard-expense-modal"
+          formId="dashboard-expense-form"
+        />
+      </ModalPost>
+
+      {/* 3. MODAL PAGO CON TARJETA */}
+      <ModalPost
+        title="Pago con Tarjeta"
+        id="dashboard-card-modal"
+        formId="dashboard-card-form"
+        loading={txLoading || isTxSuccessClosing}
+        onHidden={() => {
+          clearTxError();
+          clearTxSuccess();
+        }}
+      >
+        <TransactionForm
+          onSubmit={(data) =>
+            handleTransactionSubmit(data, 'dashboard-card-modal')
+          }
+          loading={txLoading}
+          errorMessage={txError}
+          successMessage={txSuccess}
+          clearError={clearTxError}
+          clearSuccess={clearTxSuccess}
+          defaultValues={{ type: 'Expense' }}
+          modalId="dashboard-card-modal"
+          formId="dashboard-card-form"
+          creditCardMode={true}
+        />
+      </ModalPost>
+
+      {/* 4. MODAL NUEVA TRANSFERENCIA */}
+      <ModalPost
+        title="Nueva Transferencia"
+        id="dashboard-transfer-modal"
+        formId="dashboard-transfer-form"
+        loading={txLoading || isTxSuccessClosing}
+        onHidden={() => {
+          clearTxError();
+          clearTxSuccess();
+        }}
+      >
+        <TransactionForm
+          onSubmit={(data) =>
+            handleTransactionSubmit(data, 'dashboard-transfer-modal')
+          }
+          loading={txLoading}
+          errorMessage={txError}
+          successMessage={txSuccess}
+          clearError={clearTxError}
+          clearSuccess={clearTxSuccess}
+          defaultValues={{ type: 'Transfer' }}
+          modalId="dashboard-transfer-modal"
+          formId="dashboard-transfer-form"
         />
       </ModalPost>
 
@@ -780,6 +858,10 @@ export const DashboardPage = ({ section }: DashboardPageProps) => {
         id="dashboard-debt-modal"
         formId="dashboard-debt-form"
         loading={debtLoading || isDebtSuccessClosing}
+        onHidden={() => {
+          clearDebtError();
+          clearDebtSuccess();
+        }}
       >
         <DebtForm
           debts={debts}

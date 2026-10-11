@@ -155,17 +155,15 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'debt-movement-modal' });
         setIsSuccessClosing(false);
-        // Re-abrir la modal de detalles con los cambios reflejados
-        setTimeout(() => {
-          openModal({ idModal: 'debt-details-modal' });
-        }, 200);
       }, 1000);
     }
   };
 
   // Re-abrir modal de detalles si el usuario cierra/cancela la modal de movimiento sin enviar
   const handleMovementModalHidden = () => {
-    if (!isSuccessClosing && selectedDebt && !movementToDelete) {
+    clearError();
+    clearSuccess();
+    if (selectedDebt && !movementToDelete) {
       setTimeout(() => {
         openModal({ idModal: 'debt-details-modal' });
       }, 150);
@@ -190,19 +188,16 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
       setIsMovementDeleteClosing(true);
       setTimeout(() => {
         closeModal({ idModal: 'movement-delete-modal' });
-        setMovementToDelete(null);
         setIsMovementDeleteClosing(false);
-        // Re-abrir la modal de detalles con la lista actualizada
-        setTimeout(() => {
-          openModal({ idModal: 'debt-details-modal' });
-        }, 200);
       }, 1000);
     }
   };
 
   const handleMovementDeleteModalHidden = () => {
-    if (!isMovementDeleteClosing && selectedDebt) {
-      setMovementToDelete(null);
+    setMovementToDelete(null);
+    clearError();
+    clearSuccess();
+    if (selectedDebt) {
       setTimeout(() => {
         openModal({ idModal: 'debt-details-modal' });
       }, 150);
@@ -217,7 +212,6 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'debt-delete-modal' });
         closeModal({ idModal: 'debt-details-modal' });
-        setSelectedDebt(null);
         setIsSuccessClosing(false);
       }, 1000);
     }
@@ -244,24 +238,18 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
       setTimeout(() => {
         closeModal({ idModal: 'debt-edit-initial-modal' });
         setIsSuccessClosing(false);
-        if (selectedDebt?.id === editingInitialDebt.id) {
-          setTimeout(() => {
-            openModal({ idModal: 'debt-details-modal' });
-          }, 200);
-        }
-        setEditingInitialDebt(null);
       }, 1000);
     }
   };
 
   const handleEditInitialModalHidden = () => {
-    if (!isSuccessClosing && selectedDebt && editingInitialDebt) {
-      setEditingInitialDebt(null);
+    setEditingInitialDebt(null);
+    clearError();
+    clearSuccess();
+    if (selectedDebt) {
       setTimeout(() => {
         openModal({ idModal: 'debt-details-modal' });
       }, 150);
-    } else {
-      setEditingInitialDebt(null);
     }
   };
 
@@ -373,6 +361,10 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => {
+          clearError();
+          clearSuccess();
+        }}
       >
         <DebtForm
           debts={debts}
@@ -506,8 +498,11 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         errorMessage={error || undefined}
         successMessage={success || undefined}
         clearError={clearError}
-        clearSuccess={clearSuccess}
-        onHidden={() => setSelectedDebt(null)}
+        onHidden={() => {
+          setSelectedDebt(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Eliminar Cuenta"
         buttonLabelLoading="Eliminando..."
         confirmButtonClass="btn btn-danger"

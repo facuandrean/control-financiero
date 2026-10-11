@@ -149,6 +149,10 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => {
+          clearError();
+          clearSuccess();
+        }}
       >
         <EntityForm
           onSubmit={handleCreateSubmit}
@@ -170,7 +174,11 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedEntity(null)}
+        onHidden={() => {
+          setSelectedEntity(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonSubmit={{
           label: 'Actualizar',
           labelLoading: 'Actualizando...',
@@ -208,7 +216,11 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         successMessage={success || undefined}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedEntity(null)}
+        onHidden={() => {
+          setSelectedEntity(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Dar de baja"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-danger"
@@ -219,7 +231,6 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
               setIsSuccessClosing(true);
               setTimeout(() => {
                 closeModal({ idModal: 'confirm-deactivate-entity-modal' });
-                setSelectedEntity(null);
                 setIsSuccessClosing(false);
               }, 1000);
             }
@@ -246,7 +257,11 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
         successMessage={success || undefined}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedEntity(null)}
+        onHidden={() => {
+          setSelectedEntity(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Reactivar"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-success"
@@ -257,7 +272,6 @@ export const EntitiesPage = ({ section }: EntitiesPageProps) => {
               setIsSuccessClosing(true);
               setTimeout(() => {
                 closeModal({ idModal: 'confirm-reactivate-entity-modal' });
-                setSelectedEntity(null);
                 setIsSuccessClosing(false);
               }, 1000);
             }

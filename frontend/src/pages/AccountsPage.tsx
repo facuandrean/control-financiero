@@ -234,6 +234,10 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => {
+          clearError();
+          clearSuccess();
+        }}
       >
         <AccountForm
           onSubmit={handleSubmitAccount}
@@ -266,7 +270,10 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedAccountID(null)}
+        onHidden={() => {
+          clearError();
+          clearSuccess();
+        }}
         buttonSubmit={{
           label: "Actualizar",
           labelLoading: "Actualizando...",
@@ -312,7 +319,11 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedAccountID(null)}
+        onHidden={() => {
+          setSelectedAccountID(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Dar de baja"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-danger"
@@ -322,7 +333,6 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
           if (ok) {
             setIsSuccessClosing(true);
             setTimeout(() => {
-              setSelectedAccountID(null);
               closeModal({ idModal: 'confirm-deactivate-modal' });
               setIsSuccessClosing(false);
             }, 1000);
@@ -349,7 +359,11 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedAccountID(null)}
+        onHidden={() => {
+          setSelectedAccountID(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Reactivar"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-success"
@@ -359,7 +373,6 @@ export const AccountsPage = ({ section }: AccountsPageProps) => {
           if (ok) {
             setIsSuccessClosing(true);
             setTimeout(() => {
-              setSelectedAccountID(null);
               closeModal({ idModal: 'confirm-reactivate-modal' });
               setIsSuccessClosing(false);
             }, 1000);

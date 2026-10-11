@@ -149,6 +149,10 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
+        onHidden={() => {
+          clearError();
+          clearSuccess();
+        }}
       >
         <CategoryForm
           onSubmit={handleCreateSubmit}
@@ -170,7 +174,11 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         loading={loading || isSuccessClosing}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedCategory(null)}
+        onHidden={() => {
+          setSelectedCategory(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonSubmit={{
           label: 'Actualizar',
           labelLoading: 'Actualizando...',
@@ -208,7 +216,11 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedCategory(null)}
+        onHidden={() => {
+          setSelectedCategory(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Dar de baja"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-danger"
@@ -219,7 +231,6 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
               setIsSuccessClosing(true);
               setTimeout(() => {
                 closeModal({ idModal: 'confirm-deactivate-category-modal' });
-                setSelectedCategory(null);
                 setIsSuccessClosing(false);
               }, 1000);
             }
@@ -246,7 +257,11 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
         successMessage={success}
         clearError={clearError}
         clearSuccess={clearSuccess}
-        onHidden={() => setSelectedCategory(null)}
+        onHidden={() => {
+          setSelectedCategory(null);
+          clearError();
+          clearSuccess();
+        }}
         buttonLabel="Reactivar"
         buttonLabelLoading="Procesando..."
         confirmButtonClass="btn btn-success"
@@ -257,7 +272,6 @@ export const CategoriesPage = ({ section }: CategoriesPageProps) => {
               setIsSuccessClosing(true);
               setTimeout(() => {
                 closeModal({ idModal: 'confirm-reactivate-category-modal' });
-                setSelectedCategory(null);
                 setIsSuccessClosing(false);
               }, 1000);
             }
