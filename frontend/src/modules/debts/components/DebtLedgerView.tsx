@@ -1,5 +1,5 @@
 import React from 'react';
-import { BsArrowLeft, BsPlusLg, BsTrash, BsPencil } from 'react-icons/bs';
+import { BsArrowLeft, BsTrash, BsPencil } from 'react-icons/bs';
 import { BodyContent } from '../../../components/layout';
 import type { Debt, DebtMovement } from '../../../types/debt.types';
 import './debtLedgerView.css';
