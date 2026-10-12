@@ -77,15 +77,29 @@ exports.debtService = {
         const movementsMap = {};
         if (userDebtIds.length > 0) {
             const allMovements = await db_1.db
-                .select()
+                .select({
+                movement: debts_schema_1.debtMovements,
+                accountName: accounts_schema_1.accounts.name,
+                accountBank: accounts_schema_1.accounts.bank,
+            })
                 .from(debts_schema_1.debtMovements)
+                .leftJoin(transactions_schema_1.transactions, (0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.transactionID, transactions_schema_1.transactions.id))
+                .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
                 .where((0, drizzle_orm_1.inArray)(debts_schema_1.debtMovements.debtID, userDebtIds))
                 .orderBy((0, drizzle_orm_1.asc)(debts_schema_1.debtMovements.date), (0, drizzle_orm_1.asc)(debts_schema_1.debtMovements.createdAt))
                 .all();
             for (const m of allMovements) {
-                if (!movementsMap[m.debtID])
-                    movementsMap[m.debtID] = [];
-                movementsMap[m.debtID].push(m);
+                if (!movementsMap[m.movement.debtID])
+                    movementsMap[m.movement.debtID] = [];
+                const accLabel = m.accountName
+                    ? m.accountBank
+                        ? `${m.accountBank} - ${m.accountName}`
+                        : m.accountName
+                    : null;
+                movementsMap[m.movement.debtID].push({
+                    ...m.movement,
+                    accountName: accLabel,
+                });
             }
         }
         return rows.map((r) => {
@@ -131,12 +145,29 @@ exports.debtService = {
                 .where((0, drizzle_orm_1.eq)(entities_schema_1.entities.id, debt.entityID))
                 .get()) || null
             : null;
-        const movements = await db_1.db
-            .select()
+        const movementsRows = await db_1.db
+            .select({
+            movement: debts_schema_1.debtMovements,
+            accountName: accounts_schema_1.accounts.name,
+            accountBank: accounts_schema_1.accounts.bank,
+        })
             .from(debts_schema_1.debtMovements)
+            .leftJoin(transactions_schema_1.transactions, (0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.transactionID, transactions_schema_1.transactions.id))
+            .leftJoin(accounts_schema_1.accounts, (0, drizzle_orm_1.eq)(transactions_schema_1.transactions.accountID, accounts_schema_1.accounts.id))
             .where((0, drizzle_orm_1.eq)(debts_schema_1.debtMovements.debtID, id))
             .orderBy((0, drizzle_orm_1.asc)(debts_schema_1.debtMovements.date), (0, drizzle_orm_1.asc)(debts_schema_1.debtMovements.createdAt))
             .all();
+        const movements = movementsRows.map((r) => {
+            const accLabel = r.accountName
+                ? r.accountBank
+                    ? `${r.accountBank} - ${r.accountName}`
+                    : r.accountName
+                : null;
+            return {
+                ...r.movement,
+                accountName: accLabel,
+            };
+        });
         const totalCharges = movements
             .filter((m) => m.type === "CHARGE")
             .reduce((sum, m) => sum + m.amount, 0);

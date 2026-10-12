@@ -11,7 +11,7 @@ import {
   DebtCard,
   DebtForm,
   MovementForm,
-  DebtTimeline,
+  DebtLedgerView,
   useDebts,
 } from '../modules/debts';
 import { useAuthStore } from '../store';
@@ -48,6 +48,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [selectedDebtForLedger, setSelectedDebtForLedger] = useState<Debt | null>(null);
   const [movementModalType, setMovementModalType] = useState<'CHARGE' | 'PAYMENT'>('CHARGE');
   const [movementToDelete, setMovementToDelete] = useState<DebtMovement | null>(null);
   const [editingInitialDebt, setEditingInitialDebt] = useState<Debt | null>(null);
@@ -59,7 +60,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     fetchDebts();
   }, [fetchDebts]);
 
-  // Mantener selectedDebt sincronizado cuando se actualice la lista de deudas
+  // Mantener selectedDebt y selectedDebtForLedger sincronizados cuando se actualice la lista de deudas
   useEffect(() => {
     if (selectedDebt) {
       const refreshed = debts.find((d) => d.id === selectedDebt.id);
@@ -67,7 +68,17 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         setSelectedDebt(refreshed);
       }
     }
-  }, [debts]);
+    if (selectedDebtForLedger) {
+      const refreshed = debts.find((d) => d.id === selectedDebtForLedger.id);
+      if (refreshed) {
+        setSelectedDebtForLedger(refreshed);
+      }
+    }
+  }, [debts, selectedDebt, selectedDebtForLedger]);
+
+  const currentLedgerDebt = selectedDebtForLedger
+    ? debts.find((d) => d.id === selectedDebtForLedger.id) || selectedDebtForLedger
+    : null;
 
   const filteredDebts = debts.filter((d) => {
     const matchesSearch =
@@ -116,23 +127,12 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     }
   };
 
-  const handleOpenDetails = (debt: Debt) => {
-    setSelectedDebt(debt);
-    clearError();
-    clearSuccess();
-    openModal({ idModal: 'debt-details-modal' });
-  };
-
   const handleOpenChargeModal = (debt: Debt) => {
     setSelectedDebt(debt);
     setMovementModalType('CHARGE');
     clearError();
     clearSuccess();
-    // Cerrar modal de detalles para que no quede visible detrás
-    closeModal({ idModal: 'debt-details-modal' });
-    setTimeout(() => {
-      openModal({ idModal: 'debt-movement-modal' });
-    }, 200);
+    openModal({ idModal: 'debt-movement-modal' });
   };
 
   const handleOpenPaymentModal = (debt: Debt) => {
@@ -140,16 +140,13 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     setMovementModalType('PAYMENT');
     clearError();
     clearSuccess();
-    // Cerrar modal de detalles para que no quede visible detrás
-    closeModal({ idModal: 'debt-details-modal' });
-    setTimeout(() => {
-      openModal({ idModal: 'debt-movement-modal' });
-    }, 200);
+    openModal({ idModal: 'debt-movement-modal' });
   };
 
   const handleMovementSubmit = async (data: CreateMovementDTO) => {
-    if (!selectedDebt?.id) return;
-    const isOk = await addMovement(selectedDebt.id, data);
+    const targetDebt = selectedDebt || currentLedgerDebt;
+    if (!targetDebt?.id) return;
+    const isOk = await addMovement(targetDebt.id, data);
     if (isOk) {
       setIsSuccessClosing(true);
       setTimeout(() => {
@@ -159,26 +156,16 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     }
   };
 
-  // Re-abrir modal de detalles si el usuario cierra/cancela la modal de movimiento sin enviar
   const handleMovementModalHidden = () => {
     clearError();
     clearSuccess();
-    if (selectedDebt && !movementToDelete) {
-      setTimeout(() => {
-        openModal({ idModal: 'debt-details-modal' });
-      }, 150);
-    }
   };
 
-  // Eliminar movimiento usando modal de confirmación en lugar de alert
   const handleRequestDeleteMovement = (movement: DebtMovement) => {
     setMovementToDelete(movement);
     clearError();
     clearSuccess();
-    closeModal({ idModal: 'debt-details-modal' });
-    setTimeout(() => {
-      openModal({ idModal: 'movement-delete-modal' });
-    }, 200);
+    openModal({ idModal: 'movement-delete-modal' });
   };
 
   const handleConfirmDeleteMovement = async () => {
@@ -197,11 +184,6 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     setMovementToDelete(null);
     clearError();
     clearSuccess();
-    if (selectedDebt) {
-      setTimeout(() => {
-        openModal({ idModal: 'debt-details-modal' });
-      }, 150);
-    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -211,8 +193,10 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
       setIsSuccessClosing(true);
       setTimeout(() => {
         closeModal({ idModal: 'debt-delete-modal' });
-        closeModal({ idModal: 'debt-details-modal' });
         setIsSuccessClosing(false);
+        if (selectedDebtForLedger?.id === selectedDebt.id) {
+          setSelectedDebtForLedger(null);
+        }
       }, 1000);
     }
   };
@@ -221,10 +205,7 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     setEditingInitialDebt(debt);
     clearError();
     clearSuccess();
-    closeModal({ idModal: 'debt-details-modal' });
-    setTimeout(() => {
-      openModal({ idModal: 'debt-edit-initial-modal' });
-    }, 200);
+    openModal({ idModal: 'debt-edit-initial-modal' });
   };
 
   const handleUpdateInitialSubmit = async (formData: { initialAmount: any }) => {
@@ -246,12 +227,9 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
     setEditingInitialDebt(null);
     clearError();
     clearSuccess();
-    if (selectedDebt) {
-      setTimeout(() => {
-        openModal({ idModal: 'debt-details-modal' });
-      }, 150);
-    }
   };
+
+  const activeDebtForMovement = selectedDebt || currentLedgerDebt;
 
   return (
     <MainLayout
@@ -259,99 +237,112 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
       username={user?.name || 'Usuario'}
       email={user?.email || ''}
     >
-      <BodyHeader
-        title="Deudas y Cobros"
-        description="Gestiona tus compromisos de pago y cuentas por cobrar con un sistema de cuenta corriente y línea de tiempo."
-        isMobile={isMobile}
-        button={{
-          label: 'Nueva deuda',
-          labelLoading: 'Agregando...',
-          className: 'btn-add-debt',
-          onClick: () => {
-            clearError();
-            clearSuccess();
-            openModal({ idModal: 'debt-create-modal' });
-          },
-          visible: true,
-        }}
-      />
+      {currentLedgerDebt ? (
+        <DebtLedgerView
+          debt={currentLedgerDebt}
+          onBack={() => setSelectedDebtForLedger(null)}
+          onOpenChargeModal={handleOpenChargeModal}
+          onOpenPaymentModal={handleOpenPaymentModal}
+          onRequestDeleteMovement={handleRequestDeleteMovement}
+          onEditInitialAmount={handleOpenEditInitialAmount}
+        />
+      ) : (
+        <>
+          <BodyHeader
+            title="Deudas y Cobros"
+            description="Gestiona tus compromisos de pago y cuentas por cobrar con un sistema de cuenta corriente y línea de tiempo."
+            isMobile={isMobile}
+            button={{
+              label: 'Nueva deuda',
+              labelLoading: 'Agregando...',
+              className: 'btn-add-debt',
+              onClick: () => {
+                clearError();
+                clearSuccess();
+                openModal({ idModal: 'debt-create-modal' });
+              },
+              visible: true,
+            }}
+          />
 
-      <div className="debts-page-container">
-        {/* MÉTRICAS FINANCIERAS */}
-        <DebtMetrics debts={debts} />
+          <div className="debts-page-container">
+            {/* MÉTRICAS FINANCIERAS */}
+            <DebtMetrics debts={debts} />
 
-        {/* CONTROLES Y FILTROS */}
-        <BodyContent className="debts-controls-box">
-          <div className="debts-filters">
-            <div className="debts-filter-buttons">
-              <button
-                type="button"
-                className={`btn-filter-tag ${activeFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setActiveFilter('all')}
-              >
-                Todas
-              </button>
-              <button
-                type="button"
-                className={`btn-filter-tag ${activeFilter === 'Payable' ? 'active' : ''}`}
-                onClick={() => setActiveFilter('Payable')}
-              >
-                Debo
-              </button>
-              <button
-                type="button"
-                className={`btn-filter-tag ${activeFilter === 'Receivable' ? 'active' : ''}`}
-                onClick={() => setActiveFilter('Receivable')}
-              >
-                Me Deben
-              </button>
-              <button
-                type="button"
-                className={`btn-filter-tag ${activeFilter === 'Settled' ? 'active' : ''}`}
-                onClick={() => setActiveFilter('Settled')}
-              >
-                Saldadas
-              </button>
-            </div>
+            {/* CONTROLES Y FILTROS */}
+            <BodyContent className="debts-controls-box">
+              <div className="debts-filters">
+                <div className="debts-filter-buttons">
+                  <button
+                    type="button"
+                    className={`btn-filter-tag ${activeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setActiveFilter('all')}
+                  >
+                    Todas
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn-filter-tag ${activeFilter === 'Payable' ? 'active' : ''}`}
+                    onClick={() => setActiveFilter('Payable')}
+                  >
+                    Debo
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn-filter-tag ${activeFilter === 'Receivable' ? 'active' : ''}`}
+                    onClick={() => setActiveFilter('Receivable')}
+                  >
+                    Me Deben
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn-filter-tag ${activeFilter === 'Settled' ? 'active' : ''}`}
+                    onClick={() => setActiveFilter('Settled')}
+                  >
+                    Saldadas
+                  </button>
+                </div>
 
-            <input
-              type="text"
-              placeholder="Buscar por persona o entidad..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="debts-search-input"
-            />
-          </div>
-        </BodyContent>
+                <input
+                  type="text"
+                  placeholder="Buscar por persona o entidad..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="debts-search-input"
+                />
+              </div>
+            </BodyContent>
 
-        {/* GRILLA DE TARJETAS */}
-        {loading && debts.length === 0 ? (
-          <div className="debts-loading-state">
-            <Loading />
+            {/* GRILLA DE TARJETAS */}
+            {loading && debts.length === 0 ? (
+              <div className="debts-loading-state">
+                <Loading />
+              </div>
+            ) : filteredDebts.length === 0 ? (
+              <div className="debts-empty-state">
+                <p>No se encontraron cuentas de deuda con los filtros seleccionados.</p>
+              </div>
+            ) : (
+              <div className="debts-grid">
+                {filteredDebts.map((debt) => (
+                  <DebtCard
+                    key={debt.id}
+                    debt={debt}
+                    onSelectDebt={(d) => setSelectedDebtForLedger(d)}
+                    onEdit={handleOpenEditInitialAmount}
+                    onDelete={(d) => {
+                      setSelectedDebt(d);
+                      clearError();
+                      clearSuccess();
+                      openModal({ idModal: 'debt-delete-modal' });
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        ) : filteredDebts.length === 0 ? (
-          <div className="debts-empty-state">
-            <p>No se encontraron cuentas de deuda con los filtros seleccionados.</p>
-          </div>
-        ) : (
-          <div className="debts-grid">
-            {filteredDebts.map((debt) => (
-              <DebtCard
-                key={debt.id}
-                debt={debt}
-                onSelectDebt={handleOpenDetails}
-                onEdit={handleOpenEditInitialAmount}
-                onDelete={(d) => {
-                  setSelectedDebt(d);
-                  clearError();
-                  clearSuccess();
-                  openModal({ idModal: 'debt-delete-modal' });
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+        </>
+      )}
 
       {/* MODAL CREAR DEUDA (CON UX INTELIGENTE) */}
       <ModalPost
@@ -379,41 +370,6 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
         />
       </ModalPost>
 
-      {/* MODAL DETALLES: LÍNEA DE TIEMPO (TIMELINE) */}
-      <ModalPost
-        title={
-          selectedDebt
-            ? `Libreta: ${selectedDebt.entity?.name || 'Cuenta Corriente'}`
-            : 'Detalles de la Libreta'
-        }
-        id="debt-details-modal"
-        loading={loading}
-        clearError={clearError}
-        clearSuccess={clearSuccess}
-        customFooter={
-          <div className="w-100 d-flex justify-content-end">
-            <button
-              type="button"
-              className="btn btn-outline-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cerrar
-            </button>
-          </div>
-        }
-      >
-        {selectedDebt && (
-          <DebtTimeline
-            key={selectedDebt.id}
-            debt={selectedDebt}
-            onRequestDeleteMovement={handleRequestDeleteMovement}
-            onOpenChargeModal={handleOpenChargeModal}
-            onOpenPaymentModal={handleOpenPaymentModal}
-            onEditInitialAmount={handleOpenEditInitialAmount}
-          />
-        )}
-      </ModalPost>
-
       {/* MODAL REGISTRAR MOVIMIENTO (CARGO O PAGO) */}
       <ModalPost
         title={
@@ -438,10 +394,10 @@ export const DebtsPage = ({ section }: DebtsPageProps) => {
           onClick: () => {},
         }}
       >
-        {selectedDebt && (
+        {activeDebtForMovement && (
           <MovementForm
-            key={`${selectedDebt.id}-${movementModalType}`}
-            debt={selectedDebt}
+            key={`${activeDebtForMovement.id}-${movementModalType}`}
+            debt={activeDebtForMovement}
             type={movementModalType}
             onSubmit={handleMovementSubmit}
             loading={loading}

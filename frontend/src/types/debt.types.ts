@@ -12,6 +12,7 @@ export interface DebtMovement {
   description: string;
   date: string;
   transactionID?: string | null;
+  accountName?: string | null;
   createdAt?: string;
 }
 

@@ -12,7 +12,9 @@ import { Entity } from "../entities/entities.types";
 export type Debt = typeof debts.$inferSelect;
 export type NewDebt = typeof debts.$inferInsert;
 
-export type DebtMovement = typeof debtMovements.$inferSelect;
+export type DebtMovement = typeof debtMovements.$inferSelect & {
+  accountName?: string | null;
+};
 export type NewDebtMovement = typeof debtMovements.$inferInsert;
 
 export type CreateDebtDTO = z.infer<typeof createDebtSchema>;

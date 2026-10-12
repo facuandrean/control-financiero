@@ -103,15 +103,29 @@ export const debtService = {
 
     if (userDebtIds.length > 0) {
       const allMovements = await db
-        .select()
+        .select({
+          movement: debtMovements,
+          accountName: accounts.name,
+          accountBank: accounts.bank,
+        })
         .from(debtMovements)
+        .leftJoin(transactions, eq(debtMovements.transactionID, transactions.id))
+        .leftJoin(accounts, eq(transactions.accountID, accounts.id))
         .where(inArray(debtMovements.debtID, userDebtIds))
         .orderBy(asc(debtMovements.date), asc(debtMovements.createdAt))
         .all();
 
       for (const m of allMovements) {
-        if (!movementsMap[m.debtID]) movementsMap[m.debtID] = [];
-        movementsMap[m.debtID].push(m);
+        if (!movementsMap[m.movement.debtID]) movementsMap[m.movement.debtID] = [];
+        const accLabel = m.accountName
+          ? m.accountBank
+            ? `${m.accountBank} - ${m.accountName}`
+            : m.accountName
+          : null;
+        movementsMap[m.movement.debtID].push({
+          ...m.movement,
+          accountName: accLabel,
+        });
       }
     }
 
@@ -165,12 +179,30 @@ export const debtService = {
           .get()) || null
       : null;
 
-    const movements = await db
-      .select()
+    const movementsRows = await db
+      .select({
+        movement: debtMovements,
+        accountName: accounts.name,
+        accountBank: accounts.bank,
+      })
       .from(debtMovements)
+      .leftJoin(transactions, eq(debtMovements.transactionID, transactions.id))
+      .leftJoin(accounts, eq(transactions.accountID, accounts.id))
       .where(eq(debtMovements.debtID, id))
       .orderBy(asc(debtMovements.date), asc(debtMovements.createdAt))
       .all();
+
+    const movements = movementsRows.map((r) => {
+      const accLabel = r.accountName
+        ? r.accountBank
+          ? `${r.accountBank} - ${r.accountName}`
+          : r.accountName
+        : null;
+      return {
+        ...r.movement,
+        accountName: accLabel,
+      };
+    });
 
     const totalCharges = movements
       .filter((m) => m.type === "CHARGE")
